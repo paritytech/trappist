@@ -1,5 +1,5 @@
 use sp_core::{Pair, Public, sr25519};
-use node_template_runtime::{
+use trappist_runtime::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaConfig,
 	SudoConfig, SystemConfig, WASM_BINARY, Signature
 };
@@ -7,9 +7,12 @@ use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{Verify, IdentifyAccount};
 use sc_service::ChainType;
+use jsonrpc_core::serde_json::json;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
+
+const DEFAULT_PROTOCOL_ID: &str = "hop";
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig>;
@@ -69,9 +72,18 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
-		None,
+		Some(DEFAULT_PROTOCOL_ID),
 		// Properties
-		None,
+		Some(
+			json!({
+				"tokenSymbol": "HOP",
+				"tokenDecimals": 12,
+				"ss58Format": 42
+			})
+			.as_object()
+			.unwrap()
+			.to_owned()
+		),
 		// Extensions
 		None,
 	))
@@ -117,9 +129,18 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		// Telemetry
 		None,
 		// Protocol ID
-		None,
+		Some(DEFAULT_PROTOCOL_ID),
 		// Properties
-		None,
+		Some(
+			json!({
+				"tokenSymbol": "HOP",
+				"tokenDecimals": 12,
+				"ss58Format": 42
+			})
+			.as_object()
+			.unwrap()
+			.to_owned()
+		),
 		// Extensions
 		None,
 	))

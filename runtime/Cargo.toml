@@ -4,13 +4,13 @@ tag = 'monthly-2021-07'
 version = '4.0.0'
 
 [package]
-authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
+authors = ['Trappist Network <https://github.com/TrappistNetwork>']
 edition = '2018'
-homepage = 'https://substrate.dev'
+homepage = 'https://trappist.io'
 license = 'Unlicense'
-name = 'node-template-runtime'
-repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
-version = '3.0.0'
+name = 'trappist-runtime'
+repository = 'https://github.com/TrappistNetwork/trappist'
+version = '1.0.0'
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
