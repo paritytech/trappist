@@ -3824,6 +3824,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-collective"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-07#83808aa815a9fbc528b76cd25ae1dec57e269771"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-contracts"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-07#83808aa815a9fbc528b76cd25ae1dec57e269771"
@@ -7229,8 +7244,8 @@ dependencies = [
 
 [[package]]
 name = "substrate-validator-set"
-version = "3.0.0"
-source = "git+https://github.com/gautamdhameja/substrate-validator-set.git#9c6f4ae8f1c632bba0c2ff7802a35ba0db7cf989"
+version = "3.0.1"
+source = "git+https://github.com/gautamdhameja/substrate-validator-set.git#ff4376cd7bc922bde317f1decc342a76611cd7c9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7851,6 +7866,7 @@ dependencies = [
  "hex-literal",
  "pallet-aura",
  "pallet-balances",
+ "pallet-collective",
  "pallet-contracts",
  "pallet-contracts-primitives",
  "pallet-contracts-rpc-runtime-api",
