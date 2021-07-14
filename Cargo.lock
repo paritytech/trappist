@@ -3779,6 +3779,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-assets"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-07#83808aa815a9fbc528b76cd25ae1dec57e269771"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "max-encoded-len",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-aura"
 version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-07#83808aa815a9fbc528b76cd25ae1dec57e269771"
@@ -7864,6 +7878,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "hex-literal",
+ "pallet-assets",
  "pallet-aura",
  "pallet-balances",
  "pallet-collective",

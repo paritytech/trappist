@@ -22,6 +22,7 @@ runtime-benchmarks = [
     'frame-system-benchmarking',
     'frame-system/runtime-benchmarks',
     'hex-literal',
+    'pallet-assets/runtime-benchmarks',
     'pallet-balances/runtime-benchmarks',
     'pallet-template/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
@@ -33,6 +34,7 @@ std = [
     'frame-support/std',
     'frame-system-rpc-runtime-api/std',
     'frame-system/std',
+    'pallet-assets/std',
     'pallet-aura/std',
     'pallet-balances/std',
     'pallet-grandpa/std',
@@ -107,6 +109,12 @@ version = '3.0.0'
 [dependencies.hex-literal]
 optional = true
 version = '0.3.1'
+
+[dependencies.pallet-assets]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-07'
+version = '3.0.0'
 
 [dependencies.pallet-aura]
 default-features = false

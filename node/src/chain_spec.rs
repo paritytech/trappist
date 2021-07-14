@@ -90,7 +90,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		Some(
 			json!({
 				"tokenSymbol": "HOP",
-				"tokenDecimals": 12,
+				"tokenDecimals": 14,
 				"ss58Format": 42
 			})
 			.as_object()
@@ -147,7 +147,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		Some(
 			json!({
 				"tokenSymbol": "HOP",
-				"tokenDecimals": 12,
+				"tokenDecimals": 14,
 				"ss58Format": 42
 			})
 			.as_object()
