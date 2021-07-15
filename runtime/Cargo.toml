@@ -24,9 +24,12 @@ runtime-benchmarks = [
     'hex-literal',
     'pallet-assets/runtime-benchmarks',
     'pallet-balances/runtime-benchmarks',
+    'pallet-collective/runtime-benchmarks',
+    'pallet-contracts/runtime-benchmarks',
     'pallet-template/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
     'sp-runtime/runtime-benchmarks',
+    'pallet-session-benchmarking',
 ]
 std = [
     'codec/std',
@@ -142,6 +145,13 @@ version = '3.0.0'
 
 [dependencies.pallet-session]
 default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-07'
+version = '3.0.0'
+
+[dependencies.pallet-session-benchmarking]
+default-features = false
+optional = true
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-07'
 version = '3.0.0'
