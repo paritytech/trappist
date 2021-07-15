@@ -291,8 +291,8 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = deposit(0, 1);
 }
 
-/// We allow root to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureRoot<AccountId>;
+/// We allow Root and Council to execute privileged asset operations.
+pub type AssetsForceOrigin = EnsureRootOrHalfCouncil;
 
 impl pallet_assets::Config for Runtime {
     type Event = Event;
