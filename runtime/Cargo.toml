@@ -24,9 +24,12 @@ runtime-benchmarks = [
     'hex-literal',
     'pallet-assets/runtime-benchmarks',
     'pallet-balances/runtime-benchmarks',
+    'pallet-collective/runtime-benchmarks',
+    'pallet-contracts/runtime-benchmarks',
     'pallet-template/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
     'sp-runtime/runtime-benchmarks',
+    'pallet-session-benchmarking',
 ]
 std = [
     'codec/std',
@@ -57,9 +60,10 @@ std = [
     'sp-version/std',
     'validatorset/std',
     'pallet-session/std',
-    "pallet-contracts/std",
-    "pallet-contracts-primitives/std",
-    "pallet-contracts-rpc-runtime-api/std",
+    'pallet-contracts/std',
+    'pallet-contracts-primitives/std',
+    'pallet-contracts-rpc-runtime-api/std',
+    'pallet-collective/std'
 ]
 [dependencies.codec]
 default-features = false
@@ -141,6 +145,13 @@ version = '3.0.0'
 
 [dependencies.pallet-session]
 default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-07'
+version = '3.0.0'
+
+[dependencies.pallet-session-benchmarking]
+default-features = false
+optional = true
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'monthly-2021-07'
 version = '3.0.0'
@@ -244,25 +255,32 @@ version = '3.0.0'
 default-features = false
 package = 'substrate-validator-set'
 git = 'https://github.com/gautamdhameja/substrate-validator-set.git'
-version = '3.0.0'
+version = '3.0.1'
 
 [dependencies.pallet-contracts]
-git = "https://github.com/paritytech/substrate" 
-package = "pallet-contracts"
+git = 'https://github.com/paritytech/substrate' 
+package = 'pallet-contracts'
 default-features = false
 tag = 'monthly-2021-07'
 version = '3.0.0'
 
 [dependencies.pallet-contracts-primitives]
-git = "https://github.com/paritytech/substrate" 
-package = "pallet-contracts-primitives"
+git = 'https://github.com/paritytech/substrate' 
+package = 'pallet-contracts-primitives'
 default-features = false
 tag = 'monthly-2021-07'
 version = '3.0.0'
 
 [dependencies.pallet-contracts-rpc-runtime-api]
-git = "https://github.com/paritytech/substrate" 
-package = "pallet-contracts-rpc-runtime-api"
+git = 'https://github.com/paritytech/substrate' 
+package = 'pallet-contracts-rpc-runtime-api'
+default-features = false
+tag = 'monthly-2021-07'
+version = '3.0.0'
+
+[dependencies.pallet-collective]
+git = 'https://github.com/paritytech/substrate' 
+package = 'pallet-collective'
 default-features = false
 tag = 'monthly-2021-07'
 version = '3.0.0'

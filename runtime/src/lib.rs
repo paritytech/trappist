@@ -7,10 +7,12 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use sp_std::prelude::*;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata,
+	u32_trait::{_1, _2,}};
 use sp_runtime::{
 	ApplyExtrinsicResult, generic, create_runtime_str, impl_opaque_keys, MultiSignature,
-	transaction_validity::{TransactionValidity, TransactionSource}
+	transaction_validity::{TransactionValidity, TransactionSource},
+	Perbill
 };
 use sp_runtime::traits::{
 	BlakeTwo256, Block as BlockT, AccountIdLookup, Verify, IdentifyAccount, NumberFor, OpaqueKeys
@@ -27,7 +29,6 @@ use sp_version::NativeVersion;
 // A few exports that help ease life for downstream crates.
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-pub use sp_runtime::{Permill, Perbill};
 pub use frame_support::{
 	construct_runtime, parameter_types, StorageValue,
 	traits::{KeyOwnerProofSystem, Randomness},
@@ -36,7 +37,9 @@ pub use frame_support::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
 	},
 };
-use frame_system::EnsureRoot;
+use frame_system::{
+	EnsureRoot, EnsureOneOf
+};
 use pallet_transaction_payment::CurrencyAdapter;
 
 /// Import the template pallet.
@@ -288,8 +291,8 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = deposit(0, 1);
 }
 
-/// We allow root to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureRoot<AccountId>;
+/// We allow Root and Council to execute privileged asset operations.
+pub type AssetsForceOrigin = EnsureRootOrHalfCouncil;
 
 impl pallet_assets::Config for Runtime {
     type Event = Event;
@@ -317,8 +320,32 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
+parameter_types! {
+	pub const CouncilMotionDuration: BlockNumber = 3 * MINUTES;
+	pub const CouncilMaxProposals: u32 = 100;
+	pub const CouncilMaxMembers: u32 = 100;
+}
+
+impl pallet_collective::Config for Runtime {
+	type Origin = Origin;
+	type Proposal = Call;
+	type Event = Event;
+	type MotionDuration = CouncilMotionDuration;
+	type MaxProposals = CouncilMaxProposals;
+	type MaxMembers = CouncilMaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+}
+
+type EnsureRootOrHalfCouncil = EnsureOneOf<
+	AccountId,
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId>
+>;
+
 impl validatorset::Config for Runtime {
 	type Event = Event;
+	type AddRemoveOrigin = EnsureRootOrHalfCouncil;
 }
 
 impl pallet_session::Config for Runtime {
@@ -393,9 +420,9 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
-		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
 		Contracts: pallet_contracts::{Pallet, Call, Storage, Event<T>},
+		Council: pallet_collective::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>}
 	}
 );
