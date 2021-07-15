@@ -340,7 +340,7 @@ impl pallet_collective::Config for Runtime {
 type EnsureRootOrHalfCouncil = EnsureOneOf<
 	AccountId,
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId>
+	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId>
 >;
 
 impl validatorset::Config for Runtime {
