@@ -63,7 +63,8 @@ std = [
     'pallet-contracts/std',
     'pallet-contracts-primitives/std',
     'pallet-contracts-rpc-runtime-api/std',
-    'pallet-collective/std'
+    'pallet-collective/std',
+    'pallet-identity/std'
 ]
 [dependencies.codec]
 default-features = false
@@ -128,6 +129,13 @@ version = '3.0.0'
 [dependencies.pallet-balances]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
+tag = 'monthly-2021-07'
+version = '3.0.0'
+
+[dependencies.pallet-identity]
+git = 'https://github.com/paritytech/substrate' 
+package = 'pallet-identity'
+default-features = false
 tag = 'monthly-2021-07'
 version = '3.0.0'
 
