@@ -427,6 +427,34 @@ impl pallet_identity::Config for Runtime {
     type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const ClassDeposit: Balance = DOLLARS; // 1 UNIT deposit to create asset class
+	pub const InstanceDeposit: Balance = DOLLARS / 100; // 1/100 UNIT deposit to create asset instance
+	pub const KeyLimit: u32 = 32;	// Max 32 bytes per key
+	pub const ValueLimit: u32 = 64;	// Max 64 bytes per value
+	pub const UniquesMetadataDepositBase: Balance = deposit(1, 129);
+	pub const AttributeDepositBase: Balance = deposit(1, 0);
+	pub const DepositPerByte: Balance = deposit(0, 1);
+	pub const UniquesStringLimit: u32 = 128;
+}
+
+impl pallet_uniques::Config for Runtime {
+	type Event = Event;
+	type ClassId = u32;
+	type InstanceId = u32;
+	type Currency = Balances;
+	type ForceOrigin = AssetsForceOrigin;
+	type ClassDeposit = ClassDeposit;
+	type InstanceDeposit = InstanceDeposit;
+	type MetadataDepositBase = UniquesMetadataDepositBase;
+	type AttributeDepositBase = AttributeDepositBase;
+	type DepositPerByte = DepositPerByte;
+	type StringLimit = UniquesStringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -449,6 +477,7 @@ construct_runtime!(
 		Council: pallet_collective::{Pallet, Call, Storage, Origin<T>, Event<T>, Config<T>},
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>},
+		Uniques: pallet_uniques::{Pallet, Call, Storage, Event<T>},
 	}
 );
 

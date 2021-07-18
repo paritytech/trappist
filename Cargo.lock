@@ -4165,6 +4165,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-uniques"
+version = "3.0.0"
+source = "git+https://github.com/paritytech/substrate.git?tag=monthly-2021-07#83808aa815a9fbc528b76cd25ae1dec57e269771"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "parity-db"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8018,6 +8032,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-uniques",
  "parity-scale-codec",
  "sp-api",
  "sp-block-builder",
