@@ -1,10 +1,14 @@
 # Trappist
 
-Trappist is a versatile Proof-of-Authority (PoA) Blockchain network that supports hosting decentralized applications (dApps), including Smart Contracts, Crypto-tokens & Non-Fungible
+**Trappist** is a versatile Proof-of-Authority (PoA) Blockchain software that supports hosting decentralized applications (dApps), including Smart Contracts, Crypto-tokens & Non-Fungible
 Tokens (NFTs).
 
 This repository contains the source code of the Trappist Blockchain node & runtime, based on
 [Substrate](https://www.substrate.dev/), an open-source framework for building tailored Blockchain solutions.
+
+The term **Trappist** refers to a [style of beers](https://en.wikipedia.org/wiki/Trappist_beer) brewed in Abbeys by Trappist monks, and is generally associated with authenticity, craftsmanship, integrity and tradition. Aside from any religious consideration, we like to think we put as much care in crafting Blockchain software as monks brewing high-quality beer 🍺.
+
+As Trappist breweries are not intended to be profit-making ventures, this project is non-commercial, open-source software focused solely on experimentation and knowledge sharing with people interested in learning about decentralized technologies.
 
 ## Getting Started
 
