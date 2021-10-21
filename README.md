@@ -16,12 +16,14 @@ Follow the steps below to get started.
 
 ### Using Nix
 
-Install [nix](https://nixos.org/) and optionally [direnv](https://github.com/direnv/direnv) and [lorri](https://github.com/target/lorri) for a fully plug
-and play experience for setting up the development environment. To get all the correct dependencies activate direnv `direnv allow` and lorri `lorri shell`.
+Install [nix](https://nixos.org/) and optionally [direnv](https://github.com/direnv/direnv) and
+[lorri](https://github.com/target/lorri) for a fully plug and play experience for setting up the
+development environment. To get all the correct dependencies activate direnv `direnv allow` and
+lorri `lorri shell`.
 
 ### Rust Setup
 
-First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
+First, complete the [basic Rust setup instructions](./doc/rust-setup.md).
 
 ### Run
 
@@ -78,12 +80,14 @@ RUST_LOG=debug RUST_BACKTRACE=1 ./target/release/trappist -lruntime=debug --dev
 ### Connect with Polkadot-JS Apps Front-end
 
 Once the node template is running locally, you can connect it with **Polkadot-JS Apps** front-end
-to interact with your chain. [Click here](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944) connecting the Apps to your local Trappist node.
+to interact with your chain. [Click
+here](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944) connecting the Apps to your
+local node template.
 
 ### Multi-Node Local Testnet
 
-If you want to see the multi-node consensus algorithm in action, refer to
-[our Start a Private Network tutorial](https://substrate.dev/docs/en/tutorials/start-a-private-network/).
+If you want to see the multi-node consensus algorithm in action, refer to our
+[Start a Private Network tutorial](https://substrate.dev/docs/en/tutorials/start-a-private-network/).
 
 ### Run in Docker
 
