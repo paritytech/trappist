@@ -183,6 +183,13 @@ default-features = false
 tag = 'monthly-2021-09+1'
 version = '4.0.0-dev'
 
+[dependencies.pallet-utility]
+git = 'https://github.com/paritytech/substrate' 
+package = 'pallet-utility'
+default-features = false
+tag = 'monthly-2021-09+1'
+version = '4.0.0-dev'
+
 [dependencies.sp-api]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -273,6 +280,7 @@ runtime-benchmarks = [
     'pallet-template/runtime-benchmarks',
     'pallet-timestamp/runtime-benchmarks',
     'pallet-uniques/runtime-benchmarks',
+    'pallet-utility/runtime-benchmarks',
     'sp-runtime/runtime-benchmarks',
 ]
 std = [
@@ -299,6 +307,7 @@ std = [
     'pallet-transaction-payment-rpc-runtime-api/std',
     'pallet-transaction-payment/std',
     'pallet-uniques/std',
+    'pallet-utility/std',
     'sp-api/std',
     'sp-block-builder/std',
     'sp-consensus-aura/std',
