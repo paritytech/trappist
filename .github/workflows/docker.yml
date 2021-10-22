@@ -1,0 +1,23 @@
+name: Node Docker image
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - uses: whoan/docker-build-with-cache-action@v5
+        with:
+          username: TrappistNetwork
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          image_name: trappist/trappist-node
+          image_tag: v1.0.0,latest
+          push_git_tag: true
