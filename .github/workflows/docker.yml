@@ -18,6 +18,6 @@ jobs:
           username: TrappistNetwork
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
-          image_name: TrappistNetwork/trappist-node
+          image_name: trappistnetwork/trappist-node
           image_tag: v1.0.0,latest
           push_git_tag: true
