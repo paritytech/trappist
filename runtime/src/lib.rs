@@ -726,7 +726,6 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_balances, Assets);
 			list_benchmark!(list, extra, pallet_balances, Balances);
 			list_benchmark!(list, extra, pallet_balances, Council);
-			list_benchmark!(list, extra, pallet_balances, Faucet);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
 			list_benchmark!(list, extra, pallet_balances, Uniques);
 			list_benchmark!(list, extra, pallet_utility, Utility);
