@@ -355,17 +355,22 @@ impl validatorset::Config for Runtime {
 	type AddRemoveOrigin = EnsureRootOrHalfCouncil;
 }
 
+parameter_types! {
+	pub const Period: u32 = 3 * MINUTES;
+	pub const Offset: u32 = 0;
+}
+
 impl pallet_session::Config for Runtime {
 	type SessionHandler = <opaque::SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
-	type ShouldEndSession = ValidatorSet;
+	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
+	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
 	type SessionManager = ValidatorSet;
 	type Event = Event;
 	type Keys = opaque::SessionKeys;
-	type NextSessionRotation = ValidatorSet;
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = validatorset::ValidatorOf<Self>;
 	type DisabledValidatorsThreshold = ();
-	type WeightInfo = pallet_session::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {

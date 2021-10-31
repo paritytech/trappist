@@ -7021,7 +7021,7 @@ dependencies = [
 [[package]]
 name = "substrate-validator-set"
 version = "4.0.0-dev"
-source = "git+https://github.com/gautamdhameja/substrate-validator-set.git?tag=monthly-2021-10#95c5ff0d21b27ce19fd8514b6575497fcc571715"
+source = "git+https://github.com/gautamdhameja/substrate-validator-set.git?tag=monthly-2021-10+1#0ec9330deb7e8bf740599b34657cff9084458a2d"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
