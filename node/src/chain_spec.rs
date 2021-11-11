@@ -170,7 +170,7 @@ fn testnet_genesis(
 				.collect::<Vec<_>>(),
 		},
 		validator_set: ValidatorSetConfig {
-			validators: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			initial_validators: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 		},
 		aura: AuraConfig { authorities: vec![] },
 		grandpa: GrandpaConfig { authorities: vec![] },
@@ -182,5 +182,6 @@ fn testnet_genesis(
 			members: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
+		transaction_payment: Default::default(),
 	}
 }
