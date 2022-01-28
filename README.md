@@ -59,7 +59,7 @@ node.
 
 ### Single-Node Development Chain
 
-This command will start the single-node development chain with persistent state:
+This command will start the single-node development chain with non-persistent state:
 
 ```bash
 ./target/release/trappist --dev
