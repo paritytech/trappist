@@ -23,7 +23,7 @@ lorri `lorri shell`.
 
 ### Rust Setup
 
-First, complete the [basic Rust setup instructions](./doc/rust-setup.md).
+First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 ### Run
 
@@ -87,7 +87,7 @@ local node template.
 ### Multi-Node Local Testnet
 
 If you want to see the multi-node consensus algorithm in action, refer to our
-[Start a Private Network tutorial](https://substrate.dev/docs/en/tutorials/start-a-private-network/).
+[Start a Private Network tutorial](https://docs.substrate.io/tutorials/v3/private-network)).
 
 ### Run in Docker
 

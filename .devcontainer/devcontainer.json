@@ -14,7 +14,7 @@
     3000,
     9944
   ],
-  "preCreateCommand": [
+  "onCreateCommand": [
     "cargo build",
     "cargo check"
   ],
