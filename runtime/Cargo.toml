@@ -273,6 +273,7 @@ runtime-benchmarks = [
     "pallet-balances/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",
     "pallet-contracts/runtime-benchmarks",
+    "pallet-identity/runtime-benchmarks",
     "pallet-scheduler/runtime-benchmarks",
     "pallet-template/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",

@@ -353,7 +353,7 @@ type EnsureRootOrHalfCouncil = EnsureOneOf<
 >;
 
 parameter_types! {
-	pub const MinAuthorities: u32 = 2;
+	pub const MinAuthorities: u32 = 1;
 }
 
 impl validatorset::Config for Runtime {
@@ -498,24 +498,33 @@ construct_runtime!(
 		NodeBlock = opaque::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
-		System: frame_system,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip,
-		Timestamp: pallet_timestamp,
-		Session: pallet_session,
-		ValidatorSet: validatorset,
-		Aura: pallet_aura,
-		Grandpa: pallet_grandpa,
-		Balances: pallet_balances,
-		TransactionPayment: pallet_transaction_payment,
-		Sudo: pallet_sudo,
-		TemplateModule: pallet_template,
-		Contracts: pallet_contracts,
-		Council: pallet_collective::<Instance1>,
-		Assets: pallet_assets,
-		Identity: pallet_identity,
-		Uniques: pallet_uniques,
-		Scheduler: pallet_scheduler,
-		Utility: pallet_utility,
+		// System stuff
+		System: frame_system = 0,
+		Timestamp: pallet_timestamp = 1,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip = 2,
+
+		// Monetary stuff
+		Balances: pallet_balances = 10,
+		TransactionPayment: pallet_transaction_payment = 11,
+		
+		// Consensus stuff
+		ValidatorSet: validatorset = 20,
+		Session: pallet_session = 21,
+		Aura: pallet_aura = 22,
+		Grandpa: pallet_grandpa = 23,
+		
+		// Runtime features
+		Sudo: pallet_sudo = 30,
+		Contracts: pallet_contracts = 31,
+		Council: pallet_collective::<Instance1> = 32,
+		Assets: pallet_assets = 33,
+		Identity: pallet_identity = 34,
+		Uniques: pallet_uniques = 35,
+		Scheduler: pallet_scheduler = 36,
+		Utility: pallet_utility = 37,
+
+		// Template
+		TemplatePallet: pallet_template = 100,
 	}
 );
 
@@ -726,13 +735,21 @@ impl_runtime_apis! {
 			let mut list = Vec::<BenchmarkList>::new();
 
 			list_benchmark!(list, extra, frame_benchmarking, BaselineBench::<Runtime>);
+
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_balances, Assets);
-			list_benchmark!(list, extra, pallet_balances, Balances);
-			list_benchmark!(list, extra, pallet_balances, Council);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, pallet_balances, Uniques);
+			
+			list_benchmark!(list, extra, pallet_balances, Balances);
+
+			list_benchmark!(list, extra, pallet_contracts, Contracts);
+			list_benchmark!(list, extra, pallet_collective, Council);
+			list_benchmark!(list, extra, pallet_assets, Assets);
+			list_benchmark!(list, extra, pallet_identity, Identity);
+			list_benchmark!(list, extra, pallet_uniques, Uniques);
+			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
 			list_benchmark!(list, extra, pallet_utility, Utility);
+
+			list_benchmark!(list, extra, pallet_template, TemplatePallet);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -767,14 +784,21 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			add_benchmark!(params, batches, frame_benchmarking, BaselineBench::<Runtime>);
+
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_assets, Assets);
-			add_benchmark!(params, batches, pallet_balances, Balances);
-			add_benchmark!(params, batches, pallet_collective, Council);
-			add_benchmark!(params, batches, pallet_template, TemplateModule);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
+
+			add_benchmark!(params, batches, pallet_balances, Balances);
+
+			add_benchmark!(params, batches, pallet_contracts, Contracts);
+			add_benchmark!(params, batches, pallet_collective, Council);
+			add_benchmark!(params, batches, pallet_assets, Assets);
+			add_benchmark!(params, batches, pallet_identity, Identity);
 			add_benchmark!(params, batches, pallet_uniques, Uniques);
+			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
+
+			add_benchmark!(params, batches, pallet_template, TemplatePallet);
 
 			Ok(batches)
 		}
