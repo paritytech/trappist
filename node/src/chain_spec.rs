@@ -183,5 +183,7 @@ fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		transaction_payment: Default::default(),
+		assets: Default::default(),
+		scheduler: Default::default(),
 	}
 }
