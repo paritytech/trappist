@@ -507,13 +507,13 @@ construct_runtime!(
 		// Monetary stuff
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-		
+
 		// Consensus stuff
 		ValidatorSet: validatorset = 20,
 		Session: pallet_session = 21,
 		Aura: pallet_aura = 22,
 		Grandpa: pallet_grandpa = 23,
-		
+
 		// Runtime features
 		Sudo: pallet_sudo = 30,
 		Contracts: pallet_contracts = 31,
@@ -553,7 +553,7 @@ pub type Executive = frame_executive::Executive<
 	Block,
 	frame_system::ChainContext<Runtime>,
 	Runtime,
-	AllPalletsWithSystem,
+	AllPallets,
 >;
 
 impl_runtime_apis! {
@@ -699,7 +699,7 @@ impl_runtime_apis! {
 			gas_limit: u64,
 			input_data: Vec<u8>,
 		) -> pallet_contracts_primitives::ContractExecResult {
-			Contracts::bare_call(origin, dest, value, gas_limit, input_data, true)
+			Contracts::bare_call(origin, dest, value, gas_limit, input_data, CONTRACTS_DEBUG_OUTPUT)
 		}
 
 		fn instantiate(
@@ -711,7 +711,7 @@ impl_runtime_apis! {
 			salt: Vec<u8>,
 		) -> pallet_contracts_primitives::ContractInstantiateResult<AccountId>
 		{
-			Contracts::bare_instantiate(origin, endowment, gas_limit, code, data, salt, true)
+			Contracts::bare_instantiate(origin, endowment, gas_limit, code, data, salt, CONTRACTS_DEBUG_OUTPUT)
 		}
 
 		fn get_storage(
@@ -739,7 +739,7 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			
+
 			list_benchmark!(list, extra, pallet_balances, Balances);
 
 			list_benchmark!(list, extra, pallet_contracts, Contracts);
