@@ -44,8 +44,7 @@ sp-session = { version = "4.0.0-dev", default-features = false, git = "https://g
 sp-std = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", tag = "devhub/latest" }
 sp-transaction-pool = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", tag = "devhub/latest" }
 sp-version = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", tag = "devhub/latest" }
-# validatorset = { package = "substrate-validator-set", default-features = false, git = "https://github.com/gautamdhameja/substrate-validator-set.git", branch = "master" }
-validatorset = { package = "substrate-validator-set", default-features = false, path = "../../substrate-validator-set" }
+validatorset = { package = "substrate-validator-set", default-features = false, git = "https://github.com/stiiifff/substrate-validator-set.git", branch = "upd-polkadot-v0.9.15-1" }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", tag = "devhub/latest" }
