@@ -30,7 +30,7 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 Use Rust's native `cargo` command to build and launch the Trappist node:
 
 ```sh
-cargo run --release -- --dev --tmp
+cargo run --release -- --dev
 ```
 
 ### Build
