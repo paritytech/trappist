@@ -185,6 +185,5 @@ fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		assets: Default::default(),
-		scheduler: Default::default(),
 	}
 }
