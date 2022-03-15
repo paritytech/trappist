@@ -79,6 +79,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		Some(DEFAULT_PROTOCOL_ID),
+		None,
 		// Properties
 		Some(
 			json!({
@@ -129,6 +130,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		None,
 		// Protocol ID
 		Some(DEFAULT_PROTOCOL_ID),
+		None,
 		// Properties
 		Some(
 			json!({
@@ -176,13 +178,12 @@ fn testnet_genesis(
 		grandpa: GrandpaConfig { authorities: vec![] },
 		sudo: SudoConfig {
 			// Assign network admin rights.
-			key: root_key,
+			key: Some(root_key),
 		},
 		council: CouncilConfig {
 			members: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 		assets: Default::default(),
-		scheduler: Default::default(),
 	}
 }
