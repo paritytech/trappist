@@ -533,7 +533,7 @@ type EnsureRootOrHalfCouncil = EnsureOneOf<
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
 	pub DeletionWeightLimit: Weight = AVERAGE_ON_INITIALIZE_RATIO *
-		BlockWeights::get().max_block;
+	RuntimeBlockWeights::get().max_block;
 	pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get() / (
 			<Runtime as pallet_contracts::Config>::WeightInfo::on_initialize_per_queue_item(1) -
 			<Runtime as pallet_contracts::Config>::WeightInfo::on_initialize_per_queue_item(0)

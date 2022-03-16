@@ -1,13 +1,13 @@
-use jsonrpc_core::serde_json::json;
+use cumulus_primitives_core::ParaId;
+use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
-use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
-	opaque::SessionKeys, AccountId, AuraConfig, BalancesConfig, CouncilConfig, GenesisConfig,
-	GrandpaConfig, SessionConfig, Signature, SudoConfig, SystemConfig, ValidatorSetConfig,
-	WASM_BINARY,
+	AccountId, AuraId, BalancesConfig, CouncilConfig, GenesisConfig,
+	Signature, SudoConfig, SystemConfig, EXISTENTIAL_DEPOSIT,
+	WASM_BINARY,SessionKeys, SessionConfig
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -118,7 +118,7 @@ pub fn development_config() -> ChainSpec {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
 			para_id: 1000,
 		},
-	))
+	)
 }
 
 pub fn local_testnet_config() -> ChainSpec {
@@ -175,7 +175,7 @@ pub fn local_testnet_config() -> ChainSpec {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
 			para_id: 1000,
 		},
-	))
+	)
 }
 
 /// Configure initial storage state for FRAME modules.
@@ -203,12 +203,12 @@ fn testnet_genesis(
 		},
 		session: SessionConfig {
 			keys: invulnerables
-				.into_iter()
+				.iter()
 				.map(|(acc, aura)| {
 					(
 						acc.clone(),                 // account id
-						acc,                         // validator id
-						template_session_keys(aura), // session keys
+						acc.clone(),                         // validator id
+						session_keys(aura.clone()), // session keys
 					)
 				})
 				.collect(),
@@ -225,6 +225,7 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: Some(root_key),
 		},
+		assets: Default::default(),
 		council: CouncilConfig {
 			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),

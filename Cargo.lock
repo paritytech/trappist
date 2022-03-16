@@ -10390,6 +10390,7 @@ dependencies = [
  "log",
  "pallet-contracts-rpc",
  "pallet-transaction-payment-rpc",
+ "parachains-common",
  "parity-scale-codec",
  "polkadot-cli",
  "polkadot-parachain",
