@@ -1,5 +1,22 @@
+// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// This file is part of Cumulus.
+
+// Cumulus is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Cumulus is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
+
 use crate::chain_spec;
 use clap::Parser;
+use sc_cli;
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
@@ -40,6 +57,10 @@ pub enum Subcommand {
 
 	/// Try some testing command against a specified runtime state.
 	TryRuntime(try_runtime_cli::TryRuntimeCmd),
+
+	/// Key management CLI utilities
+	#[clap(subcommand)]
+	Key(sc_cli::KeySubcommand),
 }
 
 /// Command for exporting the genesis state of the parachain
@@ -89,7 +110,7 @@ pub struct Cli {
 
 	/// Relay chain arguments
 	#[clap(raw = true)]
-	pub relay_chain_args: Vec<String>,
+	pub relaychain_args: Vec<String>,
 }
 
 #[derive(Debug)]

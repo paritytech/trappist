@@ -5,16 +5,14 @@ use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
-	AccountId, AuraId, BalancesConfig, CouncilConfig, GenesisConfig,
-	Signature, SudoConfig, SystemConfig, EXISTENTIAL_DEPOSIT,
-	WASM_BINARY,SessionKeys, SessionConfig
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, BalancesConfig, CouncilConfig,
+	GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec =
-	sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, Extensions>;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
@@ -206,8 +204,8 @@ fn testnet_genesis(
 				.iter()
 				.map(|(acc, aura)| {
 					(
-						acc.clone(),                 // account id
-						acc.clone(),                         // validator id
+						acc.clone(),                // account id
+						acc.clone(),                // validator id
 						session_keys(aura.clone()), // session keys
 					)
 				})
