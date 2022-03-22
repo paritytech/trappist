@@ -33,7 +33,7 @@ use sp_core::{
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT},
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -64,9 +64,10 @@ use frame_system::{
 };
 pub use parachains_common as common;
 pub use parachains_common::{
-	impls::DealWithFees, opaque, AccountId, AssetId, AuraId, Balance, BlockNumber, Hash, Header,
-	Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES,
-	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
+	impls::{AssetsToBlockAuthor, DealWithFees},
+	opaque, AccountId, AssetId, AuraId, Balance, BlockNumber, Hash, Header, Index, Signature,
+	AVERAGE_ON_INITIALIZE_RATIO, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
+	SLOT_DURATION,
 };
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
@@ -101,7 +102,7 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	pallet_asset_tx_payment::ChargeAssetTxPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
@@ -230,6 +231,14 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
+}
+
+impl pallet_asset_tx_payment::Config for Runtime {
+	type Fungibles = Assets;
+	type OnChargeAssetTransaction = pallet_asset_tx_payment::FungiblesAdapter<
+		pallet_assets::BalanceToAssetBalance<Balances, Runtime, ConvertInto>,
+		AssetsToBlockAuthor<Runtime>,
+	>;
 }
 
 parameter_types! {
@@ -467,6 +476,7 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
+		AssetTxPayment: pallet_asset_tx_payment::{Pallet} = 12,
 
 		// Collator support. The order of these 5 are important and shall not change.
 		Authorship: pallet_authorship::{Pallet, Call, Storage} = 20,
@@ -492,6 +502,8 @@ construct_runtime!(
 		Utility: pallet_utility = 47,
 		Preimage: pallet_preimage = 48,
 		Multisig: pallet_multisig = 49,
+
+		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 
 		// Template
 		TemplatePallet: pallet_template = 100,
