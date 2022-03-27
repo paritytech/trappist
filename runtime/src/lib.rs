@@ -360,6 +360,7 @@ impl pallet_assets::Config for Runtime {
 
 impl pallet_template::Config for Runtime {
 	type Event = Event;
+	type Currency = Balances;
 }
 
 type CouncilCollective = pallet_collective::Instance1;

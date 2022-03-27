@@ -6,7 +6,10 @@
             {
                 "name": "alice",
                 "wsPort": 9944,
-                "port": 30444
+                "port": 30444,
+                "flags": [
+                    "--log=xcm=trace"
+                ]
             },
             {
                 "name": "bob",
@@ -29,7 +32,7 @@
                 "runtime_genesis_config": {
                     "configuration": {
                         "config": {
-                            "validation_upgrade_frequency": 10,
+                            "validation_upgrade_frequency": 1,
                             "validation_upgrade_delay": 10
                         }
                     }
@@ -48,6 +51,7 @@
                     "port": 31444,
                     "name": "alice",
                     "flags": [
+                        "--log=xcm=trace,pallet-assets=trace",
                         "--",
                         "--execution=wasm"
                     ]
@@ -81,7 +85,7 @@
                     "port": 32444,
                     "name": "alice",
                     "flags": [
-                        "-lruntime=warn",
+                        "--log=xcm=trace,pallet-assets=trace",
                         "--",
                         "--execution=wasm"
                     ]
@@ -91,7 +95,6 @@
                     "port": 32445,
                     "name": "bob",
                     "flags": [
-                        "-lruntime=warn",
                         "--",
                         "--execution=wasm"
                     ]
@@ -101,7 +104,6 @@
                     "port": 32446,
                     "name": "charlie",
                     "flags": [
-                        "-lruntime=warn",
                         "--",
                         "--execution=wasm"
                     ]
@@ -118,6 +120,7 @@
                     "port": 33444,
                     "name": "alice",
                     "flags": [
+                        "--log=xcm=trace",
                         "--",
                         "--execution=wasm"
                     ]
