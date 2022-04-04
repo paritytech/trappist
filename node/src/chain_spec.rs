@@ -74,9 +74,9 @@ pub fn development_config() -> ChainSpec {
 
 	ChainSpec::from_genesis(
 		// Name
-		"Development",
+		"Trappist Development",
 		// ID
-		"dev",
+		"trappist_dev",
 		ChainType::Development,
 		move || {
 			testnet_genesis(
@@ -99,7 +99,7 @@ pub fn development_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Charlie"),
 				],
-				1000.into(),
+				2000.into(),
 			)
 		},
 		// Bootnodes
@@ -114,7 +114,7 @@ pub fn development_config() -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 1000,
+			para_id: 2000,
 		},
 	)
 }
@@ -128,9 +128,9 @@ pub fn local_testnet_config() -> ChainSpec {
 
 	ChainSpec::from_genesis(
 		// Name
-		"Local Testnet",
+		"Trappist Local",
 		// ID
-		"local_testnet",
+		"trappist_local",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
@@ -156,7 +156,7 @@ pub fn local_testnet_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
 				],
-				1000.into(),
+				2000.into(),
 			)
 		},
 		// Bootnodes
@@ -171,7 +171,7 @@ pub fn local_testnet_config() -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 1000,
+			para_id: 2000,
 		},
 	)
 }
