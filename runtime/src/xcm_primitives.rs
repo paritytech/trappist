@@ -1,6 +1,6 @@
 use sp_std::{marker::PhantomData, prelude::*};
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{FilterAssetLocation, MatchesFungible};
+use xcm_executor::traits::FilterAssetLocation;
 
 // From orml-traits
 // See https://github.com/open-web3-stack/open-runtime-module-library/blob/c439a50e01944aedeef33231e0824a17ed1813bc/traits/src/location.rs
@@ -71,7 +71,7 @@ where
 	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		if let Some(ref reserve) = ReserveProvider::reserve(asset) {
 			if reserve == origin {
-				return true;
+				return true
 			}
 		}
 		false

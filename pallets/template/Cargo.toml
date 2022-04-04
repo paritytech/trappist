@@ -18,31 +18,20 @@ scale-info = { version = "1.0", default-features = false, features = ["derive"] 
 frame-support = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17"}
 frame-system = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17" }
 frame-benchmarking = { default-features = false, version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17", optional = true }
-sp-runtime = { default-features = false, version = "5.0.0", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17" }
-sp-std = { default-features = false, version = "4.0.0", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17" }
-
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.17", default-features = false }
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.17" }
-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.17" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.17" }
 
 [dev-dependencies]
 sp-core = { default-features = false, version = "5.0.0", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17" }
 sp-io = { default-features = false, version = "5.0.0", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17" }
+sp-runtime = { default-features = false, version = "5.0.0", git = "https://github.com/paritytech/substrate.git",  branch = "polkadot-v0.9.17" }
 
 [features]
 default = ["std"]
 std = [
 	"codec/std",
  	"scale-info/std",
-	"sp-std/std",
  	"frame-support/std",
  	"frame-system/std",
  	"frame-benchmarking/std",
-	"cumulus-primitives-core/std",
-	"pallet-xcm/std",
-	"xcm-builder/std",
-	"xcm/std",
 ]
 
 runtime-benchmarks = ["frame-benchmarking"]

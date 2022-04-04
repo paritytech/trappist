@@ -5,21 +5,6 @@
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
 
-use frame_support::traits::{Currency, ReservableCurrency};
-
-use sp_std::{
-	boxed::Box,
-	convert::{TryFrom, TryInto},
-	marker::PhantomData,
-	prelude::*,
-	result::Result,
-	vec,
-};
-
-use cumulus_primitives_core::ParaId;
-
-use xcm::prelude::*;
-
 #[cfg(test)]
 mod mock;
 
@@ -29,34 +14,15 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
-pub type BalanceOf<T> =
-	<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-
 #[frame_support::pallet]
 pub mod pallet {
-	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-
-	use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-	use xcm::{latest::prelude::*, prelude::*};
-	use xcm_builder::{
-		AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-		AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
-		FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset,
-		ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-		SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-		SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	};
-
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_xcm::Config {
+	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-
-		/// The currency trait.
-		type Currency: ReservableCurrency<Self::AccountId>;
 	}
 
 	#[pallet::pallet]
@@ -88,7 +54,6 @@ pub mod pallet {
 		NoneValue,
 		/// Errors should have helpful documentation associated with them.
 		StorageOverflow,
-		InvalidAmount,
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.
@@ -112,81 +77,6 @@ pub mod pallet {
 			Self::deposit_event(Event::SomethingStored(something, who));
 			// Return a successful DispatchResultWithPostInfo
 			Ok(())
-		}
-
-		/// Teleport the relay chain's native asset to one of its parachain (using DMP).
-		///
-		/// Fee payment on the destination side is made in the native currency.
-		/// Note: fee-weight is calculated locally and thus remote weights are assumed to be
-		/// equal to local weights.
-		///
-		/// - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
-		/// - `dest_para_id`: id of the parachain the assets are being teleported to.
-		/// - `dest_account`: a beneficiary account of the parachain for the teleported asset.
-		/// - `amount`: amount of native currency to be withdrawn.
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
-		pub fn xcm_teleport_native_asset_down(
-			origin: OriginFor<T>,
-			dest_para_id: ParaId,
-			dest_account_id: [u8; 32],
-			amount: BalanceOf<T>,
-		) -> DispatchResult {
-			let parachain: VersionedMultiLocation =
-				(Parachain(dest_para_id.into()).into() as MultiLocation).into();
-
-			let beneficiary: VersionedMultiLocation =
-				(AccountId32 { network: Any, id: dest_account_id }.into() as MultiLocation).into();
-
-			let asset_amount = amount.try_into().map_err(|_| Error::<T>::InvalidAmount)?;
-			let assets: Vec<MultiAsset> =
-				vec![(AssetId::Concrete(Here.into()), Fungibility::Fungible(asset_amount)).into()];
-
-			pallet_xcm::Pallet::<T>::teleport_assets(
-				origin,
-				Box::new(parachain),
-				Box::new(beneficiary),
-				Box::new(assets.into()),
-				0,
-			)
-		}
-
-		/// Teleport a parachain's native asset to a relay chain account (using UMP).
-		/// This only works for parachains that are using the relay chain's native currency as their
-		/// own currency, typically for common good parachains e.g. Statemine/t, that the relay chain
-		/// trusts for upwards teleports (see 'TrustedTeleporters' in Rococo/Kusama/Polakdot's XCM config).
-		///
-		/// Fee payment on the destination side is made in the native currency.
-		/// Note: fee-weight is calculated locally and thus remote weights are assumed to be
-		/// equal to local weights.
-		///
-		/// - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
-		/// - `dest_account_id`: A beneficiary `AccountId32` value for the assets on the relay chain.
-		/// - `amount`: amount of native currency to be withdrawn.
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
-		pub fn xcm_teleport_native_asset_up(
-			origin: OriginFor<T>,
-			dest_account_id: [u8; 32],
-			amount: BalanceOf<T>,
-		) -> DispatchResult {
-			let relaychain: VersionedMultiLocation = Parent.into();
-
-			let beneficiary: VersionedMultiLocation =
-				(AccountId32 { network: Any, id: dest_account_id }.into() as MultiLocation).into();
-
-			let asset_amount = amount.try_into().map_err(|_| Error::<T>::InvalidAmount)?;
-			let assets: Vec<MultiAsset> = vec![(
-				AssetId::Concrete(Parent.into()),
-				Fungibility::Fungible(asset_amount),
-			)
-				.into()];
-
-			pallet_xcm::Pallet::<T>::teleport_assets(
-				origin,
-				Box::new(relaychain),
-				Box::new(beneficiary),
-				Box::new(assets.into()),
-				0,
-			)
 		}
 
 		/// An example dispatchable that may throw a custom error.

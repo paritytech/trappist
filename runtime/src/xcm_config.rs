@@ -13,37 +13,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::constants::fee::default_fee_per_second;
+
 use super::{
 	AccountId, Assets, Balance, Balances, Call, Event, Origin, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, XcmpQueue,
+	PolkadotXcm, Runtime, WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_type, parameter_types,
 	traits::{EnsureOneOf, Everything, Nothing},
-	weights::{IdentityFee, Weight},
+	weights::Weight,
 };
 use frame_system::EnsureRoot;
 
 use parachains_common::{
-	impls::{AssetsFrom, NonZeroIssuance},
+	impls::{AssetsFrom, DealWithFees, NonZeroIssuance},
 	AssetId,
 };
-use xcm_builder::{AsPrefixedGeneralIndex, ConvertedConcreteAssetId};
 use xcm_executor::traits::JustTry;
 
+use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
+	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents,
 };
 use xcm_executor::XcmExecutor;
-use super::xcm_primitives::{AbsoluteReserveProvider, Reserve, MultiNativeAsset};
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
@@ -153,7 +155,7 @@ match_type! {
 	};
 }
 match_type! {
-	pub type Statemint: impl Contains<MultiLocation> = {
+	pub type Statemine: impl Contains<MultiLocation> = {
 		MultiLocation { parents: 1, interior: X1(Parachain(1000)) }
 	};
 }
@@ -163,7 +165,7 @@ pub type Barrier = (
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Parent and its exec plurality get free execution
 	AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-	AllowUnpaidExecutionFrom<Statemint>,
+	AllowUnpaidExecutionFrom<Statemine>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.
@@ -176,6 +178,11 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+
+	pub XUsdPerSecond: (xcm::v1::AssetId, u128) = (
+		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
+		default_fee_per_second() * 10
+	);
 }
 
 pub type Reserves = (MultiNativeAsset<AbsoluteReserveProvider>, AssetsFrom<StatemineLocation>);
@@ -191,7 +198,10 @@ impl xcm_executor::Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = UsingComponents<IdentityFee<Balance>, RelayLocation, AccountId, Balances, ()>;
+	type Trader = (
+		FixedRateOfFungible<XUsdPerSecond, ()>,
+		UsingComponents<WeightToFee, RelayLocation, AccountId, Balances, DealWithFees<Runtime>>,
+	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;

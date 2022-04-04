@@ -5423,19 +5423,14 @@ dependencies = [
 name = "pallet-template"
 version = "4.0.0-dev"
 dependencies = [
- "cumulus-primitives-core",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-xcm",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-builder",
 ]
 
 [[package]]
