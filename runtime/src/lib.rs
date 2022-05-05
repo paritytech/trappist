@@ -28,7 +28,6 @@ use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{
 	crypto::KeyTypeId,
-	u32_trait::{_1, _2},
 	OpaqueMetadata,
 };
 #[cfg(any(feature = "std", test))]
@@ -344,7 +343,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 
 type EnsureRootOrHalfCouncil = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
 >;
 
 parameter_types! {
