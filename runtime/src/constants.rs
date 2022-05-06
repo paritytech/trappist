@@ -33,9 +33,10 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
+	use super::currency::CENTS;
 	use frame_support::weights::{
-		constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		constants::{ExtrinsicBaseWeight, WEIGHT_PER_SECOND},
+		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	};
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
@@ -69,5 +70,15 @@ pub mod fee {
 				coeff_integer: p / q,
 			}]
 		}
+	}
+
+	pub fn base_tx_fee() -> Balance {
+		CENTS / 10
+	}
+
+	pub fn default_fee_per_second() -> u128 {
+		let base_weight = Balance::from(ExtrinsicBaseWeight::get());
+		let base_tx_per_second = (WEIGHT_PER_SECOND as u128) / base_weight;
+		base_tx_per_second * base_tx_fee()
 	}
 }

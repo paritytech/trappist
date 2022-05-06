@@ -13,34 +13,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::constants::fee::default_fee_per_second;
+
 use super::{
 	AccountId, Assets, Balance, Balances, Call, Event, Origin, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, XcmpQueue,
+	PolkadotXcm, Runtime, WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_type, parameter_types,
 	traits::{EnsureOneOf, Everything, Nothing},
-	weights::{IdentityFee, Weight},
+	weights::Weight,
 };
 use frame_system::EnsureRoot;
 
 use parachains_common::{
-	impls::{AssetsFrom, NonZeroIssuance},
+	impls::{AssetsFrom, DealWithFees, NonZeroIssuance},
 	AssetId,
 };
-use xcm_builder::{AsPrefixedGeneralIndex, ConvertedConcreteAssetId};
 use xcm_executor::traits::JustTry;
 
+use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
+	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents,
 };
 use xcm_executor::XcmExecutor;
 
@@ -92,7 +95,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	ConvertedConcreteAssetId<
 		AssetId,
 		Balance,
-		AsPrefixedGeneralIndex<StatemintAssetsPalletLocation, AssetId, JustTry>,
+		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -152,7 +155,7 @@ match_type! {
 	};
 }
 match_type! {
-	pub type Statemint: impl Contains<MultiLocation> = {
+	pub type Statemine: impl Contains<MultiLocation> = {
 		MultiLocation { parents: 1, interior: X1(Parachain(1000)) }
 	};
 }
@@ -162,7 +165,7 @@ pub type Barrier = (
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Parent and its exec plurality get free execution
 	AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-	AllowUnpaidExecutionFrom<Statemint>,
+	AllowUnpaidExecutionFrom<Statemine>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.
@@ -170,14 +173,19 @@ pub type Barrier = (
 );
 
 parameter_types! {
-	pub StatemintLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
+	pub StatemineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
 	// ALWAYS ensure that the index in PalletInstance stays up-to-date with
-	// Statemint's Assets pallet index
-	pub StatemintAssetsPalletLocation: MultiLocation =
+	// Statemine's Assets pallet index
+	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+
+	pub XUsdPerSecond: (xcm::v1::AssetId, u128) = (
+		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
+		default_fee_per_second() * 10
+	);
 }
 
-pub type Reserves = (NativeAsset, AssetsFrom<StatemintLocation>);
+pub type Reserves = (MultiNativeAsset<AbsoluteReserveProvider>, AssetsFrom<StatemineLocation>);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -186,11 +194,14 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
-	type IsTeleporter = NativeAsset;
+	type IsTeleporter = (); // Teleporting is disabled.
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = UsingComponents<IdentityFee<Balance>, RelayLocation, AccountId, Balances, ()>;
+	type Trader = (
+		FixedRateOfFungible<XUsdPerSecond, ()>,
+		UsingComponents<WeightToFee, RelayLocation, AccountId, Balances, DealWithFees<Runtime>>,
+	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
@@ -221,7 +232,7 @@ impl pallet_xcm::Config for Runtime {
 	// allowed.
 	type XcmExecuteFilter = Nothing;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type XcmTeleportFilter = Everything;
+	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
@@ -253,4 +264,11 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type Event = Event;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+}
+
+impl cumulus_ping::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type Call = Call;
+	type XcmSender = XcmRouter;
 }
