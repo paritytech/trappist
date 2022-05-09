@@ -64,6 +64,7 @@ pallet-preimage = { git = "https://github.com/paritytech/substrate", default-fea
 pallet-randomness-collective-flip = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
 pallet-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
+pallet-society = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
 pallet-sudo = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.18" }
@@ -175,12 +176,14 @@ runtime-benchmarks = [
     "pallet-identity/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
     "pallet-scheduler/runtime-benchmarks",
+	"pallet-society/runtime-benchmarks",
     "pallet-template/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
 	"cumulus-pallet-session-benchmarking/runtime-benchmarks",
+	"cumulus-pallet-xcmp-queue/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-try-runtime",

@@ -531,6 +531,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[pallet_template, TemplatePallet]
+		[cumulus_pallet_xcmp_queue, XcmpQueue]
 	);
 }
 
