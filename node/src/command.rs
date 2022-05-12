@@ -24,8 +24,9 @@ use trappist_runtime::{Block, RuntimeApi};
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
 		"dev" | "trappist_dev" => Box::new(chain_spec::development_config()),
-		"" | "local" | "trappist-local" | "trappist-rococo" =>
-			Box::new(chain_spec::local_testnet_config()),
+		"" | "local" | "trappist-local" | "trappist-rococo" => {
+			Box::new(chain_spec::local_testnet_config())
+		},
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -231,7 +232,7 @@ pub fn run() -> Result<()> {
 
 			Ok(())
 		},
-		Some(Subcommand::Benchmark(cmd)) =>
+		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
 
@@ -240,7 +241,8 @@ pub fn run() -> Result<()> {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
 					.into())
-			},
+			}
+		},
 		Some(Subcommand::TryRuntime(cmd)) => {
 			if cfg!(feature = "try-runtime") {
 				let runner = cli.create_runner(cmd)?;
