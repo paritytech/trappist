@@ -20,12 +20,14 @@ name = "trappist-collator"
 path = "src/main.rs"
 
 [dependencies]
+async-trait = "0.1.42"
 clap = { version = "3.1", features = ["derive"] }
 derive_more = "0.99.2"
 log = "0.4.14"
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 serde = { version = "1.0.132", features = ["derive"] }
 hex-literal = "0.3.4"
+futures = { version = "0.3.1", features = ["compat"] }
 
 # RPC related Dependencies
 jsonrpc-core = "18.0.0"
@@ -69,6 +71,7 @@ sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "polk
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
 sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.18" }
@@ -78,8 +81,8 @@ sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch 
 
 # Cumulus dependencies
 cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
-cumulus-client-collator = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
 cumulus-client-consensus-aura = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
 cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
 cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.18" }
@@ -98,6 +101,10 @@ polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch =
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.18" }
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.18" }
 
+[dev-dependencies]
+assert_cmd = "2.0"
+nix = "0.23"
+tempfile = "3.2.0"
 
 [features]
 default = []

@@ -23,10 +23,11 @@ use trappist_runtime::{Block, RuntimeApi};
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
+		// -- Trappist
 		"dev" | "trappist_dev" => Box::new(chain_spec::development_config()),
-		"" | "local" | "trappist-local" | "trappist-rococo" => {
-			Box::new(chain_spec::local_testnet_config())
-		},
+		"" | "local" | "trappist-local" | "trappist-rococo" =>
+			Box::new(chain_spec::local_testnet_config()),
+		// -- Loading a specific spec from disk
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -41,11 +42,13 @@ impl SubstrateCli for Cli {
 	}
 
 	fn description() -> String {
-		"Trappist Collator\n\nThe command-line arguments provided first will be \
+		format!(
+			"Trappist collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relay chain node.\n\n\
-		trappist-collator <parachain-args> -- <relay-chain-args>"
-			.into()
+		{} [parachain-args] -- [relay_chain-args]",
+			Self::executable_name()
+		)
 	}
 
 	fn author() -> String {
@@ -53,7 +56,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://trappist.io".into()
+		"https://github.com/TrappistNetwork/trappist/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
@@ -79,11 +82,13 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn description() -> String {
-		"Trappist Collator\n\nThe command-line arguments provided first will be \
+		format!(
+			"Trappist collator\n\nThe command-line arguments provided first will be \
 		passed to the parachain node, while the arguments provided after -- will be passed \
 		to the relay chain node.\n\n\
-		trappist-collator <parachain-args> -- <relay-chain-args>"
-			.into()
+		{} [parachain-args] -- [relay_chain-args]",
+			Self::executable_name()
+		)
 	}
 
 	fn author() -> String {
@@ -91,7 +96,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn support_url() -> String {
-		"https://trappist.io".into()
+		"https://github.com/TrappistNetwork/trappist/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
@@ -107,7 +112,6 @@ impl SubstrateCli for RelayChainCli {
 	}
 }
 
-#[allow(clippy::borrowed_box)]
 fn extract_genesis_wasm(chain_spec: &Box<dyn sc_service::ChainSpec>) -> Result<Vec<u8>> {
 	let mut storage = chain_spec.build_storage()?;
 
@@ -123,7 +127,6 @@ macro_rules! construct_async_run {
 		runner.async_run(|$config| {
 			let $components = new_partial::<
 				RuntimeApi,
-				TrappistRuntimeExecutor,
 				_
 			>(
 				&$config,
@@ -170,7 +173,9 @@ pub fn run() -> Result<()> {
 			runner.sync_run(|config| {
 				let polkadot_cli = RelayChainCli::new(
 					&config,
-					[RelayChainCli::executable_name()].iter().chain(cli.relaychain_args.iter()),
+					[RelayChainCli::executable_name().to_string()]
+						.iter()
+						.chain(cli.relaychain_args.iter()),
 				);
 
 				let polkadot_config = SubstrateCli::create_configuration(
@@ -183,11 +188,9 @@ pub fn run() -> Result<()> {
 				cmd.run(config, polkadot_config)
 			})
 		},
-		Some(Subcommand::Revert(cmd)) => {
-			construct_async_run!(|components, cli, cmd, config| {
-				Ok(cmd.run(components.client, components.backend))
-			})
-		},
+		Some(Subcommand::Revert(cmd)) => construct_async_run!(|components, cli, cmd, config| {
+			Ok(cmd.run(components.client, components.backend))
+		}),
 		Some(Subcommand::ExportGenesisState(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
@@ -195,7 +198,8 @@ pub fn run() -> Result<()> {
 
 			let spec = load_spec(&params.chain.clone().unwrap_or_default())?;
 			let state_version = Cli::native_runtime_version(&spec).state_version();
-			let block: Block = generate_genesis_block(&spec, state_version)?;
+
+			let block: crate::service::Block = generate_genesis_block(&spec, state_version)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
 				raw_header
@@ -232,7 +236,7 @@ pub fn run() -> Result<()> {
 
 			Ok(())
 		},
-		Some(Subcommand::Benchmark(cmd)) => {
+		Some(Subcommand::Benchmark(cmd)) =>
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
 
@@ -241,13 +245,11 @@ pub fn run() -> Result<()> {
 				Err("Benchmarking wasn't enabled when building the node. \
 				You can enable it with `--features runtime-benchmarks`."
 					.into())
-			}
-		},
+			},
 		Some(Subcommand::TryRuntime(cmd)) => {
 			if cfg!(feature = "try-runtime") {
-				let runner = cli.create_runner(cmd)?;
-
 				// grab the task manager.
+				let runner = cli.create_runner(cmd)?;
 				let registry = &runner.config().prometheus_config.as_ref().map(|cfg| &cfg.registry);
 				let task_manager =
 					TaskManager::new(runner.config().tokio_handle.clone(), *registry)
@@ -268,7 +270,7 @@ pub fn run() -> Result<()> {
 			runner.run_node_until_exit(|config| async move {
 				let para_id = chain_spec::Extensions::try_get(&*config.chain_spec)
 					.map(|e| e.para_id)
-					.ok_or_else(|| "Could not find parachain ID in chain-spec.")?;
+					.ok_or_else(|| "Could not find parachain extension in chain-spec.")?;
 
 				let polkadot_cli = RelayChainCli::new(
 					&config,
@@ -282,8 +284,10 @@ pub fn run() -> Result<()> {
 
 				let state_version =
 					RelayChainCli::native_runtime_version(&config.chain_spec).state_version();
-				let block: Block = generate_genesis_block(&config.chain_spec, state_version)
-					.map_err(|e| format!("{:?}", e))?;
+
+				let block: crate::service::Block =
+					generate_genesis_block(&config.chain_spec, state_version)
+						.map_err(|e| format!("{:?}", e))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
 				let tokio_handle = config.tokio_handle.clone();

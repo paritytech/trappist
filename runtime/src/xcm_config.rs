@@ -47,8 +47,8 @@ use xcm_builder::{
 };
 use xcm_executor::XcmExecutor;
 
-use sp_std::vec::Vec;
 use frame_support::traits::Contains;
+use sp_std::vec::Vec;
 
 const STATEMINE_ID: u32 = 1000;
 
@@ -229,7 +229,7 @@ pub type XcmRouter = (
 pub struct TrappistReserveTransferFilter {}
 impl Contains<(MultiLocation, Vec<MultiAsset>)> for TrappistReserveTransferFilter {
 	fn contains((multi_location, _assets): &(MultiLocation, Vec<MultiAsset>)) -> bool {
-	let expected_location = MultiLocation::new(0, X1(Parachain(STATEMINE_ID)));
+		let expected_location = MultiLocation::new(0, X1(Parachain(STATEMINE_ID)));
 		*multi_location == expected_location
 	}
 }
