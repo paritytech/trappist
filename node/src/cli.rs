@@ -16,7 +16,6 @@
 
 use crate::chain_spec;
 use clap::Parser;
-use sc_cli;
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
@@ -109,7 +108,7 @@ pub struct Cli {
 	pub run: cumulus_client_cli::RunCmd,
 
 	/// Relay chain arguments
-	#[clap(raw = true)]
+	#[clap(raw = true, conflicts_with = "relay-chain-rpc-url")]
 	pub relaychain_args: Vec<String>,
 }
 

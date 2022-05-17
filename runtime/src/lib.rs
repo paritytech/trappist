@@ -27,11 +27,7 @@ mod xcm_config;
 mod xcm_primitives;
 
 use sp_api::impl_runtime_apis;
-use sp_core::{
-	crypto::KeyTypeId,
-	u32_trait::{_1, _2},
-	OpaqueMetadata,
-};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
@@ -348,15 +344,15 @@ impl pallet_assets::Config for Runtime {
 	type AssetId = AssetId;
 	type Currency = Balances;
 	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = ConstU128<{ 1 * UNITS }>;
-	type MetadataDepositBase = ConstU128<{ 1 * UNITS }>;
+	type AssetDeposit = ConstU128<{ UNITS }>;
+	type MetadataDepositBase = ConstU128<{ UNITS }>;
 	type MetadataDepositPerByte = ConstU128<{ 10 * CENTS }>;
 	type ApprovalDeposit = ConstU128<{ 10 * CENTS }>;
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
 	type Extra = ();
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type AssetAccountDeposit = ConstU128<{ 1 * UNITS }>;
+	type AssetAccountDeposit = ConstU128<{ UNITS }>;
 }
 
 impl pallet_template::Config for Runtime {
@@ -377,7 +373,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 
 type EnsureRootOrHalfCouncil = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilCollective>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
 >;
 
 parameter_types! {
@@ -413,8 +409,8 @@ impl pallet_uniques::Config for Runtime {
 	type InstanceId = u32;
 	type Currency = Balances;
 	type ForceOrigin = AssetsForceOrigin;
-	type ClassDeposit = ConstU128<{ 1 * UNITS }>; // 1 UNITS deposit to create asset class
-	type InstanceDeposit = ConstU128<{ 1 * CENTS }>; // 1/100 UNITS deposit to create asset instance
+	type ClassDeposit = ConstU128<{ UNITS }>; // 1 UNITS deposit to create asset class
+	type InstanceDeposit = ConstU128<{ CENTS }>; // 1/100 UNITS deposit to create asset instance
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
@@ -470,14 +466,14 @@ construct_runtime!(
 		ParachainSystem: cumulus_pallet_parachain_system::{
 			Pallet, Call, Config, Storage, Inherent, Event<T>, ValidateUnsigned,
 		} = 1,
-		RandomnessCollectiveFlip: pallet_randomness_collective_flip = 2,
+		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 2,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 4,
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
-		AssetTxPayment: pallet_asset_tx_payment::{Pallet} = 12,
+		AssetTxPayment: pallet_asset_tx_payment::{Pallet, Storage} = 12,
 
 		// Collator support. The order of these 5 are important and shall not change.
 		Authorship: pallet_authorship::{Pallet, Call, Storage} = 20,
@@ -488,7 +484,7 @@ construct_runtime!(
 
 		// XCM helpers.
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 30,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin, Config} = 31,
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 31,
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 32,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 33,
 
@@ -532,6 +528,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[pallet_template, TemplatePallet]
+		[cumulus_pallet_xcmp_queue, XcmpQueue]
 	);
 }
 
@@ -785,7 +782,7 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 			.create_inherent_data()
 			.expect("Could not create the timestamp inherent data");
 
-		inherent_data.check_extrinsics(&block)
+		inherent_data.check_extrinsics(block)
 	}
 }
 

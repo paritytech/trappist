@@ -21,13 +21,13 @@ use super::{
 };
 use frame_support::{
 	match_type, parameter_types,
-	traits::{EnsureOneOf, Everything, Nothing},
+	traits::{EnsureOneOf, Everything, Nothing, PalletInfoAccess},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
 
 use parachains_common::{
-	impls::{AssetsFrom, DealWithFees, NonZeroIssuance},
+	impls::{AssetsFrom, DealWithFees},
 	AssetId,
 };
 use xcm_executor::traits::JustTry;
@@ -53,6 +53,7 @@ parameter_types! {
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub const Local: MultiLocation = Here.into();
+	pub SelfReserve: MultiLocation = PalletInstance(<Balances as PalletInfoAccess>::index() as u8).into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 }
@@ -78,7 +79,7 @@ pub type CurrencyTransactor = CurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<RelayLocation>,
+	IsConcrete<SelfReserve>,
 	// Convert an XCM MultiLocation into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -102,15 +103,14 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We only want to allow teleports of known assets. We use non-zero issuance as an indication
-	// that this asset is known.
-	NonZeroIssuance<AccountId, Assets>,
-	// The account to use for tracking teleports.
+	// We don't track any teleports of `Assets`.
+	Nothing,
+	// We don't track any teleports of `Assets`.
 	CheckingAccount,
 >;
 
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (CurrencyTransactor, FungiblesTransactor);
+pub type AssetTransactors = (FungiblesTransactor, CurrencyTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -200,7 +200,7 @@ impl xcm_executor::Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<XUsdPerSecond, ()>,
-		UsingComponents<WeightToFee, RelayLocation, AccountId, Balances, DealWithFees<Runtime>>,
+		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -258,6 +258,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 		EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
+	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
