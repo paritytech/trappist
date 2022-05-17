@@ -46,18 +46,18 @@ use frame_support::{
 	pallet_prelude::Weight,
 	parameter_types,
 	traits::{
-		ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, EnsureOneOf, EqualPrivilegeOnly,
-		Everything,
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EnsureOneOf,
+		EqualPrivilegeOnly, Everything,
 	},
 	weights::{
-		constants::{BlockExecutionWeight, ExtrinsicBaseWeight},
-		DispatchClass,
+		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
+		ConstantMultiplier, DispatchClass,
 	},
 	PalletId,
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
+	EnsureRoot, EnsureSigned,
 };
 pub use parachains_common as common;
 pub use parachains_common::{
@@ -76,11 +76,13 @@ use frame_support::weights::Weight;
 
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
-use polkadot_runtime_common::{BlockHashCount, RocksDbWeight, SlowAdjustingFeeUpdate};
+use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
 use xcm::latest::prelude::BodyId;
 
 /// Import the template pallet.
 pub use pallet_template;
+
+pub const MICROUNIT: Balance = 1_000_000;
 
 /// The address format for describing accounts.
 pub type Address = sp_runtime::MultiAddress<AccountId, ()>;
@@ -220,14 +222,20 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 }
 
+parameter_types! {
+	/// Relay Chain `TransactionByteFee` / 10
+	pub const TransactionByteFee: Balance = 10 * MICROUNIT;
+	pub const OperationalFeeMultiplier: u8 = 5;
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction =
 		pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	/// Relay Chain `TransactionByteFee` / 10
-	type TransactionByteFee = ConstU128<MILLICENTS>;
 	type WeightToFee = WeightToFee;
+	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
-	type OperationalFeeMultiplier = ConstU8<5>;
+	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 }
 
 impl pallet_asset_tx_payment::Config for Runtime {
@@ -404,6 +412,7 @@ parameter_types! {
 }
 
 impl pallet_uniques::Config for Runtime {
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type Event = Event;
 	type ClassId = u32;
 	type InstanceId = u32;
