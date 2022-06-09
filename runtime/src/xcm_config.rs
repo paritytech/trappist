@@ -28,6 +28,7 @@ use frame_system::EnsureRoot;
 
 use parachains_common::{
 	impls::{AssetsFrom, DealWithFees},
+	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
 	AssetId,
 };
 use xcm_executor::traits::JustTry;
@@ -160,17 +161,19 @@ match_types! {
 	};
 }
 
-pub type Barrier = (
-	TakeWeightCredit,
-	AllowTopLevelPaidExecutionFrom<Everything>,
-	// Parent and its exec plurality get free execution
-	AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-	AllowUnpaidExecutionFrom<Statemine>,
-	// Expected responses are OK.
-	AllowKnownQueryResponses<PolkadotXcm>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<ParentOrSiblings>,
-);
+pub type Barrier = DenyThenTry<
+	DenyReserveTransferToRelayChain,
+	(
+		TakeWeightCredit,
+		AllowTopLevelPaidExecutionFrom<Everything>,
+		// Parent and its exec plurality get free execution
+		AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+		// Expected responses are OK.
+		AllowKnownQueryResponses<PolkadotXcm>,
+		// Subscriptions for version tracking are OK.
+		AllowSubscriptionsFrom<ParentOrSiblings>,
+	),
+>;
 
 parameter_types! {
 	pub StatemineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));

@@ -224,7 +224,7 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
 	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICROUNIT;
+	pub const TransactionByteFee: Balance = 1 * MILLICENTS;
 	pub const OperationalFeeMultiplier: u8 = 5;
 }
 
@@ -427,6 +427,8 @@ impl pallet_uniques::Config for Runtime {
 	type KeyLimit = ConstU32<32>; // Max 32 bytes per key
 	type ValueLimit = ConstU32<64>; // Max 64 bytes per value
 	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
 }
 
 parameter_types! {
