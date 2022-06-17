@@ -14,6 +14,24 @@ As Trappist breweries are not intended to be profit-making ventures, this projec
 
 Follow the steps below to get started.
 
+### XCM Playground via Zombienet
+
+Create a `bin` directory into the root of this repository and place the following binaries inside of it:
+- `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
+- `polkadot-collator` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
+- `trappist-collator` (which you will build from this repository) 
+
+Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
+```
+$ chmod +x zombienet-linux # OR
+$ chmod +x zombienet-macos
+```
+
+Then, start the playground with:
+```
+./zombienet-linux -p native spawn xcm-playground.toml
+```
+
 ### Using Nix
 
 Install [nix](https://nixos.org/) and optionally [direnv](https://github.com/direnv/direnv) and
