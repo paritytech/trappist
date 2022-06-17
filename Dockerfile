@@ -11,10 +11,10 @@ RUN cargo build --release
 # ===== SECOND STAGE ======
 
 FROM docker.io/library/ubuntu:20.04
-LABEL description="Trappist node"
+LABEL description="Trappist Collator"
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder /trappist/target/release/trappist /usr/local/bin
+COPY --from=builder /trappist/target/release/trappist-collator /usr/local/bin
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /trappist trappist && \
     mkdir -p /trappist/.local/share && \
@@ -30,4 +30,4 @@ VOLUME ["/data"]
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV SSL_CERT_DIR=/etc/ssl/certs
 
-ENTRYPOINT ["/usr/local/bin/trappist"]
+ENTRYPOINT ["/usr/local/bin/trappist-collator"]
