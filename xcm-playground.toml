@@ -34,7 +34,7 @@ chain = "statemine-local"
   [parachains.collator]
   name = "statemine-collator01"
   command = "./bin/polkadot-collator"
-  args = ["-lparachain=debug", "--log=xcm=trace"]
+  args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
 id = 2000
@@ -43,8 +43,8 @@ cumulus_based = true
 
   [parachains.collator]
   name = "trappist-collator01"
-  command = "./bin/trappist-collator"
-  args = ["-lparachain=debug", "--log=xcm=trace,pallet-assets=trace"]
+  command = "./target/release/trappist-collator"
+  args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
 id = 3000
@@ -55,7 +55,7 @@ chain = ""
   [parachains.collator]
   name = "collator01"
   command = "./bin/polkadot-collator"
-  args = ["-lparachain=debug", "--log=xcm=trace"]
+  args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [types.Header]
 number = "u64"
