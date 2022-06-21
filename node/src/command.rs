@@ -26,9 +26,8 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, St
 	Ok(match id {
 		// -- Trappist
 		"dev" | "trappist_dev" => Box::new(chain_spec::development_config()),
-		"" | "local" | "trappist-local" | "trappist-rococo" => {
-			Box::new(chain_spec::local_testnet_config())
-		},
+		"" | "local" | "trappist-local" | "trappist-rococo" =>
+			Box::new(chain_spec::local_testnet_config()),
 		// -- Loading a specific spec from disk
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
@@ -242,15 +241,14 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			// Switch on the concrete benchmark sub-command-
 			match cmd {
-				BenchmarkCmd::Pallet(cmd) => {
+				BenchmarkCmd::Pallet(cmd) =>
 					if cfg!(feature = "runtime-benchmarks") {
 						runner.sync_run(|config| cmd.run::<Block, TrappistRuntimeExecutor>(config))
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
 							.into())
-					}
-				},
+					},
 				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
 					let partials = new_partial::<RuntimeApi, _>(
 						&config,

@@ -1,0 +1,99 @@
+[settings]
+timeout = 1000
+
+[relaychain]
+chain = "rococo-local"
+default_command = "./bin/polkadot"
+
+  [[relaychain.nodes]]
+  name = "alice"
+  validator = true
+  extra_args = [ "-lparachain=debug" ]
+
+  [[relaychain.nodes]]
+  name = "bob"
+  validator = true
+  extra_args = [ "-lparachain=debug" ]
+
+  [[relaychain.nodes]]
+  name = "charlie"
+  validator = true
+  extra_args = [ "-lparachain=debug" ]
+
+  [[relaychain.nodes]]
+  name = "dave"
+  validator = true
+  extra_args = [ "-lparachain=debug" ]
+
+[[parachains]]
+id = 1000
+addToGenesis = true
+cumulus_based = true
+chain = "statemine-local"
+
+  [parachains.collator]
+  name = "statemine-collator01"
+  command = "./bin/polkadot-collator"
+  args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains]]
+id = 2000
+addToGenesis = true
+cumulus_based = true
+
+  [parachains.collator]
+  name = "trappist-collator01"
+  command = "./target/release/trappist-collator"
+  args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains]]
+id = 3000
+addToGenesis = true
+cumulus_based = true
+chain = ""
+
+  [parachains.collator]
+  name = "collator01"
+  command = "./bin/polkadot-collator"
+  args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[types.Header]
+number = "u64"
+parent_hash = "Hash"
+post_state = "Hash"
+
+[[hrmpChannels]]
+sender = 1000
+recipient = 2000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 2000
+recipient = 1000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 1000
+recipient = 3000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 3000
+recipient = 1000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 2000
+recipient = 3000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 3000
+recipient = 2000
+maxCapacity = 8
+maxMessageSize = 512
