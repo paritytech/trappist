@@ -25,6 +25,7 @@ pub mod constants;
 mod contracts;
 mod xcm_config;
 
+use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
@@ -41,16 +42,14 @@ use sp_version::RuntimeVersion;
 
 use constants::{currency::*, fee::WeightToFee};
 use frame_support::{
-	construct_runtime,
-	pallet_prelude::Weight,
-	parameter_types,
+	construct_runtime, parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EnsureOneOf,
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
 		EqualPrivilegeOnly, Everything,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
-		ConstantMultiplier, DispatchClass,
+		ConstantMultiplier, DispatchClass, Weight,
 	},
 	PalletId,
 };
@@ -69,9 +68,6 @@ use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-
-#[cfg(feature = "try-runtime")]
-use frame_support::weights::Weight;
 
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
@@ -228,6 +224,7 @@ parameter_types! {
 }
 
 impl pallet_transaction_payment::Config for Runtime {
+	type Event = Event;
 	type OnChargeTransaction =
 		pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	/// Relay Chain `TransactionByteFee` / 10
@@ -278,6 +275,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT / 4 }>;
+	type CheckAssociatedRelayNumber = RelayNumberStrictlyIncreases;
 }
 
 impl pallet_randomness_collective_flip::Config for Runtime {}
@@ -343,7 +341,7 @@ parameter_types! {
 /// We allow local Root / Council or the Unit body from Rococo (over XCM) to execute privileged
 /// asset operations.
 pub type AssetsForceOrigin =
-	EnsureOneOf<EnsureRootOrHalfCouncil, EnsureXcm<IsMajorityOfBody<RelayLocation, UnitBody>>>;
+	EitherOfDiverse<EnsureRootOrHalfCouncil, EnsureXcm<IsMajorityOfBody<RelayLocation, UnitBody>>>;
 
 impl pallet_assets::Config for Runtime {
 	type Event = Event;
@@ -378,7 +376,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
-type EnsureRootOrHalfCouncil = EnsureOneOf<
+type EnsureRootOrHalfCouncil = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
 >;
@@ -408,26 +406,32 @@ parameter_types! {
 	pub const UniquesMetadataDepositBase: Balance = deposit(1, 129);
 	pub const AttributeDepositBase: Balance = deposit(1, 0);
 	pub const DepositPerByte: Balance = deposit(0, 1);
+	pub const CollectionDeposit: Balance = 100 * UNITS;
+	pub const ItemDeposit: Balance = 1 * UNITS;
+	pub const StringLimit: u32 = 50;
+	pub const KeyLimit: u32 = 32;
+	pub const ValueLimit: u32 = 256;
 }
 
 impl pallet_uniques::Config for Runtime {
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type Event = Event;
-	type ClassId = u32;
-	type InstanceId = u32;
+	type CollectionId = u32;
+	type ItemId = u32;
 	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type ClassDeposit = ConstU128<{ UNITS }>; // 1 UNITS deposit to create asset class
-	type InstanceDeposit = ConstU128<{ CENTS }>; // 1/100 UNITS deposit to create asset instance
+	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
 	type AttributeDepositBase = AttributeDepositBase;
 	type DepositPerByte = DepositPerByte;
-	type StringLimit = ConstU32<128>;
-	type KeyLimit = ConstU32<32>; // Max 32 bytes per key
-	type ValueLimit = ConstU32<64>; // Max 64 bytes per value
+	type StringLimit = StringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
 	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type Locker = ();
 }
 
 parameter_types! {
@@ -482,7 +486,7 @@ construct_runtime!(
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 11,
 		AssetTxPayment: pallet_asset_tx_payment::{Pallet, Storage} = 12,
 
 		// Collator support. The order of these 5 are important and shall not change.
@@ -702,7 +706,7 @@ impl pallet_contracts_rpc_runtime_api::ContractsApi<Block, AccountId, Balance, B
 
 		fn get_storage(
 			address: AccountId,
-			key: [u8; 32],
+			key: Vec<u8>,
 		) -> pallet_contracts_primitives::GetStorageResult {
 			Contracts::get_storage(address, key)
 		}

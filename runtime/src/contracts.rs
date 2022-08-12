@@ -4,7 +4,7 @@ use crate::{
 };
 use frame_support::{
 	parameter_types,
-	traits::{Nothing, OnRuntimeUpgrade},
+	traits::{ConstU32, Nothing, OnRuntimeUpgrade},
 	weights::Weight,
 };
 use pallet_contracts::{
@@ -55,6 +55,10 @@ impl Config for Runtime {
 	type Schedule = MySchedule;
 	type CallStack = [Frame<Self>; 31];
 	type AddressGenerator = DefaultAddressGenerator;
+	type ContractAccessWeight = pallet_contracts::DefaultContractAccessWeight<RuntimeBlockWeights>;
+	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
+	type RelaxedMaxCodeLen = ConstU32<{ 256 * 1024 }>;
+	type MaxStorageKeyLen = ConstU32<128>;
 }
 
 pub struct Migrations;
