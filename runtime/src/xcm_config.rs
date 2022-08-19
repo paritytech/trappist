@@ -21,29 +21,28 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+	traits::{ContainsPair, EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
-use sp_std::marker::PhantomData;
 
 use parachains_common::{
 	impls::DealWithFees,
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
 	AssetId,
 };
-use xcm_executor::traits::{FilterAssetLocation, JustTry};
+use xcm_executor::traits::JustTry;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
-use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
+use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
 
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FungiblesAdapter, IsConcrete,
 	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
@@ -55,7 +54,7 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-	pub const Local: MultiLocation = Here.into();
+	pub const Local: MultiLocation = Here.into_location();
 	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
@@ -100,7 +99,7 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
+	ConvertedConcreteId<
 		AssetId,
 		Balance,
 		AsPrefixedGeneralIndex<AssetsPalletLocation, AssetId, JustTry>,
@@ -126,7 +125,7 @@ pub type StatemineFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
+	ConvertedConcreteId<
 		AssetId,
 		Balance,
 		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
@@ -216,39 +215,48 @@ parameter_types! {
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 
-	pub XUsdPerSecond: (xcm::v1::AssetId, u128) = (
+	pub XUsdPerSecond: (xcm::latest::AssetId, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10
 	);
+
+	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 }
 
-//- From PR https://github.com/paritytech/cumulus/pull/936
-fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
-	prefix.parent_count() == loc.parent_count() &&
-		loc.len() >= prefix.len() &&
-		prefix
-			.interior()
-			.iter()
-			.zip(loc.interior().iter())
-			.all(|(prefix_junction, junction)| prefix_junction == junction)
+pub trait Reserve {
+	/// Returns assets reserve location.
+	fn reserve(&self) -> Option<MultiLocation>;
 }
 
-pub struct ReserveAssetsFrom<T>(PhantomData<T>);
-impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		let prefix = T::get();
-		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
-		&prefix == origin &&
-			match asset {
-				MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-					matches_prefix(&prefix, asset_loc),
-				_ => false,
+// Takes the chain part of a MultiAsset
+impl Reserve for MultiAsset {
+	fn reserve(&self) -> Option<MultiLocation> {
+		if let Concrete(location) = self.id.clone() {
+			let first_interior = location.first_interior();
+			let parents = location.parent_count();
+			match (parents, first_interior.clone()) {
+				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
+				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
+				(1, _) => Some(MultiLocation::parent()),
+				_ => None,
 			}
+		} else {
+			None
+		}
 	}
 }
-//--
 
-pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);
+pub struct MultiNativeAsset;
+impl ContainsPair<MultiAsset, MultiLocation> for MultiNativeAsset {
+	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
+		if let Some(ref reserve) = asset.reserve() {
+			if reserve == origin {
+				return true
+			}
+		}
+		false
+	}
+}
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -256,9 +264,10 @@ impl xcm_executor::Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = Reserves;
-	type IsTeleporter = (); // Teleporting is disabled.
-	type LocationInverter = LocationInverter<Ancestry>;
+	type IsReserve = MultiNativeAsset;
+	type IsTeleporter = ();
+	type UniversalLocation = UniversalLocation;
+	// Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
@@ -267,8 +276,15 @@ impl xcm_executor::Config for XcmConfig {
 	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
+	type AssetLocker = ();
+	type AssetExchanger = ();
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
+	type PalletInstancesInfo = ();
+	type MaxAssetsIntoHolding = ();
+	type FeeManager = ();
+	type MessageExporter = ();
+	type UniversalAliases = ();
 }
 
 /// Converts a local signed origin into an XCM multilocation.
@@ -279,13 +295,15 @@ pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNet
 /// queues.
 pub type XcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 );
 
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
+	type Currency = Balances;
+	type CurrencyMatcher = ();
 	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
@@ -294,11 +312,14 @@ impl pallet_xcm::Config for Runtime {
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type LocationInverter = LocationInverter<Ancestry>;
+	type UniversalLocation = UniversalLocation;
 	type Origin = Origin;
 	type Call = Call;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
+	type TrustedLockers = ();
+	type SovereignAccountOf = ();
+	type MaxLockers = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -317,6 +338,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 		EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
+	type PriceForSiblingDelivery = ();
 	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
 }
 
