@@ -21,10 +21,11 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ContainsPair, EitherOfDiverse, Everything, Nothing, PalletInfoAccess},
+	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
+use sp_std::marker::PhantomData;
 
 use parachains_common::{
 	impls::DealWithFees,
@@ -36,16 +37,16 @@ use xcm_executor::traits::JustTry;
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
-use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
+use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
+	FungiblesAdapter, IsConcrete, NativeAsset, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents,
 };
 use xcm_executor::XcmExecutor;
 
@@ -223,40 +224,18 @@ parameter_types! {
 	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 }
 
-pub trait Reserve {
-	/// Returns assets reserve location.
-	fn reserve(&self) -> Option<MultiLocation>;
-}
-
-// Takes the chain part of a MultiAsset
-impl Reserve for MultiAsset {
-	fn reserve(&self) -> Option<MultiLocation> {
-		if let Concrete(location) = self.id.clone() {
-			let first_interior = location.first_interior();
-			let parents = location.parent_count();
-			match (parents, first_interior.clone()) {
-				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
-				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
-				(1, _) => Some(MultiLocation::parent()),
-				_ => None,
-			}
-		} else {
-			None
-		}
-	}
-}
-
-pub struct MultiNativeAsset;
-impl ContainsPair<MultiAsset, MultiLocation> for MultiNativeAsset {
+pub struct ReserveAssetsFrom<T>(PhantomData<T>);
+impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		if let Some(ref reserve) = asset.reserve() {
-			if reserve == origin {
-				return true
-			}
-		}
-		false
+		let loc = T::get();
+		&loc == origin &&
+			matches!(asset, MultiAsset { id: Concrete(asset_loc), fun: Fungible(_a) }
+			if asset_loc.match_and_split(&loc).is_some())
 	}
 }
+//--
+
+pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -264,10 +243,9 @@ impl xcm_executor::Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = MultiNativeAsset;
-	type IsTeleporter = ();
+	type IsReserve = Reserves;
+	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
-	// Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 	type Trader = (
