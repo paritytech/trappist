@@ -74,9 +74,6 @@ use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
 use xcm::latest::prelude::BodyId;
 
-/// Import the template pallet.
-pub use pallet_template;
-
 pub const MICROUNIT: Balance = 1_000_000;
 
 /// The address format for describing accounts.
@@ -360,10 +357,6 @@ impl pallet_assets::Config for Runtime {
 	type AssetAccountDeposit = ConstU128<{ UNITS }>;
 }
 
-impl pallet_template::Config for Runtime {
-	type Event = Event;
-}
-
 type CouncilCollective = pallet_collective::Instance1;
 impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type Origin = Origin;
@@ -515,9 +508,6 @@ construct_runtime!(
 		Multisig: pallet_multisig = 49,
 
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
-
-		// Template
-		TemplatePallet: pallet_template = 100,
 	}
 );
 
@@ -541,7 +531,6 @@ mod benches {
 		[pallet_uniques, Uniques]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
-		[pallet_template, TemplatePallet]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 	);
 }
