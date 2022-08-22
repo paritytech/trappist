@@ -33,7 +33,7 @@ chain = "statemine-local"
 
   [parachains.collator]
   name = "statemine-collator01"
-  command = "./bin/polkadot-collator"
+  command = "./bin/polkadot-parachain"
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
@@ -54,7 +54,7 @@ chain = ""
 
   [parachains.collator]
   name = "collator01"
-  command = "./bin/polkadot-collator"
+  command = "./bin/polkadot-parachain"
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [types.Header]
