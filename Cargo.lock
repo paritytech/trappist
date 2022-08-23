@@ -1289,7 +1289,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "clap",
  "parity-scale-codec",
@@ -1304,7 +1304,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
@@ -1328,7 +1328,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-aura"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1357,7 +1357,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1378,7 +1378,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -1402,7 +1402,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1427,7 +1427,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "cumulus-relay-chain-interface",
@@ -1451,7 +1451,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-collator",
@@ -1479,7 +1479,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-aura-ext"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "frame-executive",
  "frame-support",
@@ -1497,7 +1497,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-dmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -1515,7 +1515,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "bytes",
  "cumulus-pallet-parachain-system-proc-macro",
@@ -1546,7 +1546,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1557,7 +1557,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-session-benchmarking"
 version = "3.0.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -1571,7 +1571,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcm"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -1588,7 +1588,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "frame-benchmarking",
@@ -1609,7 +1609,7 @@ dependencies = [
 [[package]]
 name = "cumulus-ping"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-pallet-xcm",
  "cumulus-primitives-core",
@@ -1626,7 +1626,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -1642,7 +1642,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1665,7 +1665,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-timestamp"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "futures 0.3.23",
@@ -1678,7 +1678,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-utility"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -1700,7 +1700,7 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-inprocess-interface"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1729,7 +1729,7 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-interface"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1752,7 +1752,7 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-rpc-interface"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "async-trait",
  "backoff",
@@ -1779,7 +1779,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -5155,7 +5155,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-selection"
 version = "3.0.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5866,7 +5866,7 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -5879,7 +5879,7 @@ dependencies = [
 [[package]]
 name = "parachains-common"
 version = "1.0.0"
-source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#31ac9e6885beda0f143335966bfbb34b9ae49e34"
+source = "git+https://github.com/arturgontijo/cumulus?branch=trappist-xcm-v3#e2a38074ae6fde1b4f127b6c8c16d9011f282239"
 dependencies = [
  "cumulus-primitives-utility",
  "frame-executive",
