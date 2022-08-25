@@ -340,9 +340,11 @@ parameter_types! {
 pub type AssetsForceOrigin =
 	EitherOfDiverse<EnsureRootOrHalfCouncil, EnsureXcm<IsMajorityOfBody<RelayLocation, UnitBody>>>;
 
+pub type AssetBalance = Balance;
+
 impl pallet_assets::Config for Runtime {
 	type Event = Event;
-	type Balance = Balance;
+	type Balance = AssetBalance;
 	type AssetId = AssetId;
 	type Currency = Balances;
 	type ForceOrigin = AssetsForceOrigin;
@@ -461,6 +463,27 @@ impl pallet_preimage::Config for Runtime {
 	type ByteDeposit = PreimageByteDeposit;
 }
 
+parameter_types! {
+	pub const DexPalletId: PalletId = PalletId(*b"py/trdex");
+}
+
+impl pallet_dex::Config for Runtime {
+	type PalletId = DexPalletId;
+	type Event = Event;
+	type Currency = Balances;
+	type AssetBalance = AssetBalance;
+	type AssetToCurrencyBalance = sp_runtime::traits::Identity;
+	type CurrencyToAssetBalance = sp_runtime::traits::Identity;
+	type AssetId = AssetId;
+	type Assets = Assets;
+	type AssetRegistry = Assets;
+	type WeightInfo = ();
+	// Provider fee is 0.3%
+	type ProviderFeeNumerator = ConstU128<3>;
+	type ProviderFeeDenominator = ConstU128<1000>;
+	type MinDeposit = ConstU128<1>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -508,6 +531,9 @@ construct_runtime!(
 		Multisig: pallet_multisig = 49,
 
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
+
+		// Additional pallets
+		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
 	}
 );
 
@@ -526,6 +552,7 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_assets, Assets]
+		[pallet_dex, Dex]
 		[pallet_identity, Identity]
 		[pallet_multisig, Multisig]
 		[pallet_uniques, Uniques]
@@ -636,15 +663,44 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl pallet_dex_rpc_runtime_api::DexApi<Block, AssetId, Balance, AssetBalance> for Runtime {
+		fn get_currency_to_asset_input_price(
+			asset_id: AssetId,
+			currency_amount: Balance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
+			Dex::get_currency_to_asset_input_price(asset_id, currency_amount)
+		}
+
+		fn get_currency_to_asset_output_price(
+			asset_id: AssetId,
+			token_amount: AssetBalance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
+			Dex::get_currency_to_asset_output_price(asset_id, token_amount)
+		}
+
+		fn get_asset_to_currency_input_price(
+			asset_id: AssetId,
+			token_amount: AssetBalance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
+			Dex::get_asset_to_currency_input_price(asset_id, token_amount)
+		}
+
+		fn get_asset_to_currency_output_price(
+			asset_id: AssetId,
+			currency_amount: Balance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
+			Dex::get_asset_to_currency_output_price(asset_id, currency_amount)
+		}
+	}
+
+
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
 			ParachainSystem::collect_collation_info(header)
 		}
 	}
 
-impl pallet_contracts_rpc_runtime_api::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash>
-		for Runtime
-	{
+	impl pallet_contracts_rpc_runtime_api::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash> for Runtime {
 		fn call(
 			origin: AccountId,
 			dest: AccountId,

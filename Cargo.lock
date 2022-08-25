@@ -5258,6 +5258,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-dex"
+version = "0.0.1"
+source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#43b03c77173b96cc5d35ce0496ce6ad36c10de82"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-assets",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-dex-rpc"
+version = "0.0.1"
+source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#43b03c77173b96cc5d35ce0496ce6ad36c10de82"
+dependencies = [
+ "jsonrpsee",
+ "pallet-dex-rpc-runtime-api",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-dex-rpc-runtime-api"
+version = "0.0.1"
+source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#43b03c77173b96cc5d35ce0496ce6ad36c10de82"
+dependencies = [
+ "pallet-dex",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pallet-election-provider-multi-phase"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
@@ -10807,6 +10845,7 @@ dependencies = [
  "log",
  "nix 0.23.1",
  "pallet-contracts-rpc",
+ "pallet-dex-rpc",
  "pallet-transaction-payment-rpc",
  "parachains-common",
  "parity-scale-codec",
@@ -10888,6 +10927,8 @@ dependencies = [
  "pallet-contracts",
  "pallet-contracts-primitives",
  "pallet-contracts-rpc-runtime-api",
+ "pallet-dex",
+ "pallet-dex-rpc-runtime-api",
  "pallet-identity",
  "pallet-multisig",
  "pallet-preimage",

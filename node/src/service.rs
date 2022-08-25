@@ -33,6 +33,8 @@ use substrate_prometheus_endpoint::Registry;
 
 use polkadot_service::CollatorPair;
 
+use trappist_runtime::{AssetBalance, AssetId};
+
 /// Native executor instance.
 pub struct TrappistRuntimeExecutor;
 
@@ -172,8 +174,9 @@ async fn build_relay_chain_interface(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> RelayChainResult<(Arc<(dyn RelayChainInterface + 'static)>, Option<CollatorPair>)> {
 	match collator_options.relay_chain_rpc_url {
-		Some(relay_chain_url) =>
-			Ok((Arc::new(RelayChainRPCInterface::new(relay_chain_url).await?) as Arc<_>, None)),
+		Some(relay_chain_url) => {
+			Ok((Arc::new(RelayChainRPCInterface::new(relay_chain_url).await?) as Arc<_>, None))
+		},
 		None => build_inprocess_relay_chain(
 			polkadot_config,
 			parachain_config,
@@ -216,6 +219,7 @@ where
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, AssetBalance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
 		+ pallet_contracts_rpc::ContractsRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,

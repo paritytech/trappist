@@ -94,6 +94,12 @@ xcm = { git = "https://github.com/paritytech/polkadot", default-features = false
 xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.27" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.27" }
 
+# External Pallets
+pallet-dex = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "master" }
+pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "master" }
+
+
+
 [features]
 default = ["std"]
 std = [
@@ -127,7 +133,9 @@ std = [
     "pallet-contracts/std",
     "pallet-contracts-primitives/std",
     "pallet-contracts-rpc-runtime-api/std",
-    "pallet-identity/std",
+    "pallet-dex/std",
+	"pallet-dex-rpc-runtime-api/std",
+	"pallet-identity/std",
 	"pallet-multisig/std",
     "pallet-randomness-collective-flip/std",
     "pallet-scheduler/std",
@@ -154,7 +162,7 @@ std = [
 	"polkadot-runtime-common/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"xcm/std",
+	"xcm/std"
 ]
 runtime-benchmarks = [
     "hex-literal",

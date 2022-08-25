@@ -102,6 +102,9 @@ polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch =
 polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.27" }
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.27" }
 
+# External Dependencies
+pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "master"}
+
 [dev-dependencies]
 assert_cmd = "2.0"
 nix = "0.23"
