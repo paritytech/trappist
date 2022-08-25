@@ -11,9 +11,9 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: whoan/docker-build-with-cache-action@v5
+      - uses: whoan/docker-build-with-cache-action@86b305ae784f30b8dfa1827c60c7eae37a6e00f1 # v5.11.1
         with:
           username: TrappistNetwork
           password: ${{ secrets.GITHUB_TOKEN }}
