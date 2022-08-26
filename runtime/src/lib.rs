@@ -464,7 +464,7 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DexPalletId: PalletId = PalletId(*b"py/trdex");
+	pub const DexPalletId: PalletId = PalletId(*b"trap/dex");
 }
 
 impl pallet_dex::Config for Runtime {
@@ -477,11 +477,10 @@ impl pallet_dex::Config for Runtime {
 	type AssetId = AssetId;
 	type Assets = Assets;
 	type AssetRegistry = Assets;
-	type WeightInfo = ();
-	// Provider fee is 0.3%
+	type WeightInfo = pallet_dex::weights::SubstrateWeight<Runtime>;
 	type ProviderFeeNumerator = ConstU128<3>;
 	type ProviderFeeDenominator = ConstU128<1000>;
-	type MinDeposit = ConstU128<1>;
+	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

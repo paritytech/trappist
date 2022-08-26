@@ -5260,7 +5260,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex"
 version = "0.0.1"
-source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#43b03c77173b96cc5d35ce0496ce6ad36c10de82"
+source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#7dd6bea1b1aa06f297ab3e2da3acf23cc3b7755d"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5274,7 +5274,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
-source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#43b03c77173b96cc5d35ce0496ce6ad36c10de82"
+source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#7dd6bea1b1aa06f297ab3e2da3acf23cc3b7755d"
 dependencies = [
  "jsonrpsee",
  "pallet-dex-rpc-runtime-api",
@@ -5287,7 +5287,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
-source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#43b03c77173b96cc5d35ce0496ce6ad36c10de82"
+source = "git+https://github.com/Wiezzel/substrate-dex.git?branch=master#7dd6bea1b1aa06f297ab3e2da3acf23cc3b7755d"
 dependencies = [
  "pallet-dex",
  "parity-scale-codec",
@@ -11078,7 +11078,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
  "rand 0.8.5",
  "static_assertions",
