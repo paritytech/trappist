@@ -33,6 +33,8 @@ use substrate_prometheus_endpoint::Registry;
 
 use polkadot_service::CollatorPair;
 
+use trappist_runtime::{AssetBalance, AssetId};
+
 /// Native executor instance.
 pub struct TrappistRuntimeExecutor;
 
@@ -216,6 +218,7 @@ where
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, AssetBalance>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
 		+ pallet_contracts_rpc::ContractsRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
 	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
