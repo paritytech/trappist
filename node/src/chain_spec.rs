@@ -5,11 +5,40 @@ use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, BalancesConfig, CouncilConfig,
-	GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
+	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
+
+const ALICE: &str = "Alice";
+const BOB: &str = "Bob";
+const CHARLIE: &str = "Charlie";
+const DAVE: &str = "Dave";
+const EVE: &str = "Eve";
+const FERDIE: &str = "Ferdie";
+
+const RELAY_CHAIN_NAME: &str = "rococo-local";
+
+const PARACHAIN_ID: u32 = 2000;
+
+const HOP_TOKEN_SYMBOL: &str = "HOP";
+const HOP_TOKEN_DECIMALS: u32 = 12;
+const SS58_FORMAT: u32 = 42;
+
+const DEV_CHAIN_NAME: &str = "Trappist Development";
+const DEV_CHAIN_ID: &str = "trappist_dev";
+
+const TESTNET_CHAIN_NAME: &str = "Trappist Local";
+const TESTNET_CHAIN_ID: &str = "trappist_local";
+
+const T_USD_ASSET_ID: u32 = 1;
+const T_USD_INITIAL_BALANCE: u128 = 1_000_000_000_000_000;
+const T_USD_IS_SUFFICIENT: bool = true;
+const T_USD_MIN_BALANCE: u128 = 1_000_000;
+const T_USD_TOKEN_DECIMALS: u8 = 12;
+const T_USD_TOKEN_NAME: &str = "tUSD";
+const T_USD_TOKEN_SYMBOL: &str = "tUSD";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, Extensions>;
@@ -68,38 +97,28 @@ fn session_keys(aura: AuraId) -> SessionKeys {
 pub fn development_config() -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "HOP".into());
-	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("ss58Format".into(), 42.into());
+	properties.insert("tokenSymbol".into(), HOP_TOKEN_SYMBOL.into());
+	properties.insert("tokenDecimals".into(), HOP_TOKEN_DECIMALS.into());
+	properties.insert("ss58Format".into(), SS58_FORMAT.into());
 
 	ChainSpec::from_genesis(
 		// Name
-		"Trappist Development",
+		DEV_CHAIN_NAME,
 		// ID
-		"trappist_dev",
+		DEV_CHAIN_ID,
 		ChainType::Development,
 		move || {
 			testnet_genesis(
 				// Initial collators.
 				vec![
-					(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed("Alice"),
-					),
-					(
-						get_account_id_from_seed::<sr25519::Public>("Bob"),
-						get_collator_keys_from_seed("Bob"),
-					),
+					(get_account_id(ALICE), get_collator_keys_from_seed(ALICE)),
+					(get_account_id(BOB), get_collator_keys_from_seed(BOB)),
 				],
 				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_account_id(ALICE),
 				// Pre-funded accounts
-				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-				],
-				2000.into(),
+				vec![get_account_id(ALICE), get_account_id(BOB), get_account_id(CHARLIE)],
+				PARACHAIN_ID.into(),
 			)
 		},
 		// Bootnodes
@@ -113,8 +132,8 @@ pub fn development_config() -> ChainSpec {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 2000,
+			relay_chain: RELAY_CHAIN_NAME.into(), // You MUST set this to the correct network!
+			para_id: PARACHAIN_ID,
 		},
 	)
 }
@@ -122,41 +141,35 @@ pub fn development_config() -> ChainSpec {
 pub fn local_testnet_config() -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "HOP".into());
-	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("ss58Format".into(), 42.into());
+	properties.insert("tokenSymbol".into(), HOP_TOKEN_SYMBOL.into());
+	properties.insert("tokenDecimals".into(), HOP_TOKEN_DECIMALS.into());
+	properties.insert("ss58Format".into(), SS58_FORMAT.into());
 
 	ChainSpec::from_genesis(
 		// Name
-		"Trappist Local",
+		TESTNET_CHAIN_NAME,
 		// ID
-		"trappist_local",
+		TESTNET_CHAIN_ID,
 		ChainType::Local,
 		move || {
 			testnet_genesis(
 				// Initial collators.
 				vec![
-					(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed("Alice"),
-					),
-					(
-						get_account_id_from_seed::<sr25519::Public>("Bob"),
-						get_collator_keys_from_seed("Bob"),
-					),
+					(get_account_id(ALICE), get_collator_keys_from_seed(ALICE)),
+					(get_account_id(BOB), get_collator_keys_from_seed(BOB)),
 				],
 				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_account_id(ALICE),
 				// Pre-funded accounts
 				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-					get_account_id_from_seed::<sr25519::Public>("Dave"),
-					get_account_id_from_seed::<sr25519::Public>("Eve"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+					get_account_id(ALICE),
+					get_account_id(BOB),
+					get_account_id(CHARLIE),
+					get_account_id(DAVE),
+					get_account_id(EVE),
+					get_account_id(FERDIE),
 				],
-				2000.into(),
+				PARACHAIN_ID.into(),
 			)
 		},
 		// Bootnodes
@@ -170,10 +183,14 @@ pub fn local_testnet_config() -> ChainSpec {
 		Some(properties),
 		// Extensions
 		Extensions {
-			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 2000,
+			relay_chain: RELAY_CHAIN_NAME.into(), // You MUST set this to the correct network!
+			para_id: PARACHAIN_ID,
 		},
 	)
+}
+
+fn get_account_id(name: &str) -> AccountId {
+	get_account_id_from_seed::<sr25519::Public>(name)
 }
 
 /// Configure initial storage state for FRAME modules.
@@ -223,10 +240,46 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: Some(root_key),
 		},
-		assets: Default::default(),
+		assets: AssetsConfig {
+			assets: vec![(
+				T_USD_ASSET_ID,
+				get_account_id(ALICE),
+				T_USD_IS_SUFFICIENT,
+				T_USD_MIN_BALANCE,
+			)],
+			metadata: vec![(
+				T_USD_ASSET_ID,
+				T_USD_TOKEN_NAME.into(),
+				T_USD_TOKEN_SYMBOL.into(),
+				T_USD_TOKEN_DECIMALS,
+			)],
+			accounts: get_initialized_accounts(
+				T_USD_ASSET_ID,
+				T_USD_INITIAL_BALANCE,
+				vec![
+					get_account_id(ALICE),
+					get_account_id(BOB),
+					get_account_id(CHARLIE),
+					get_account_id(DAVE),
+					get_account_id(FERDIE),
+					get_account_id(EVE),
+				],
+			),
+		},
 		council: CouncilConfig {
 			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 	}
+}
+
+fn get_initialized_accounts(
+	asset_id: u32,
+	initial_balance: u128,
+	accounts: Vec<AccountId>,
+) -> Vec<(u32, AccountId, u128)> {
+	accounts
+		.iter()
+		.map(|account| (asset_id, account.clone(), initial_balance))
+		.collect::<Vec<_>>()
 }
