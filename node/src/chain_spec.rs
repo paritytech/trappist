@@ -6,7 +6,8 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
+	CouncilConfig, DexConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig,
+	SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -39,6 +40,9 @@ const T_USD_MIN_BALANCE: u128 = 1_000_000;
 const T_USD_TOKEN_DECIMALS: u8 = 12;
 const T_USD_TOKEN_NAME: &str = "tUSD";
 const T_USD_TOKEN_SYMBOL: &str = "tUSD";
+
+const LIQUIDITY_TOKEN_ID: u32 = 101;
+const EXCHANGE_TOKEN_AMOUNT: u128 = 100_000_000_000_000;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, Extensions>;
@@ -269,6 +273,15 @@ fn testnet_genesis(
 		council: CouncilConfig {
 			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),
+		},
+		dex: DexConfig {
+			exchanges: vec![(
+				get_account_id(BOB),
+				T_USD_ASSET_ID.into(),
+				LIQUIDITY_TOKEN_ID.into(),
+				EXCHANGE_TOKEN_AMOUNT.into(),
+				EXCHANGE_TOKEN_AMOUNT.into(),
+			)],
 		},
 	}
 }

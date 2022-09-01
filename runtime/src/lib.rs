@@ -533,7 +533,7 @@ construct_runtime!(
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 
 		// Additional pallets
-		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
+		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>, Config<T>} = 100,
 	}
 );
 
