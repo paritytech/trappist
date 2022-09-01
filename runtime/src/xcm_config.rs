@@ -52,15 +52,15 @@ use xcm_executor::XcmExecutor;
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub const RelayNetwork: Option<NetworkId> = None;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-	pub const Local: MultiLocation = Here.into_location();
-	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
+	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub SelfReserve: MultiLocation = Here.into_location();
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
+	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -220,17 +220,30 @@ parameter_types! {
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10
 	);
+}
 
-	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+//- From PR https://github.com/paritytech/cumulus/pull/936
+fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
+	prefix.parent_count() == loc.parent_count() &&
+		loc.len() >= prefix.len() &&
+		prefix
+			.interior()
+			.iter()
+			.zip(loc.interior().iter())
+			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
 
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		let loc = T::get();
-		&loc == origin &&
-			matches!(asset, MultiAsset { id: Concrete(asset_loc), fun: Fungible(_a) }
-			if asset_loc.match_and_split(&loc).is_some())
+		let prefix = T::get();
+		log::trace!(target: "xcm::ReserveAssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
+		&prefix == origin &&
+			match asset {
+				MultiAsset { id: Concrete(asset_loc), fun: Fungible(_a) } =>
+					matches_prefix(&prefix, asset_loc),
+				_ => false,
+			}
 	}
 }
 //--
@@ -259,10 +272,10 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = ();
-	type MaxAssetsIntoHolding = ();
+	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
 	type FeeManager = ();
 	type MessageExporter = ();
-	type UniversalAliases = ();
+	type UniversalAliases = Nothing;
 }
 
 /// Converts a local signed origin into an XCM multilocation.
