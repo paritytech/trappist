@@ -81,26 +81,26 @@ sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polk
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.28" }
 
 # Cumulus dependencies
-cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-client-consensus-aura = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
-cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28" }
+cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-client-consensus-aura = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
+cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3" }
 
-parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.28", default-features = false }
+parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "trappist-xcm-v3", default-features = false }
 
 # Polkadot dependencies
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.28" }
-xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.28" }
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "trappist-xcm-v3" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "trappist-xcm-v3" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "trappist-xcm-v3" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "trappist-xcm-v3" }
+xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "trappist-xcm-v3" }
 
 # External Dependencies
 pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "master"}
