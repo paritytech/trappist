@@ -115,30 +115,6 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(10_000)]
-		pub fn change_foreign_asset(
-			origin: OriginFor<T>,
-			asset_id: T::AssetId,
-			new_asset_multi_location: MultiLocation,
-		) -> DispatchResult {
-			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
-
-			let previous_asset_multi_location =
-				AssetIdMultiLocation::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			AssetIdMultiLocation::<T>::insert(&asset_id, &new_asset_multi_location);
-			AssetMultiLocationId::<T>::insert(&new_asset_multi_location, &asset_id);
-
-			AssetMultiLocationId::<T>::remove(&previous_asset_multi_location);
-
-			Self::deposit_event(Event::ForeignAssetMultiLocationChanged {
-				asset_id,
-				new_asset_multi_location,
-			});
-
-			Ok(())
-		}
-
-		#[pallet::weight(10_000)]
 		pub fn destroy_foreign_asset(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
