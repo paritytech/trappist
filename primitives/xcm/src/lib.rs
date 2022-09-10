@@ -12,23 +12,19 @@ where
 	AssetId: Clone,
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 {
-	fn convert_ref(id: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(id.borrow().clone().into()) {
+	fn convert_ref(asset_multi_location: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
+		if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow().clone().into()) {
 			Ok(asset_id)
 		} else {
 			Err(())
 		}
 	}
 
-	fn reverse_ref(what: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
+	fn reverse_ref(asset_id: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
 		if let Some(asset_multi_location) =
-			AssetIdInfoGetter::get_asset_multi_location(what.borrow().clone())
+			AssetIdInfoGetter::get_asset_multi_location(asset_id.borrow().clone())
 		{
-			if let Some(location) = asset_multi_location.into() {
-				Ok(location)
-			} else {
-				Err(())
-			}
+			Ok(asset_multi_location)
 		} else {
 			Err(())
 		}
