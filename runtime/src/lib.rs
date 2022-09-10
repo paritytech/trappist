@@ -484,6 +484,11 @@ impl pallet_dex::Config for Runtime {
 	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
+impl pallet_asset_registry::Config for Runtime {
+	type Event = Event;
+	type ForeignAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -534,6 +539,7 @@ construct_runtime!(
 
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
 	}
 );
 

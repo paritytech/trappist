@@ -2,6 +2,7 @@
 members = [
     "node",
     "runtime",
+    "primitives/xcm",
 ]
 
 [profile.release]
