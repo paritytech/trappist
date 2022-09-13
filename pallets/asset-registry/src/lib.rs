@@ -16,24 +16,16 @@ mod benchmarking;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::{inherent::Vec, pallet_prelude::*, PalletId};
+	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::AccountIdConversion;
-	use xcm::latest::MultiLocation;
+	use xcm::latest::{
+		Junction::{GeneralIndex, PalletInstance, Parachain},
+		Junctions, MultiLocation,
+	};
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
-
-	pub const PALLET_ID: PalletId = PalletId(*b"asstrgty");
-
-	#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
-	pub struct ForeignAssetMetadata {
-		pub name: Vec<u8>,
-		pub symbol: Vec<u8>,
-		pub decimals: u8,
-		pub is_frozen: bool,
-	}
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_assets::Config {
@@ -57,17 +49,12 @@ pub mod pallet {
 		ForeignAssetRegistered {
 			asset_id: T::AssetId,
 			asset: MultiLocation,
-			metadata: ForeignAssetMetadata,
 		},
 		ForeignAssetMultiLocationChanged {
 			asset_id: T::AssetId,
 			new_asset_multi_location: MultiLocation,
 		},
-		ForeignAssetRemoved {
-			asset_id: T::AssetId,
-			asset_multi_location: MultiLocation,
-		},
-		ForeignAssetDestroyed {
+		ForeignAssetUnregistered {
 			asset_id: T::AssetId,
 			asset_multi_location: MultiLocation,
 		},
@@ -75,10 +62,10 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		ErrorCreatingAsset,
-		AssetAlreadyExists,
+		AssetAlreadyRegistered,
 		AssetDoesNotExist,
-		ErrorDestroyingAsset,
+		AssetIsNotRegistered,
+		WrongMultiLocation,
 	}
 
 	#[pallet::call]
@@ -88,50 +75,98 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			asset_multi_location: MultiLocation,
-			metadata: ForeignAssetMetadata,
-			min_amount: T::Balance,
-			is_sufficient: bool,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
+			// verify asset exists on pallet-assets
+			ensure!(Self::asset_exists(asset_id), Error::<T>::AssetDoesNotExist);
+
+			// verify asset is not yet registered
 			ensure!(
 				AssetIdMultiLocation::<T>::get(&asset_id).is_none(),
-				Error::<T>::AssetAlreadyExists
+				Error::<T>::AssetAlreadyRegistered
 			);
 
-			Self::do_create_foreign_asset(asset_id, min_amount, metadata.clone(), is_sufficient)
-				.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+			// verify MultiLocation is valid
+			let parents_multi_location_ok = { asset_multi_location.parents == 1 };
+			let junctions_multi_location_ok = match asset_multi_location.interior {
+				Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_)) => true,
+				_ => false,
+			};
 
+			ensure!(
+				parents_multi_location_ok && junctions_multi_location_ok,
+				Error::<T>::WrongMultiLocation
+			);
+
+			// register asset
 			AssetIdMultiLocation::<T>::insert(&asset_id, &asset_multi_location);
 			AssetMultiLocationId::<T>::insert(&asset_multi_location, &asset_id);
 
 			Self::deposit_event(Event::ForeignAssetRegistered {
 				asset_id,
 				asset: asset_multi_location,
-				metadata,
 			});
 
 			Ok(())
 		}
 
 		#[pallet::weight(10_000)]
-		pub fn destroy_foreign_asset(
+		pub fn change_foreign_asset(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
-			destroy_asset_witness: pallet_assets::DestroyWitness,
+			asset_multi_location: MultiLocation,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
-			Self::do_destroy_foreign_asset(asset_id, destroy_asset_witness)
-				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
+			// verify asset exists on pallet-assets
+			ensure!(Self::asset_exists(asset_id), Error::<T>::AssetDoesNotExist);
 
-			let asset_multi_location =
-				AssetIdMultiLocation::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			let previous_asset_multi_location = AssetIdMultiLocation::<T>::get(&asset_id)
+				.ok_or(Error::<T>::AssetIsNotRegistered)?;
 
+			// verify MultiLocation is valid
+			let parents_multi_location_ok = { asset_multi_location.parents == 1 };
+			let junctions_multi_location_ok = match asset_multi_location.interior {
+				Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_)) => true,
+				_ => false,
+			};
+
+			ensure!(
+				parents_multi_location_ok && junctions_multi_location_ok,
+				Error::<T>::WrongMultiLocation
+			);
+
+			// update asset
+			AssetIdMultiLocation::<T>::insert(&asset_id, &asset_multi_location);
+			AssetMultiLocationId::<T>::insert(&asset_multi_location, &asset_id);
+
+			AssetMultiLocationId::<T>::remove(&previous_asset_multi_location);
+
+			Self::deposit_event(Event::ForeignAssetMultiLocationChanged {
+				asset_id,
+				new_asset_multi_location: asset_multi_location,
+			});
+
+			Ok(())
+		}
+
+		#[pallet::weight(10_000)]
+		pub fn unregister_foreign_asset(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+		) -> DispatchResult {
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
+
+			// verify asset is registered
+			let asset_multi_location = AssetIdMultiLocation::<T>::get(&asset_id)
+				.ok_or(Error::<T>::AssetIsNotRegistered)?;
+
+			// unregister asset
 			AssetIdMultiLocation::<T>::remove(&asset_id);
 			AssetMultiLocationId::<T>::remove(&asset_multi_location);
 
-			Self::deposit_event(Event::ForeignAssetDestroyed { asset_id, asset_multi_location });
+			Self::deposit_event(Event::ForeignAssetUnregistered { asset_id, asset_multi_location });
 			Ok(())
 		}
 	}
@@ -147,45 +182,11 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn pallet_account_id() -> T::AccountId {
-			PALLET_ID.into_account_truncating()
-		}
-
-		fn do_create_foreign_asset(
-			asset: T::AssetId,
-			min_balance: T::Balance,
-			metadata: ForeignAssetMetadata,
-			is_sufficient: bool,
-		) -> DispatchResult {
-			pallet_assets::Pallet::<T>::force_create(
-				frame_system::RawOrigin::Root.into(),
-				asset,
-				<T::Lookup as sp_runtime::traits::StaticLookup>::unlookup(Self::pallet_account_id()),
-				is_sufficient,
-				min_balance,
-			)?;
-
-			pallet_assets::Pallet::<T>::force_set_metadata(
-				frame_system::RawOrigin::Root.into(),
-				asset,
-				metadata.name,
-				metadata.symbol,
-				metadata.decimals,
-				metadata.is_frozen,
-			)
-		}
-
-		fn do_destroy_foreign_asset(
-			asset: T::AssetId,
-			witness: pallet_assets::DestroyWitness,
-		) -> DispatchResult {
-			pallet_assets::Pallet::<T>::destroy(
-				frame_system::RawOrigin::Root.into(),
-				asset,
-				witness,
-			)
-			.map_err(|info| info.error)?;
-			Ok(())
+		fn asset_exists(asset_id: T::AssetId) -> bool {
+			match pallet_assets::Pallet::<T>::maybe_total_supply(asset_id) {
+				Some(_) => true,
+				None => false,
+			}
 		}
 	}
 }

@@ -1,5 +1,5 @@
 use crate as pallet_asset_registry;
-use frame_support::traits::{ConstU16, ConstU64};
+use frame_support::traits::{ConstU16, ConstU64, GenesisBuild};
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
@@ -13,7 +13,8 @@ type Block = frame_system::mocking::MockBlock<Test>;
 frame_support::parameter_types! {
 	pub const StatemineParaIdInfo: u32 = 1000u32;
 	pub const StatemineAssetsInstanceInfo: u8 = 50u8;
-	pub const StatemineAssetIdInfo: u128 = 1u128;
+	pub const StatemineAssetIdInfoA: u128 = 1u128;
+	pub const StatemineAssetIdInfoB: u128 = 10u128;
 }
 
 // Configure a mock runtime to test the pallet.
@@ -91,7 +92,26 @@ impl pallet_assets::Config for Test {
 	type Extra = ();
 }
 
+pub const LOCAL_ASSET_ID: u32 = 999;
+
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+	let mut storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
+
+	let config: pallet_assets::GenesisConfig<Test> = pallet_assets::GenesisConfig {
+		assets: vec![
+			// id, owner, is_sufficient, min_balance
+			(999, 0, true, 1),
+		],
+		metadata: vec![
+			// id, name, symbol, decimals
+			(999, "Token Name".into(), "TOKEN".into(), 10),
+		],
+		accounts: vec![
+			// id, account_id, balance
+			(999, 1, 100),
+		],
+	};
+	config.assimilate_storage(&mut storage).unwrap();
+	storage.into()
 }
