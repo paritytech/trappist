@@ -61,6 +61,7 @@ impl system::Config for Test {
 impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type ForeignAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Assets = Assets;
 }
 
 impl pallet_balances::Config for Test {

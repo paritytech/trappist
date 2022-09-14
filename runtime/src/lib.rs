@@ -487,6 +487,7 @@ impl pallet_dex::Config for Runtime {
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
 	type ForeignAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Assets = Assets;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

@@ -16,8 +16,11 @@ mod benchmarking;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::pallet_prelude::*;
+	use frame_support::{
+		pallet_prelude::*, sp_runtime::traits::Zero, traits::tokens::fungibles::Inspect,
+	};
 	use frame_system::pallet_prelude::*;
+
 	use xcm::latest::{
 		Junction::{GeneralIndex, PalletInstance, Parachain},
 		Junctions, MultiLocation,
@@ -27,35 +30,39 @@ pub mod pallet {
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
+	type AssetIdOf<T> =
+		<<T as Config>::Assets as Inspect<<T as frame_system::Config>::AccountId>>::AssetId;
+
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_assets::Config {
+	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type ForeignAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		type Assets: Inspect<Self::AccountId>;
 	}
 
 	#[pallet::storage]
 	#[pallet::getter(fn asset_id_multilocation)]
 	pub type AssetIdMultiLocation<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AssetId, MultiLocation>;
+		StorageMap<_, Blake2_128Concat, AssetIdOf<T>, MultiLocation>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn asset_multilocation_id)]
 	pub type AssetMultiLocationId<T: Config> =
-		StorageMap<_, Blake2_128Concat, MultiLocation, T::AssetId>;
+		StorageMap<_, Blake2_128Concat, MultiLocation, AssetIdOf<T>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		ForeignAssetRegistered {
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 			asset: MultiLocation,
 		},
 		ForeignAssetMultiLocationChanged {
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 			new_asset_multi_location: MultiLocation,
 		},
 		ForeignAssetUnregistered {
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 			asset_multi_location: MultiLocation,
 		},
 	}
@@ -73,7 +80,7 @@ pub mod pallet {
 		#[pallet::weight(10_000)]
 		pub fn register_foreign_asset(
 			origin: OriginFor<T>,
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 			asset_multi_location: MultiLocation,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
@@ -114,7 +121,7 @@ pub mod pallet {
 		#[pallet::weight(10_000)]
 		pub fn change_foreign_asset(
 			origin: OriginFor<T>,
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 			asset_multi_location: MultiLocation,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
@@ -154,7 +161,7 @@ pub mod pallet {
 		#[pallet::weight(10_000)]
 		pub fn unregister_foreign_asset(
 			origin: OriginFor<T>,
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
@@ -171,21 +178,22 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> xcm_primitives::AssetMultiLocationGetter<T::AssetId> for Pallet<T> {
-		fn get_asset_multi_location(asset_id: T::AssetId) -> Option<MultiLocation> {
+	impl<T: Config> xcm_primitives::AssetMultiLocationGetter<AssetIdOf<T>> for Pallet<T> {
+		fn get_asset_multi_location(asset_id: AssetIdOf<T>) -> Option<MultiLocation> {
 			AssetIdMultiLocation::<T>::get(asset_id)
 		}
 
-		fn get_asset_id(asset_type: MultiLocation) -> Option<T::AssetId> {
+		fn get_asset_id(asset_type: MultiLocation) -> Option<AssetIdOf<T>> {
 			AssetMultiLocationId::<T>::get(asset_type)
 		}
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn asset_exists(asset_id: T::AssetId) -> bool {
-			match pallet_assets::Pallet::<T>::maybe_total_supply(asset_id) {
-				Some(_) => true,
-				None => false,
+		fn asset_exists(asset_id: AssetIdOf<T>) -> bool {
+			if T::Assets::minimum_balance(asset_id).is_zero() {
+				false
+			} else {
+				true
 			}
 		}
 	}
