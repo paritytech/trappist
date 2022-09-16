@@ -69,5 +69,4 @@ impl OnRuntimeUpgrade for Migrations {
 	}
 }
 
-
 impl pallet_contracts_xcm::Config for Runtime {}
