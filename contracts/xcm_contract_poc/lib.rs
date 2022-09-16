@@ -67,7 +67,7 @@ mod xcm_contract_poc {
     };
     //pub use xcm::opaque::latest::prelude::*;
     pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm};
-
+    use ink_prelude::vec::Vec;
     /// Defines the storage of your contract.
     /// Add new fields to the below struct in order
     /// to add new static storage fields to your contract.
@@ -92,10 +92,10 @@ mod xcm_contract_poc {
         }
 
         #[ink(message)]
-        pub fn send_message(&mut self, para: u32, call: [u8; 32], weight: u64) {
+        pub fn send_message(&mut self, paraId: u32, call: Vec<u8>, weight: u64) {
             let multi_location = VersionedMultiLocation::V1(MultiLocation {
                 parents: 1,
-                interior: X1(Junction::Parachain(para)),
+                interior: X1(Junction::Parachain(paraId)),
             });
             let versioned_xcm = VersionedXcm::from(Xcm([Transact {
                 origin_type: OriginKind::Native,

@@ -17,6 +17,8 @@ ink_metadata = { version = "3.3", default-features = false, features = ["derive"
 ink_env = { version = "3.3", default-features = false }
 ink_storage = { version = "3.3", default-features = false }
 ink_lang = { version = "3.3", default-features = false }
+ink_prelude = { version = "3.3", default-features = false }
+
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
