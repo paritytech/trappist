@@ -3,6 +3,9 @@ members = [
     "node",
     "runtime",
 ]
+exclude = [
+    "contracts"
+]
 
 [profile.release]
 panic = "unwind"

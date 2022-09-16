@@ -5275,6 +5275,7 @@ dependencies = [
 [[package]]
 name = "pallet-contracts-xcm"
 version = "0.1.0"
+source = "git+https://github.com/paritytech/pallet-contracts-xcm?branch=hb-dependencies-update#e13105b7fa4dc838c14e963f49d55293039d4240"
 dependencies = [
  "frame-support",
  "frame-system",

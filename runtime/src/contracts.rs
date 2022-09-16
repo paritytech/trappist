@@ -11,7 +11,7 @@ use pallet_contracts::{
 	weights::{SubstrateWeight, WeightInfo},
 	Config, DefaultAddressGenerator, Frame, Schedule,
 };
-use pallet_contracts_xcm::Extension;
+use pallet_contracts_xcm::Extension as XCMContractExtension;
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
@@ -50,7 +50,7 @@ impl Config for Runtime {
 	type DepositPerByte = DepositPerByte;
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = SubstrateWeight<Self>;
-	type ChainExtension = Extension<Self>;
+	type ChainExtension = XCMContractExtension<Self>;
 	type DeletionQueueDepth = DeletionQueueDepth;
 	type DeletionWeightLimit = DeletionWeightLimit;
 	type Schedule = MySchedule;
