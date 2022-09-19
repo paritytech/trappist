@@ -1,32 +1,87 @@
-use crate::tests::{StatemineAssetsInstanceInfo, StatemineParaIdInfo};
-use crate::{mock::*, Error};
+#![cfg(test)]
+
+use super::*;
+use crate::tests::parachain::Origin as ParaOrigin;
+use crate::tests::parachain::Runtime as ParaRuntime;
 use frame_support::{assert_noop, assert_ok};
+use mock::*;
 use xcm::latest::prelude::*;
+use xcm_simulator::TestExt;
+
+// #[test]
+// fn reserve_transfer() {
+// 	MockNet::reset();
+//
+// 	let withdraw_amount = 123;
+//
+// 	Statemine::execute_with(|| {
+// 		assert_eq!(statemine::Assets::balance(PARA_ASSET_ID, ALICE), INITIAL_BALANCE);
+//
+// 		assert_ok!(StateminePalletXcm::reserve_transfer_assets(
+// 			statemine::Origin::signed(ALICE),
+// 			Box::new(MultiLocation { parents: 1, interior: X1(Parachain(PARA_ID)) }.into()),
+// 			Box::new(
+// 				MultiLocation {
+// 					parents: 0,
+// 					interior: X1(AccountId32 { network: Any, id: ALICE.into() })
+// 				}
+// 				.into()
+// 			),
+// 			Box::new(
+// 				MultiAsset {
+// 					id: AssetId::Concrete(MultiLocation {
+// 						parents: 0,
+// 						interior: X2(PalletInstance(10), GeneralIndex(PARA_ASSET_ID.into()))
+// 					}),
+// 					fun: Fungible(withdraw_amount)
+// 				}
+// 				.into()
+// 			),
+// 			0,
+// 		));
+//
+// 		assert_eq!(
+// 			statemine::Assets::balance(PARA_ASSET_ID, ALICE),
+// 			INITIAL_BALANCE - withdraw_amount
+// 		);
+//
+// 		assert_eq!(
+// 			statemine::Assets::balance(PARA_ASSET_ID, &para_account_id(PARA_ID)),
+// 			withdraw_amount
+// 		);
+// 	});
+//
+// 	Para::execute_with(|| {
+// 		// free execution, full amount received
+// 		assert_eq!(
+// 			parachain::Assets::balance(PARA_ASSET_ID, ALICE),
+// 			INITIAL_BALANCE + withdraw_amount
+// 		);
+// 	});
+// }
 
 #[test]
 fn register_foreign_asset_works() {
-	new_test_ext().execute_with(|| {
-		let statemine_para_id = StatemineParaIdInfo::get();
-		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id = StatemineAssetIdInfoA::get();
+	MockNet::reset();
 
+	Para::execute_with(|| {
 		let statemine_asset_multi_location = MultiLocation {
 			parents: 1,
 			interior: X3(
-				Parachain(statemine_para_id),
-				PalletInstance(statemine_assets_pallet),
-				GeneralIndex(statemine_asset_id),
+				Parachain(STATEMINE_PARA_ID),
+				PalletInstance(STATEMINE_ASSETS_PALLET_INSTANCE),
+				GeneralIndex(STATEMINE_ASSET_ID.into()),
 			),
 		};
 
-		assert_ok!(AssetRegistry::register_foreign_asset(
-			Origin::root(),
-			LOCAL_ASSET_ID,
+		assert_ok!(parachain::AssetRegistry::register_foreign_asset(
+			ParaOrigin::root(),
+			PARA_ASSET_ID,
 			statemine_asset_multi_location.clone(),
 		));
 
 		if let Some(read_asset_multi_location) =
-			AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID)
+			parachain::AssetRegistry::asset_id_multilocation(PARA_ASSET_ID)
 		{
 			assert_eq!(read_asset_multi_location, statemine_asset_multi_location);
 		} else {
@@ -34,110 +89,53 @@ fn register_foreign_asset_works() {
 		}
 
 		if let Some(read_asset_id) =
-			AssetRegistry::asset_multilocation_id(statemine_asset_multi_location.clone())
+			parachain::AssetRegistry::asset_multilocation_id(statemine_asset_multi_location.clone())
 		{
-			assert_eq!(read_asset_id, LOCAL_ASSET_ID);
+			assert_eq!(read_asset_id, PARA_ASSET_ID);
 		} else {
 			panic!("error reading AssetMultiLocationId");
 		}
 
 		assert_noop!(
-			AssetRegistry::register_foreign_asset(
-				Origin::root(),
-				LOCAL_ASSET_ID,
+			parachain::AssetRegistry::register_foreign_asset(
+				ParaOrigin::root(),
+				PARA_ASSET_ID,
 				statemine_asset_multi_location.clone(),
 			),
-			Error::<Test>::AssetAlreadyRegistered
+			Error::<ParaRuntime>::AssetAlreadyRegistered
 		);
-	});
-}
-
-#[test]
-fn change_foreign_asset_works() {
-	new_test_ext().execute_with(|| {
-		let statemine_para_id = StatemineParaIdInfo::get();
-		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id_a = StatemineAssetIdInfoA::get();
-		let statemine_asset_id_b = StatemineAssetIdInfoB::get();
-
-		let statemine_asset_multi_location_a = MultiLocation {
-			parents: 1,
-			interior: X3(
-				Parachain(statemine_para_id),
-				PalletInstance(statemine_assets_pallet),
-				GeneralIndex(statemine_asset_id_a),
-			),
-		};
-
-		let statemine_asset_multi_location_b = MultiLocation {
-			parents: 1,
-			interior: X3(
-				Parachain(statemine_para_id),
-				PalletInstance(statemine_assets_pallet),
-				GeneralIndex(statemine_asset_id_b),
-			),
-		};
-
-		assert_ok!(AssetRegistry::register_foreign_asset(
-			Origin::root(),
-			LOCAL_ASSET_ID,
-			statemine_asset_multi_location_a.clone(),
-		));
-
-		assert_ok!(AssetRegistry::change_foreign_asset(
-			Origin::root(),
-			LOCAL_ASSET_ID,
-			statemine_asset_multi_location_b.clone(),
-		));
-
-		assert!(AssetRegistry::asset_multilocation_id(statemine_asset_multi_location_a.clone())
-			.is_none());
-
-		if let Some(read_asset_multi_location) =
-			AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID)
-		{
-			assert_eq!(read_asset_multi_location, statemine_asset_multi_location_b);
-		} else {
-			panic!("error reading AssetIdMultiLocation");
-		}
-
-		if let Some(read_asset_id) =
-			AssetRegistry::asset_multilocation_id(statemine_asset_multi_location_b.clone())
-		{
-			assert_eq!(read_asset_id, LOCAL_ASSET_ID);
-		} else {
-			panic!("error reading AssetMultiLocationId");
-		}
 	});
 }
 
 #[test]
 fn unregister_foreign_asset_works() {
-	new_test_ext().execute_with(|| {
-		let statemine_para_id = StatemineParaIdInfo::get();
-		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id = StatemineAssetIdInfoA::get();
+	MockNet::reset();
 
+	Para::execute_with(|| {
 		let statemine_asset_multi_location = MultiLocation {
 			parents: 1,
 			interior: X3(
-				Parachain(statemine_para_id),
-				PalletInstance(statemine_assets_pallet),
-				GeneralIndex(statemine_asset_id),
+				Parachain(STATEMINE_PARA_ID),
+				PalletInstance(STATEMINE_ASSETS_PALLET_INSTANCE),
+				GeneralIndex(STATEMINE_ASSET_ID.into()),
 			),
 		};
 
-		assert_ok!(AssetRegistry::register_foreign_asset(
-			Origin::root(),
-			LOCAL_ASSET_ID,
+		assert_ok!(parachain::AssetRegistry::register_foreign_asset(
+			ParaOrigin::root(),
+			PARA_ASSET_ID,
 			statemine_asset_multi_location.clone(),
 		));
 
-		assert_ok!(AssetRegistry::unregister_foreign_asset(Origin::root(), LOCAL_ASSET_ID));
+		assert_ok!(parachain::AssetRegistry::unregister_foreign_asset(
+			ParaOrigin::root(),
+			PARA_ASSET_ID
+		));
 
-		assert!(AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID).is_none());
-		assert!(
-			AssetRegistry::asset_multilocation_id(statemine_asset_multi_location.clone()).is_none()
-		);
+		assert!(parachain::AssetRegistry::asset_id_multilocation(PARA_ASSET_ID).is_none());
+		assert!(parachain::AssetRegistry::asset_multilocation_id(
+			statemine_asset_multi_location.clone()
+		)
+		.is_none());
 	});
 }
