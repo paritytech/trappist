@@ -100,7 +100,7 @@ mod xcm_contract_poc {
             let versioned_xcm = VersionedXcm::from(Xcm([Transact {
                 origin_type: OriginKind::Native,
                 require_weight_at_most: weight as u64,
-                call: call.to_vec().into()
+                call: call.into()
             }]
             .to_vec()));
 
