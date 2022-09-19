@@ -288,7 +288,7 @@ impl parachain_info::Config for Runtime {}
 
 impl pallet_asset_registry::Config for Runtime {
 	type Event = Event;
-	type ForeignAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Assets = Assets;
 }
 

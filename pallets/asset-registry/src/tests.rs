@@ -61,7 +61,7 @@ use xcm_simulator::TestExt;
 // }
 
 #[test]
-fn register_foreign_asset_works() {
+fn register_reserve_asset_works() {
 	MockNet::reset();
 
 	Para::execute_with(|| {
@@ -74,7 +74,7 @@ fn register_foreign_asset_works() {
 			),
 		};
 
-		assert_ok!(parachain::AssetRegistry::register_foreign_asset(
+		assert_ok!(parachain::AssetRegistry::register_reserve_asset(
 			ParaOrigin::root(),
 			PARA_ASSET_ID,
 			statemine_asset_multi_location.clone(),
@@ -97,7 +97,7 @@ fn register_foreign_asset_works() {
 		}
 
 		assert_noop!(
-			parachain::AssetRegistry::register_foreign_asset(
+			parachain::AssetRegistry::register_reserve_asset(
 				ParaOrigin::root(),
 				PARA_ASSET_ID,
 				statemine_asset_multi_location.clone(),
@@ -108,7 +108,7 @@ fn register_foreign_asset_works() {
 }
 
 #[test]
-fn unregister_foreign_asset_works() {
+fn unregister_reserve_asset_works() {
 	MockNet::reset();
 
 	Para::execute_with(|| {
@@ -121,13 +121,13 @@ fn unregister_foreign_asset_works() {
 			),
 		};
 
-		assert_ok!(parachain::AssetRegistry::register_foreign_asset(
+		assert_ok!(parachain::AssetRegistry::register_reserve_asset(
 			ParaOrigin::root(),
 			PARA_ASSET_ID,
 			statemine_asset_multi_location.clone(),
 		));
 
-		assert_ok!(parachain::AssetRegistry::unregister_foreign_asset(
+		assert_ok!(parachain::AssetRegistry::unregister_reserve_asset(
 			ParaOrigin::root(),
 			PARA_ASSET_ID
 		));
