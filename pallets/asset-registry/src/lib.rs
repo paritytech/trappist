@@ -50,18 +50,8 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		ForeignAssetRegistered {
-			asset_id: AssetIdOf<T>,
-			asset: MultiLocation,
-		},
-		ForeignAssetMultiLocationChanged {
-			asset_id: AssetIdOf<T>,
-			new_asset_multi_location: MultiLocation,
-		},
-		ForeignAssetUnregistered {
-			asset_id: AssetIdOf<T>,
-			asset_multi_location: MultiLocation,
-		},
+		ForeignAssetRegistered { asset_id: AssetIdOf<T>, asset: MultiLocation },
+		ForeignAssetUnregistered { asset_id: AssetIdOf<T>, asset_multi_location: MultiLocation },
 	}
 
 	#[pallet::error]
@@ -110,46 +100,6 @@ pub mod pallet {
 			Self::deposit_event(Event::ForeignAssetRegistered {
 				asset_id,
 				asset: asset_multi_location,
-			});
-
-			Ok(())
-		}
-
-		#[pallet::weight(10_000)]
-		pub fn change_foreign_asset(
-			origin: OriginFor<T>,
-			asset_id: AssetIdOf<T>,
-			asset_multi_location: MultiLocation,
-		) -> DispatchResult {
-			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
-
-			// verify asset exists on pallet-assets
-			ensure!(Self::asset_exists(asset_id), Error::<T>::AssetDoesNotExist);
-
-			let previous_asset_multi_location = AssetIdMultiLocation::<T>::get(&asset_id)
-				.ok_or(Error::<T>::AssetIsNotRegistered)?;
-
-			// verify MultiLocation is valid
-			let parents_multi_location_ok = { asset_multi_location.parents == 1 };
-			let junctions_multi_location_ok = match asset_multi_location.interior {
-				Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_)) => true,
-				_ => false,
-			};
-
-			ensure!(
-				parents_multi_location_ok && junctions_multi_location_ok,
-				Error::<T>::WrongMultiLocation
-			);
-
-			// update asset
-			AssetIdMultiLocation::<T>::insert(&asset_id, &asset_multi_location);
-			AssetMultiLocationId::<T>::insert(&asset_multi_location, &asset_id);
-
-			AssetMultiLocationId::<T>::remove(&previous_asset_multi_location);
-
-			Self::deposit_event(Event::ForeignAssetMultiLocationChanged {
-				asset_id,
-				new_asset_multi_location: asset_multi_location,
 			});
 
 			Ok(())
