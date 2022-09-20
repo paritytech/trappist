@@ -6,6 +6,7 @@ use polkadot_parachain::primitives::Id as ParaId;
 use sp_runtime::traits::AccountIdConversion;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
+pub mod constants;
 pub mod parachain;
 pub mod relay;
 pub mod statemine;
@@ -13,12 +14,13 @@ pub mod statemine;
 pub const STATEMINE_PARA_ID: u32 = 1000;
 pub const PARA_ID: u32 = 2000;
 
-pub const STATEMINE_ASSETS_PALLET_INSTANCE: u8 = 10;
+pub const STATEMINE_ASSETS_PALLET_INSTANCE: u8 = 7;
 
-pub const STATEMINE_ASSET_ID: AssetIdType = 111;
-pub const PARA_ASSET_ID: AssetIdType = 999;
+pub const STATEMINE_ASSET_ID: AssetIdType = 999;
+pub const PARA_ASSET_ID: AssetIdType = 999; // todo: make different
 
 pub const ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([0u8; 32]);
+
 pub const INITIAL_BALANCE: u128 = 1_000_000_000;
 
 decl_test_parachain! {
@@ -143,3 +145,5 @@ pub fn relay_ext() -> sp_io::TestExternalities {
 	ext.execute_with(|| System::set_block_number(1));
 	ext
 }
+
+pub type StateminePalletXcm = pallet_xcm::Pallet<statemine::Runtime>;

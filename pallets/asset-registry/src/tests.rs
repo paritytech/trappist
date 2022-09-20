@@ -8,57 +8,72 @@ use mock::*;
 use xcm::latest::prelude::*;
 use xcm_simulator::TestExt;
 
-// #[test]
-// fn reserve_transfer() {
-// 	MockNet::reset();
-//
-// 	let withdraw_amount = 123;
-//
-// 	Statemine::execute_with(|| {
-// 		assert_eq!(statemine::Assets::balance(PARA_ASSET_ID, ALICE), INITIAL_BALANCE);
-//
-// 		assert_ok!(StateminePalletXcm::reserve_transfer_assets(
-// 			statemine::Origin::signed(ALICE),
-// 			Box::new(MultiLocation { parents: 1, interior: X1(Parachain(PARA_ID)) }.into()),
-// 			Box::new(
-// 				MultiLocation {
-// 					parents: 0,
-// 					interior: X1(AccountId32 { network: Any, id: ALICE.into() })
-// 				}
-// 				.into()
-// 			),
-// 			Box::new(
-// 				MultiAsset {
-// 					id: AssetId::Concrete(MultiLocation {
-// 						parents: 0,
-// 						interior: X2(PalletInstance(10), GeneralIndex(PARA_ASSET_ID.into()))
-// 					}),
-// 					fun: Fungible(withdraw_amount)
-// 				}
-// 				.into()
-// 			),
-// 			0,
-// 		));
-//
-// 		assert_eq!(
-// 			statemine::Assets::balance(PARA_ASSET_ID, ALICE),
-// 			INITIAL_BALANCE - withdraw_amount
-// 		);
-//
-// 		assert_eq!(
-// 			statemine::Assets::balance(PARA_ASSET_ID, &para_account_id(PARA_ID)),
-// 			withdraw_amount
-// 		);
-// 	});
-//
-// 	Para::execute_with(|| {
-// 		// free execution, full amount received
-// 		assert_eq!(
-// 			parachain::Assets::balance(PARA_ASSET_ID, ALICE),
-// 			INITIAL_BALANCE + withdraw_amount
-// 		);
-// 	});
-// }
+#[test]
+fn reserve_transfer_works() {
+	MockNet::reset();
+
+	let withdraw_amount = 123;
+
+	Statemine::execute_with(|| {
+		assert_eq!(statemine::Assets::balance(STATEMINE_ASSET_ID, ALICE), INITIAL_BALANCE);
+
+		// todo:
+		// first we just need the mock environment to work with a simple naive reserve transfer
+		// where STATEMINE_ASSET_ID == PARA_ASSET_ID
+		// after this works, we change one of the constants so it stops working, and then call 
+		// Para::execute_with(|| { parachain::AssetRegistry::register_reserve_asset(...) });
+		// before doing the reserve_transfer_assets below
+
+		// for some reason, this is not moving funds to the parachain's sovereign account
+		// that means there's something wrong in the XCM configs of the mock environment
+		assert_ok!(StateminePalletXcm::reserve_transfer_assets(
+			statemine::Origin::signed(ALICE),
+			Box::new(MultiLocation { parents: 1, interior: X1(Parachain(PARA_ID)) }.into()),
+			Box::new(
+				MultiLocation {
+					parents: 0,
+					interior: X1(AccountId32 { network: Any, id: ALICE.into() })
+				}
+				.into()
+			),
+			Box::new(
+				MultiAsset {
+					id: AssetId::Concrete(MultiLocation {
+						parents: 0,
+						interior: X2(
+							PalletInstance(STATEMINE_ASSETS_PALLET_INSTANCE),
+							GeneralIndex(STATEMINE_ASSET_ID.into())
+						)
+					}),
+					fun: Fungible(withdraw_amount)
+				}
+				.into()
+			),
+			0,
+		));
+
+		// did the funds move away from Alice's account?
+		assert_eq!(
+			statemine::Assets::balance(STATEMINE_ASSET_ID, ALICE),
+			INITIAL_BALANCE - withdraw_amount
+		);
+
+		// did the funds move into the Parachain's sovereign account?
+		assert_eq!(
+			statemine::Assets::balance(STATEMINE_ASSET_ID, &para_account_id(PARA_ID)),
+			withdraw_amount
+		);
+	});
+
+	// once we figure out the issues on the mock environement, we can enable this assertion
+	// Para::execute_with(|| {
+	// 	// free execution, full amount received
+	// 	assert_eq!(
+	// 		parachain::Assets::balance(PARA_ASSET_ID, ALICE),
+	// 		INITIAL_BALANCE + withdraw_amount
+	// 	);
+	// });
+}
 
 #[test]
 fn register_reserve_asset_works() {

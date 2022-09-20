@@ -1,7 +1,7 @@
 //! Parachain runtime mock.
 
 use crate as pallet_asset_registry;
-use crate::mock::STATEMINE_PARA_ID;
+use crate::mock::{STATEMINE_ASSETS_PALLET_INSTANCE, STATEMINE_PARA_ID};
 use cumulus_primitives_core::{ChannelStatus, GetChannelInfo};
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -165,7 +165,7 @@ parameter_types! {
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub StatemineAssetsPalletLocation: MultiLocation =
-		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+		MultiLocation::new(1, X2(Parachain(STATEMINE_PARA_ID), PalletInstance(STATEMINE_ASSETS_PALLET_INSTANCE)));
 
 }
 
@@ -298,13 +298,13 @@ construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 10,
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>},
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 1,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 2,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 3,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 4,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 5,
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 6,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 7,
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 8,
 	}
 );

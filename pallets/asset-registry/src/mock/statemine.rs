@@ -1,30 +1,31 @@
 //! Parachain runtime mock.
 
+use super::constants::fee::WeightToFee;
 use cumulus_primitives_core::{ChannelStatus, GetChannelInfo};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Nothing, PalletInfoAccess},
+	traits::{Everything, Nothing, OnUnbalanced, PalletInfoAccess},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
 use frame_system::EnsureRoot;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{ConstU128, ConstU32, IdentityLookup},
+	traits::{ConstU128, ConstU32, ConvertInto, IdentityLookup},
 	AccountId32,
 };
 use sp_std::prelude::*;
 
 use pallet_xcm::XcmPassthrough;
-use parachains_common::AssetId;
+use parachains_common::impls::NegativeImbalance;
+use parachains_common::{xcm_config::AssetFeeAsExistentialDepositMultiplier, AssetId};
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset, ParentIsPreset,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
+	IsConcrete, LocationInverter, NativeAsset, ParentIsPreset, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, UsingComponents,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 
@@ -126,6 +127,7 @@ parameter_types! {
 	pub const MaxInstructions: u32 = 100;
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub AssetsPalletLocation: MultiLocation = PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
+	pub XcmAssetFeesReceiver: Option<AccountId> = None;
 }
 
 pub type LocalAssetTransactor =
@@ -157,6 +159,9 @@ pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 pub type XcmRouter = super::ParachainXcmRouter<ParachainInfo>;
 pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
+pub struct MockStakingPot {}
+impl OnUnbalanced<NegativeImbalance<Runtime>> for MockStakingPot {}
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -168,11 +173,33 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
-	type ResponseHandler = ();
-	type AssetTrap = ();
-	type AssetClaims = ();
-	type SubscriptionService = ();
+	type Trader = (
+		UsingComponents<WeightToFee, KsmLocation, AccountId, Balances, MockStakingPot>,
+		cumulus_primitives_utility::TakeFirstAssetTrader<
+			AccountId,
+			AssetFeeAsExistentialDepositMultiplier<
+				Runtime,
+				WeightToFee,
+				pallet_assets::BalanceToAssetBalance<Balances, Runtime, ConvertInto>,
+			>,
+			ConvertedConcreteAssetId<
+				AssetId,
+				Balance,
+				AsPrefixedGeneralIndex<AssetsPalletLocation, AssetId, JustTry>,
+				JustTry,
+			>,
+			Assets,
+			cumulus_primitives_utility::XcmFeesTo32ByteAccount<
+				FungiblesTransactor,
+				AccountId,
+				XcmAssetFeesReceiver,
+			>,
+		>,
+	);
+	type ResponseHandler = PolkadotXcm;
+	type AssetTrap = PolkadotXcm;
+	type AssetClaims = PolkadotXcm;
+	type SubscriptionService = PolkadotXcm;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, RelayNetwork>;
@@ -226,18 +253,66 @@ type Block = frame_system::mocking::MockBlock<Runtime>;
 
 impl parachain_info::Config for Runtime {}
 
+#[frame_support::pallet]
+pub mod mock_statemint_prefix {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {
+		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+	}
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	#[pallet::without_storage_info]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn current_prefix)]
+	pub(super) type CurrentPrefix<T: Config> = StorageValue<_, MultiLocation, ValueQuery>;
+
+	impl<T: Config> Get<MultiLocation> for Pallet<T> {
+		fn get() -> MultiLocation {
+			Self::current_prefix()
+		}
+	}
+
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T: Config> {
+		// Changed Prefix
+		PrefixChanged(MultiLocation),
+	}
+
+	impl<T: Config> Pallet<T> {
+		pub fn set_prefix(prefix: MultiLocation) {
+			CurrentPrefix::<T>::put(&prefix);
+			Self::deposit_event(Event::PrefixChanged(prefix));
+		}
+	}
+}
+
+impl mock_statemint_prefix::Config for Runtime {
+	type Event = Event;
+}
+
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Storage, Config, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ParachainInfo: parachain_info::{Pallet, Storage, Config},
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>},
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 10,
+		System: frame_system::{Pallet, Call, Storage, Config, Event<T>} = 1,
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 2,
+		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 3,
+		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 4,
+		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 5,
+		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin} = 6,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 7,
+		PrefixChanger: mock_statemint_prefix::{Pallet, Storage, Event<T>} = 8,
 	}
 );
