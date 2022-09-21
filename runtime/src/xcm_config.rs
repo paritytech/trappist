@@ -117,9 +117,9 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	CheckingAccount,
 >;
 
-/// Means for transacting foreign fungible assets.
+/// Means for transacting reserved fungible assets.
 /// AsAssetMultiLocation uses pallet_asset_registry to convert between AssetId and MultiLocation.
-pub type ForeignFungiblesTransactor = FungiblesAdapter<
+pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -141,7 +141,7 @@ pub type ForeignFungiblesTransactor = FungiblesAdapter<
 
 /// Means for transacting assets on this chain.
 pub type AssetTransactors =
-	(LocalAssetTransactor, ForeignFungiblesTransactor, LocalFungiblesTransactor);
+	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
