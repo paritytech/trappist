@@ -2,6 +2,7 @@
 members = [
     "node",
     "runtime",
+    "xcm-interface",
 ]
 exclude = [
     "contracts"

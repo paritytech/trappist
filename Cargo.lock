@@ -11003,6 +11003,24 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder",
+ "trappist-xcm-interface",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+]
+
+[[package]]
+name = "trappist-xcm-interface"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "hex-literal",
+ "log",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-runtime",
  "xcm",
  "xcm-builder",
  "xcm-executor",
