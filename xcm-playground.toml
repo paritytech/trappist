@@ -8,6 +8,7 @@ default_command = "./bin/polkadot"
   [[relaychain.nodes]]
   name = "alice"
   validator = true
+  ws_port = 9900
   extra_args = [ "-lparachain=debug" ]
 
   [[relaychain.nodes]]
@@ -34,6 +35,7 @@ chain = "statemine-local"
   [parachains.collator]
   name = "statemine-collator01"
   command = "./bin/polkadot-parachain"
+  ws_port = 9910
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
@@ -44,6 +46,7 @@ cumulus_based = true
   [parachains.collator]
   name = "trappist-collator01"
   command = "./target/release/trappist-collator"
+  ws_port = 9920
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
@@ -55,6 +58,7 @@ chain = ""
   [parachains.collator]
   name = "collator01"
   command = "./bin/polkadot-parachain"
+  ws_port = 9930
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [types.Header]
