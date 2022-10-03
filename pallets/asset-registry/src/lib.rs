@@ -58,9 +58,13 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
+		/// The Asset ID is already registered
 		AssetAlreadyRegistered,
+		/// The Asset ID does not exist
 		AssetDoesNotExist,
+		/// The Asset ID is not Registered
 		AssetIsNotRegistered,
+		/// Invalid MultiLocation
 		WrongMultiLocation,
 	}
 
