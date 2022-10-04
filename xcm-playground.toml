@@ -74,38 +74,38 @@ number = "u64"
 parent_hash = "Hash"
 post_state = "Hash"
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 1000
 recipient = 2000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 2000
 recipient = 1000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 1000
 recipient = 3000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 3000
 recipient = 1000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 2000
 recipient = 3000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 3000
 recipient = 2000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
