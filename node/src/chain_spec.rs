@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, BalancesConfig, CouncilConfig,
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, AssetsConfig, BalancesConfig, CouncilConfig,
 	GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
@@ -176,6 +176,8 @@ pub fn local_testnet_config() -> ChainSpec {
 	)
 }
 
+pub const LOCAL_ASSET_ID: u32 = 999;
+
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
@@ -223,7 +225,20 @@ fn testnet_genesis(
 			// Assign network admin rights.
 			key: Some(root_key),
 		},
-		assets: Default::default(),
+		assets: AssetsConfig {
+			assets: vec![
+				// id, owner, is_sufficient, min_balance
+				(LOCAL_ASSET_ID, get_account_id_from_seed::<sr25519::Public>("Alice"), true, 1),
+			],
+			metadata: vec![
+				// id, name, symbol, decimals
+				(LOCAL_ASSET_ID, "txUSD".into(), "txUSD".into(), 10),
+			],
+			accounts: vec![
+				// id, account_id, balance
+				(LOCAL_ASSET_ID, get_account_id_from_seed::<sr25519::Public>("Alice"), 100),
+			],
+		},
 		council: CouncilConfig {
 			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),

@@ -3,18 +3,59 @@
 use super::*;
 
 #[allow(unused)]
-use crate::Pallet as Template;
-use frame_benchmarking::{benchmarks, whitelisted_caller};
+use crate::Pallet as AssetRegistry;
+use frame_benchmarking::benchmarks;
+use frame_support::{assert_ok, traits::fungibles::Inspect};
 use frame_system::RawOrigin;
+use xcm::opaque::latest::{
+	Junction::{GeneralIndex, PalletInstance, Parachain},
+	Junctions, MultiLocation,
+};
+
+pub const LOCAL_ASSET_ID: u32 = 999;
 
 benchmarks! {
-	do_something {
-		let s in 0 .. 100;
-		let caller: T::AccountId = whitelisted_caller();
-	}: _(RawOrigin::Signed(caller), s)
-	verify {
-		assert_eq!(Something::<T>::get(), Some(s));
+	where_clause {
+		where
+			T::Assets: Inspect<<T as frame_system::Config>::AccountId, AssetId = u32>,
 	}
 
-	impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test);
+	register_reserve_asset {
+		let asset_multi_location = MultiLocation {
+			parents: 1,
+			interior: Junctions::X3(Parachain(Default::default()), PalletInstance(Default::default()), GeneralIndex(Default::default()))
+		};
+
+	}: _(RawOrigin::Root, LOCAL_ASSET_ID, asset_multi_location.clone())
+	verify {
+		if let Some(read_asset_multi_location) =
+			AssetRegistry::<T>::asset_id_multilocation(LOCAL_ASSET_ID)
+		{
+			assert_eq!(read_asset_multi_location, asset_multi_location);
+		} else {
+			panic!("error reading AssetIdMultiLocation");
+		}
+	}
+
+	unregister_reserve_asset {
+		let asset_multi_location = MultiLocation {
+			parents: 1,
+			interior: Junctions::X3(Parachain(Default::default()), PalletInstance(Default::default()), GeneralIndex(Default::default()))
+		};
+
+		assert_ok!(AssetRegistry::<T>::register_reserve_asset(RawOrigin::Root.into(), LOCAL_ASSET_ID, asset_multi_location.clone()));
+		if let Some(read_asset_multi_location) =
+			AssetRegistry::<T>::asset_id_multilocation(LOCAL_ASSET_ID)
+		{
+			assert_eq!(read_asset_multi_location, asset_multi_location);
+		} else {
+			panic!("error reading AssetIdMultiLocation");
+		}
+
+	}: _(RawOrigin::Root, LOCAL_ASSET_ID)
+	verify {
+		assert_eq!(AssetRegistry::<T>::asset_id_multilocation(LOCAL_ASSET_ID), None);
+	}
+
+	impl_benchmark_test_suite!(AssetRegistry, crate::mock::new_test_ext(), crate::mock::Test);
 }

@@ -12,9 +12,12 @@ mod tests;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
+pub mod weights;
+pub use weights::*;
 
 #[frame_support::pallet]
 pub mod pallet {
+	use super::*;
 	use frame_support::{
 		pallet_prelude::*, sp_runtime::traits::Zero, traits::tokens::fungibles::Inspect,
 	};
@@ -37,6 +40,7 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type ReserveAssetModifierOrigin: EnsureOrigin<Self::Origin>;
 		type Assets: Inspect<Self::AccountId>;
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::storage]
@@ -70,7 +74,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(10_000)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::register_reserve_asset())]
 		pub fn register_reserve_asset(
 			origin: OriginFor<T>,
 			asset_id: AssetIdOf<T>,
@@ -111,7 +115,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(10_000)]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::unregister_reserve_asset())]
 		pub fn unregister_reserve_asset(
 			origin: OriginFor<T>,
 			asset_id: AssetIdOf<T>,
