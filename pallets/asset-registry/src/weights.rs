@@ -3,8 +3,10 @@
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
 //! DATE: 2022-10-04, STEPS: `20`, REPEAT: 10, LOW RANGE: `[]`, HIGH RANGE: `[]`
-//! HOSTNAME: `bear-ThinkPad-E480`, CPU: `Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz`
+//! HOSTNAME: `bernardo-benchmarking`, CPU: `AMD EPYC 7B13`
 //! EXECUTION: None, WASM-EXECUTION: Compiled, CHAIN: Some("dev"), DB CACHE: 1024
+
+// collected on a c2d-highcpu-8 of Google Cloud Platform
 
 // Executed Command:
 // ./target/release/trappist-collator
@@ -42,14 +44,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn register_reserve_asset() -> Weight {
-		(28_599_000 as Weight)
+		(18_710_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn unregister_reserve_asset() -> Weight {
-		(23_753_000 as Weight)
+		(16_570_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
@@ -60,14 +62,14 @@ impl WeightInfo for () {
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn register_reserve_asset() -> Weight {
-		(28_599_000 as Weight)
+		(18_710_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn unregister_reserve_asset() -> Weight {
-		(23_753_000 as Weight)
+		(16_570_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
