@@ -171,10 +171,6 @@ tests:
                         attributes:
                           - type: u32
                             value: *trappist_asset_id
-                      - name: assetRegistry.ReserveAssetRegistered
-                        attribute:
-                          type: XcmV1MultiLocation
-                          value: *reserve_asset_multi_location
 
           - name: Assets Parachain should be able to reserve transfer an asset to Trappist Parachain
             actions:
