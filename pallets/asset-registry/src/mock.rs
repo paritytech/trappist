@@ -61,6 +61,7 @@ impl pallet_asset_registry::Config for Test {
 	type Event = Event;
 	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Assets = Assets;
+	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Test>;
 }
 
 impl pallet_balances::Config for Test {
