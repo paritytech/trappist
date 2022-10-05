@@ -4,6 +4,9 @@ members = [
     "runtime",
     "primitives/xcm",
 ]
+exclude = [
+    "contracts"
+]
 
 [profile.release]
 panic = "unwind"
