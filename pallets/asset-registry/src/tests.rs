@@ -7,7 +7,7 @@ fn register_reserve_asset_works() {
 	new_test_ext().execute_with(|| {
 		let statemine_para_id = StatemineParaIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id = StatemineAssetIdInfoA::get();
+		let statemine_asset_id = StatemineAssetIdInfo::get();
 
 		let statemine_asset_multi_location = MultiLocation {
 			parents: 1,
@@ -56,7 +56,7 @@ fn unregister_reserve_asset_works() {
 	new_test_ext().execute_with(|| {
 		let statemine_para_id = StatemineParaIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id = StatemineAssetIdInfoA::get();
+		let statemine_asset_id = StatemineAssetIdInfo::get();
 
 		let statemine_asset_multi_location = MultiLocation {
 			parents: 1,

@@ -13,8 +13,7 @@ type Block = frame_system::mocking::MockBlock<Test>;
 frame_support::parameter_types! {
 	pub const StatemineParaIdInfo: u32 = 1000u32;
 	pub const StatemineAssetsInstanceInfo: u8 = 50u8;
-	pub const StatemineAssetIdInfoA: u128 = 1u128;
-	pub const StatemineAssetIdInfoB: u128 = 10u128;
+	pub const StatemineAssetIdInfo: u128 = 1u128;
 }
 
 // Configure a mock runtime to test the pallet.
