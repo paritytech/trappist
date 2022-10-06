@@ -26,7 +26,7 @@ Register a new Reserve Asset.
 #### Parameters
 * `origin` – Origin for the call. Must be signed.
 * `asset_id` – ID of the Asset. Asset with this ID must exist on the local `Assets` pallet.
-* `asset_multi_location` - `MultiLocation` of the Reserve Asset.
+* `asset_multi_location` – `MultiLocation` of the Reserve Asset.
 
 #### Errors
 * `AssetDoesNotExist` - The Asset ID does not exist on the local `Assets` pallet.
