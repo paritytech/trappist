@@ -13,7 +13,9 @@ where
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 {
 	fn convert_ref(asset_multi_location: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow().clone().into()) {
+		if let Some(asset_id) =
+			AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow().clone())
+		{
 			Ok(asset_id)
 		} else {
 			Err(())

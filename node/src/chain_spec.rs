@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, AssetsConfig, BalancesConfig, CouncilConfig,
-	GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
+	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
