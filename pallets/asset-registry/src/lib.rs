@@ -93,10 +93,7 @@ pub mod pallet {
 
 			// verify MultiLocation is valid
 			let parents_multi_location_ok = { asset_multi_location.parents == 1 };
-			let junctions_multi_location_ok = match asset_multi_location.interior {
-				Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_)) => true,
-				_ => false,
-			};
+			let junctions_multi_location_ok = matches!(asset_multi_location.interior, Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_)));
 
 			ensure!(
 				parents_multi_location_ok && junctions_multi_location_ok,
@@ -147,11 +144,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		fn asset_exists(asset_id: AssetIdOf<T>) -> bool {
-			if T::Assets::minimum_balance(asset_id).is_zero() {
-				false
-			} else {
-				true
-			}
+			!T::Assets::minimum_balance(asset_id).is_zero()
 		}
 	}
 }
