@@ -87,7 +87,7 @@ pub mod pallet {
 
 			// verify asset is not yet registered
 			ensure!(
-				AssetIdMultiLocation::<T>::get(&asset_id).is_none(),
+				!AssetIdMultiLocation::<T>::contains_key(&asset_id),
 				Error::<T>::AssetAlreadyRegistered
 			);
 
