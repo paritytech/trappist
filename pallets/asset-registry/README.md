@@ -45,7 +45,7 @@ Unregister a Reserve Asset.
 * `asset_id` – ID of the asset. Asset with this ID must exist on the local `Assets` pallet.
 
 #### Errors
-* `AssetIsNotRegistered` - The Asset ID is not registered, and therefore cannot be unregistered.
+* `AssetIsNotRegistered` – The Asset ID is not registered, and therefore cannot be unregistered.
 
 </details>
 
