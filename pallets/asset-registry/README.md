@@ -29,9 +29,9 @@ Register a new Reserve Asset.
 * `asset_multi_location` – `MultiLocation` of the Reserve Asset.
 
 #### Errors
-* `AssetDoesNotExist` - The Asset ID does not exist on the local `Assets` pallet.
-* `AssetAlreadyRegistered` - The Asset ID is already registered.
-* `WrongMultiLocation` - Provided Reserve Asset `MultiLocation` is invalid.
+* `AssetDoesNotExist` – The Asset ID does not exist on the local `Assets` pallet.
+* `AssetAlreadyRegistered` – The Asset ID is already registered.
+* `WrongMultiLocation` – Provided Reserve Asset `MultiLocation` is invalid.
 
 </details>
 
