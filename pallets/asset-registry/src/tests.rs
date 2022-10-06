@@ -32,13 +32,9 @@ fn register_reserve_asset_works() {
 			panic!("error reading AssetIdMultiLocation");
 		}
 
-		if let Some(read_asset_id) =
-			AssetRegistry::asset_multilocation_id(statemine_asset_multi_location.clone())
-		{
-			assert_eq!(read_asset_id, LOCAL_ASSET_ID);
-		} else {
-			panic!("error reading AssetMultiLocationId");
-		}
+		let read_asset_id = AssetRegistry::asset_multilocation_id(&statemine_asset_multi_location)
+			.expect("error reading AssetMultiLocationId");
+		assert_eq!(read_asset_id, LOCAL_ASSET_ID);
 
 		assert_noop!(
 			AssetRegistry::register_reserve_asset(
