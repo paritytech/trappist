@@ -56,7 +56,7 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		ReserveAssetRegistered { asset_id: AssetIdOf<T>, asset: MultiLocation },
+		ReserveAssetRegistered { asset_id: AssetIdOf<T>, asset_multi_location: MultiLocation },
 		ReserveAssetUnregistered { asset_id: AssetIdOf<T>, asset_multi_location: MultiLocation },
 	}
 
@@ -93,7 +93,10 @@ pub mod pallet {
 
 			// verify MultiLocation is valid
 			let parents_multi_location_ok = { asset_multi_location.parents == 1 };
-			let junctions_multi_location_ok = matches!(asset_multi_location.interior, Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_)));
+			let junctions_multi_location_ok = matches!(
+				asset_multi_location.interior,
+				Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_))
+			);
 
 			ensure!(
 				parents_multi_location_ok && junctions_multi_location_ok,
@@ -104,10 +107,7 @@ pub mod pallet {
 			AssetIdMultiLocation::<T>::insert(&asset_id, &asset_multi_location);
 			AssetMultiLocationId::<T>::insert(&asset_multi_location, &asset_id);
 
-			Self::deposit_event(Event::ReserveAssetRegistered {
-				asset_id,
-				asset: asset_multi_location,
-			});
+			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
 
 			Ok(())
 		}
