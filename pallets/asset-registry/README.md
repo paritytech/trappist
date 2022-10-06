@@ -13,7 +13,7 @@ This trait is used by a struct (`AsAssetMultiLocation<AssetId, AssetIdInfoGetter
 
 ### Types
 * `Event` – The overarching event type.
-* `ReserveAssetModifierOrigin` - The origin that's allowed to register and unregister reserve assets.
+* `ReserveAssetModifierOrigin` – The origin that's allowed to register and unregister reserve assets.
 * `Assets` – The assets type.
 
 ## Extrinsics
