@@ -28,13 +28,9 @@ benchmarks! {
 
 	}: _(RawOrigin::Root, LOCAL_ASSET_ID, asset_multi_location.clone())
 	verify {
-		if let Some(read_asset_multi_location) =
-			AssetRegistry::<T>::asset_id_multilocation(LOCAL_ASSET_ID)
-		{
-			assert_eq!(read_asset_multi_location, asset_multi_location);
-		} else {
-			panic!("error reading AssetIdMultiLocation");
-		}
+		let read_asset_multi_location = AssetRegistry::<T>::asset_id_multilocation(LOCAL_ASSET_ID)
+			.expect("error reading AssetIdMultiLocation");
+		assert_eq!(read_asset_multi_location, asset_multi_location);
 	}
 
 	unregister_reserve_asset {
