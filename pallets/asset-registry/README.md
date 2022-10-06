@@ -9,6 +9,8 @@ The `asset-registry` pallet provides a solution to this problem by implementing 
 
 This trait is used by a struct (`AsAssetMultiLocation<AssetId, AssetIdInfoGetter>`) that is added to the runtime (as an extra XCM primitive) and used as the `xcm_executor::traits::Convert<MultiLocation, AssetId>` implementor needed by the `ConvertedConcreteAssetId` of `FungiblesAdapter`.
 
+The pallet needs to be used in conjunction with the [`xcm-primitives` crate](https://github.com/paritytech/trappist/tree/master/primitives/xcm) or an equivalent implementation.
+
 ## Configuration
 
 ### Types
@@ -51,49 +53,6 @@ Unregister a Reserve Asset.
 
 ## How to add `pallet-asset-registry` to a runtime
 
-### XCM Primitives
-
-Create a new crate called `xcm-primitives` with the following contents on its `lib.rs`:
-```rust
-#![cfg_attr(not(feature = "std"), no_std)]
-
-use sp_std::{borrow::Borrow, marker::PhantomData};
-use xcm::latest::MultiLocation;
-
-pub struct AsAssetMultiLocation<AssetId, AssetIdInfoGetter>(
-	PhantomData<(AssetId, AssetIdInfoGetter)>,
-);
-impl<AssetId, AssetIdInfoGetter> xcm_executor::traits::Convert<MultiLocation, AssetId>
-	for AsAssetMultiLocation<AssetId, AssetIdInfoGetter>
-where
-	AssetId: Clone,
-	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
-{
-	fn convert_ref(asset_multi_location: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow().clone().into()) {
-			Ok(asset_id)
-		} else {
-			Err(())
-		}
-	}
-
-	fn reverse_ref(asset_id: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		if let Some(asset_multi_location) =
-			AssetIdInfoGetter::get_asset_multi_location(asset_id.borrow().clone())
-		{
-			Ok(asset_multi_location)
-		} else {
-			Err(())
-		}
-	}
-}
-
-pub trait AssetMultiLocationGetter<AssetId> {
-	fn get_asset_multi_location(asset_id: AssetId) -> Option<MultiLocation>;
-	fn get_asset_id(asset_multi_location: MultiLocation) -> Option<AssetId>;
-}
-```
-
 ### Runtime's `Cargo.toml`
 
 Add `pallet-assets`, `pallet-asset-registry` and `xcm-primitives` to the dependencies:
@@ -111,8 +70,10 @@ git = "https://github.com/paritytech/trappist.git"
 branch = "master"
 
 [dependencies.xcm-primitives]
-path = "path/to/xcm-primitives/crate"
+version = "0.1.0"
 default-features = false
+git = "https://github.com/paritytech/trappist.git"
+branch = "master"
 ```
 
 Update the runtime's `std` feature:
