@@ -24,13 +24,9 @@ fn register_reserve_asset_works() {
 			statemine_asset_multi_location.clone(),
 		));
 
-		if let Some(read_asset_multi_location) =
-			AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID)
-		{
-			assert_eq!(read_asset_multi_location, statemine_asset_multi_location);
-		} else {
-			panic!("error reading AssetIdMultiLocation");
-		}
+		let read_asset_multi_location = AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID)
+			.expect("error reading AssetIdMultiLocation");
+		assert_eq!(read_asset_multi_location, statemine_asset_multi_location);
 
 		let read_asset_id = AssetRegistry::asset_multilocation_id(&statemine_asset_multi_location)
 			.expect("error reading AssetMultiLocationId");
