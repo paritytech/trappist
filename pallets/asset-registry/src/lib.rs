@@ -143,6 +143,9 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		// pallet-assets implements the fungibles::Inspect trait
+		// where minimum_balance(asset_id) always returns non-zero
+		// for existing assets, and zero for non-existing assets
 		fn asset_exists(asset_id: AssetIdOf<T>) -> bool {
 			!T::Assets::minimum_balance(asset_id).is_zero()
 		}
