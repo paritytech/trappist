@@ -40,7 +40,7 @@ fn register_reserve_asset_works() {
 			AssetRegistry::register_reserve_asset(
 				Origin::root(),
 				LOCAL_ASSET_ID,
-				statemine_asset_multi_location.clone(),
+				statemine_asset_multi_location,
 			),
 			Error::<Test>::AssetAlreadyRegistered
 		);
