@@ -66,7 +66,7 @@ pub mod pallet {
 		AssetAlreadyRegistered,
 		/// The Asset ID does not exist
 		AssetDoesNotExist,
-		/// The Asset ID is not Registered
+		/// The Asset ID is not registered
 		AssetIsNotRegistered,
 		/// Invalid MultiLocation
 		WrongMultiLocation,
