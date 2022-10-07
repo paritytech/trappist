@@ -176,7 +176,7 @@ pub fn local_testnet_config() -> ChainSpec {
 	)
 }
 
-pub const LOCAL_ASSET_ID: u32 = 999;
+pub const LOCAL_ASSET_ID: u32 = 10;
 
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(

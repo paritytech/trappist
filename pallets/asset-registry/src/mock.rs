@@ -93,7 +93,7 @@ impl pallet_assets::Config for Test {
 	type Extra = ();
 }
 
-pub const LOCAL_ASSET_ID: u32 = 999;
+pub const LOCAL_ASSET_ID: u32 = 10;
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {

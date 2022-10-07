@@ -12,7 +12,7 @@ use xcm::opaque::latest::{
 	Junctions, MultiLocation,
 };
 
-pub const LOCAL_ASSET_ID: u32 = 999;
+pub const LOCAL_ASSET_ID: u32 = 10;
 
 benchmarks! {
 	where_clause {
