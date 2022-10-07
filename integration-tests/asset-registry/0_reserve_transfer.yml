@@ -46,7 +46,7 @@ settings:
         signer: &tp_signer //Alice
         wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
         bob_wallet: &tp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
-        asset_id: &trappist_asset_id 10 # different from reserve_asset_id, so we can test pallet-assets-registry
+        asset_id: &trappist_asset_id 100 # different from reserve_asset_id, so we can test pallet-assets-registry
         asset_min_balance: &trappist_assets_min_balance 1
         sovereign_account: &tp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
         bob_account: &tp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
