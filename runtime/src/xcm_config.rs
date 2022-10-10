@@ -16,8 +16,8 @@
 use crate::constants::fee::default_fee_per_second;
 
 use super::{
-	AccountId, Assets, Balance, Balances, Call, Event, Origin, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, WeightToFee, XcmpQueue,
+	AccountId, AssetRegistry, Assets, Balance, Balances, Call, Event, Origin, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Runtime, WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -33,6 +33,7 @@ use parachains_common::{
 	AssetId,
 };
 use xcm_executor::traits::{FilterAssetLocation, JustTry};
+use xcm_primitives::AsAssetMultiLocation;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
@@ -116,20 +117,16 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	CheckingAccount,
 >;
 
-/// Means for transacting assets from Statemine.
-/// We assume Statemine acts as reserve for all assets defined in its Assets pallet,
-/// and the same asset ID is used locally.
-/// (this is rather simplistic, a more refined implementation could implement
-/// something like an "asset manager" where only assets that have been specifically
-/// registered are considered for reserve-based asset transfers).
-pub type StatemineFungiblesTransactor = FungiblesAdapter<
+/// Means for transacting reserved fungible assets.
+/// AsAssetMultiLocation uses pallet_asset_registry to convert between AssetId and MultiLocation.
+pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	ConvertedConcreteAssetId<
 		AssetId,
 		Balance,
-		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
+		AsAssetMultiLocation<AssetId, AssetRegistry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -144,7 +141,7 @@ pub type StatemineFungiblesTransactor = FungiblesAdapter<
 
 /// Means for transacting assets on this chain.
 pub type AssetTransactors =
-	(LocalAssetTransactor, StatemineFungiblesTransactor, LocalFungiblesTransactor);
+	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -232,7 +229,6 @@ fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 			.zip(loc.interior().iter())
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
-
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
 	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
@@ -246,6 +242,7 @@ impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
 			}
 	}
 }
+
 //--
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);

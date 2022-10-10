@@ -93,12 +93,15 @@ polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", defa
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.28" }
 xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.28" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.28" }
+xcm-primitives = { path = "../primitives/xcm/", default-features = false }
 
 # External Pallets
 pallet-dex = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "master" }
 pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "master" }
 pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytech/pallet-contracts-xcm", default-features = false,  branch = "hb-dependencies-update" }
 
+# Trappist Pallets
+pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../pallets/asset-registry" }
 
 [features]
 default = ["std"]
@@ -174,6 +177,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
     "pallet-assets/runtime-benchmarks",
+	"pallet-asset-registry/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",
