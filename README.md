@@ -6,8 +6,8 @@
 * [XCM](https://polkadot.network/cross-chain-communication/), a common language for secure messaging across Polkadot  parachains, and with external networks via bridges.
 * [Rococo](https://polkadot.network/blog/statemint-becomes-first-common-good-parachain-on-polkadot/), Polkadot’s Parachain Testnet.
 * [Statemint](https://polkadot.network/blog/statemint-becomes-first-common-good-parachain-on-polkadot/), Polkadot's common good parachain which provides functionality for deploying and transferring assets — both Fungible and Non-Fungible Tokens (NFTs).
-[Contracts Pallet](https://github.com/paritytech/substrate/tree/master/frame/contracts), enable WebAssembly smart-contracts executions.
-[ink!](https://paritytech.github.io/ink/), an eDSL to write smart contracts in Rust for blockchains built on the Substrate framework.
+* [Contracts Pallet](https://github.com/paritytech/substrate/tree/master/frame/contracts), enable WebAssembly smart-contracts executions.
+* [ink!](https://paritytech.github.io/ink/), an eDSL to write smart contracts in Rust for blockchains built on the Substrate framework.
 
 Altogether those technologies enable an array of exciting cross-chain applications & services:
 
