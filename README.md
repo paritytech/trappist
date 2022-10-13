@@ -18,7 +18,7 @@ This repository contains the source code of **Trappist**, a feature-rich paracha
 * Rococo relay-chain
 * Statemine common good asset parachain
 * Trappist feature-rich parachain
-* An additional, empty parachain
+* An additional parachain capable to execute ink! smart contracts.
 
 All these pre-configured to allow cross-chain communication via XCM messages on HRMP channels.
 
