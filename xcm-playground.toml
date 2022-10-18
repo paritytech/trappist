@@ -16,9 +16,14 @@ default_command = "./bin/polkadot"
   validator = true
   extra_args = [ "-lparachain=debug" ]
 
+  [[relaychain.nodes]]
+  name = "charlie"
+  validator = true
+  extra_args = [ "-lparachain=debug" ]
+
 [[parachains]]
 id = 1000
-addToGenesis = true
+add_to_genesis = true
 cumulus_based = true
 chain = "statemine-local"
 
@@ -36,7 +41,7 @@ chain = "statemine-local"
 
 [[parachains]]
 id = 2000
-addToGenesis = true
+add_to_genesis = true
 cumulus_based = true
 
   [[parachains.collators]]
@@ -53,9 +58,8 @@ cumulus_based = true
 
 [[parachains]]
 id = 3000
-addToGenesis = true
+add_to_genesis = true
 cumulus_based = true
-chain = ""
 
   [[parachains.collators]]
   name = "collator01"
