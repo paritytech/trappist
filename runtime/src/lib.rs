@@ -46,8 +46,8 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
-		EqualPrivilegeOnly, Everything,
+		ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
+		EqualPrivilegeOnly, Everything, EnsureOrigin, EnsureOriginWithArg,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
@@ -55,10 +55,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{
-	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
-};
+use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot};
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::{AssetsToBlockAuthor, DealWithFees},
@@ -66,7 +63,7 @@ pub use parachains_common::{
 	AVERAGE_ON_INITIALIZE_RATIO, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
 	SLOT_DURATION,
 };
-use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
+use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation, SovereignAccountOf};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -74,7 +71,8 @@ pub use sp_runtime::BuildStorage;
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
-use xcm::latest::prelude::BodyId;
+use xcm::latest::{prelude::*, MultiLocation};
+use xcm_executor::traits::Convert;
 
 pub const MICROUNIT: Balance = 1_000_000;
 
@@ -418,10 +416,10 @@ parameter_types! {
 
 impl pallet_uniques::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type CollectionId = u32;
-	type ItemId = u32;
+	type CollectionId = MultiLocation;
+	type ItemId = AssetInstance;
 	type Currency = Balances;
-	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type CollectionDeposit = CollectionDeposit;
 	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = UniquesMetadataDepositBase;
@@ -433,8 +431,31 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type CreateOrigin = ForeignCreators;
 	type Locker = ();
+}
+
+// `EnsureOriginWithArg` impl for `CreateOrigin` which allows only XCM origins
+//  which are locations containing the class location.
+pub struct ForeignCreators;
+impl EnsureOriginWithArg<RuntimeOrigin, MultiLocation> for ForeignCreators {
+	type Success = AccountId;
+
+	fn try_origin(
+		o: RuntimeOrigin,
+		a: &MultiLocation,
+	) -> Result<Self::Success, RuntimeOrigin> {
+		let origin_location = EnsureXcm::<Everything>::try_origin(o.clone())?;
+		if !a.starts_with(&origin_location) {
+			return Err(o)
+		}
+		SovereignAccountOf::convert(origin_location).map_err(|_| o)
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn successful_origin(a: &MultiLocation) -> RuntimeOrigin {
+		pallet_xcm::Origin::Xcm(a.clone()).into()
+	}
 }
 
 parameter_types! {
@@ -531,7 +552,7 @@ construct_runtime!(
 		Council: pallet_collective::<Instance1> = 42,
 		Assets: pallet_assets = 43,
 		Identity: pallet_identity = 44,
-		Uniques: pallet_uniques = 45,
+		ForeignUniques: pallet_uniques = 45,
 		Scheduler: pallet_scheduler = 46,
 		Utility: pallet_utility = 47,
 		Preimage: pallet_preimage = 48,
@@ -562,7 +583,7 @@ mod benches {
 		[pallet_dex, Dex]
 		[pallet_identity, Identity]
 		[pallet_multisig, Multisig]
-		[pallet_uniques, Uniques]
+		[pallet_uniques, ForeignUniques]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

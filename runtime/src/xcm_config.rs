@@ -17,7 +17,8 @@ use crate::constants::fee::default_fee_per_second;
 
 use super::{
 	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, WeightToFee, XcmpQueue,
+	ForeignUniques, RuntimeOrigin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
+	WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -35,15 +36,15 @@ use xcm_executor::traits::JustTry;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use polkadot_parachain::primitives::Sibling;
+use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
 	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, NativeAsset, ParentAsSuperuser, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	FungiblesAdapter, IsConcrete, NativeAsset, NonFungiblesAdapter, NoChecking, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	UsingComponents,
 };
@@ -141,9 +142,33 @@ pub type StatemineFungiblesTransactor = FungiblesAdapter<
 	CheckingAccount,
 >;
 
+pub type SovereignAccountOf = (
+	SiblingParachainConvertsVia<ParaId, AccountId>,
+	AccountId32Aliases<RelayNetwork, AccountId>,
+	ParentIsPreset<AccountId>,
+);
+
+pub type StatemineNonFungiblesTransactor = NonFungiblesAdapter<
+	ForeignUniques,
+	ConvertedConcreteId<
+		MultiLocation,
+		AssetInstance,
+		JustTry,
+		JustTry,
+	>,
+	SovereignAccountOf,
+	AccountId,
+	NoChecking,
+	(),
+>;
+
 /// Means for transacting assets on this chain.
-pub type AssetTransactors =
-	(LocalAssetTransactor, StatemineFungiblesTransactor, LocalFungiblesTransactor);
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	StatemineFungiblesTransactor,
+	LocalFungiblesTransactor,
+	StatemineNonFungiblesTransactor
+);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -210,6 +235,7 @@ pub type Barrier = DenyThenTry<
 
 parameter_types! {
 	pub StatemineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
+	pub PenpalLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(3000)));
 	// ALWAYS ensure that the index in PalletInstance stays up-to-date with
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
@@ -245,9 +271,20 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 			}
 	}
 }
+
+pub struct ReserveUniquesFrom<T>(PhantomData<T>);
+impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveUniquesFrom<T> {
+	fn contains(_: &MultiAsset, _: &MultiLocation) -> bool {
+		true
+	}
+}
 //--
 
-pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);
+pub type Reserves = (
+	NativeAsset,
+	ReserveAssetsFrom<StatemineLocation>,
+	ReserveUniquesFrom<PenpalLocation>
+);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -258,7 +295,7 @@ impl xcm_executor::Config for XcmConfig {
 	type IsReserve = Reserves;
 	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
-	type Barrier = Barrier;
+	type Barrier = AllowUnpaidExecutionFrom<Everything>;  // TODO: FIXME
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<XUsdPerSecond, ()>,
