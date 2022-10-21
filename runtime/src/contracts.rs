@@ -1,10 +1,10 @@
 use crate::{
-	constants::currency::deposit, Balance, Balances, Call, Event, RandomnessCollectiveFlip,
+	constants::currency::deposit, Balance, Balances, RuntimeCall, RuntimeEvent, RandomnessCollectiveFlip,
 	Runtime, RuntimeBlockWeights, Timestamp,
 };
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Nothing, OnRuntimeUpgrade},
+	traits::{ConstU32, Nothing},
 	weights::Weight,
 };
 use pallet_contracts::{
@@ -25,9 +25,9 @@ parameter_types! {
 		RuntimeBlockWeights::get().max_block;
 	// The weight needed for decoding the queue should be less or equal than a fifth
 	// of the overall weight dedicated to the lazy deletion.
-	pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get() / (
-			<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(1) -
-			<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(0)
+	pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get().ref_time() / (
+			<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(1).ref_time() -
+			<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(0).ref_time()
 		)) / 5) as u32;
 	pub MySchedule: Schedule<Runtime> = Default::default();
 }
@@ -36,8 +36,8 @@ impl Config for Runtime {
 	type Time = Timestamp;
 	type Randomness = RandomnessCollectiveFlip;
 	type Currency = Balances;
-	type Event = Event;
-	type Call = Call;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
 	/// The safest default is to allow no calls at all.
 	///
 	/// Runtimes should whitelist dispatchables that are allowed to be called from contracts
@@ -57,13 +57,5 @@ impl Config for Runtime {
 	type AddressGenerator = DefaultAddressGenerator;
 	type ContractAccessWeight = pallet_contracts::DefaultContractAccessWeight<RuntimeBlockWeights>;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
-	type RelaxedMaxCodeLen = ConstU32<{ 256 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
-}
-
-pub struct Migrations;
-impl OnRuntimeUpgrade for Migrations {
-	fn on_runtime_upgrade() -> Weight {
-		pallet_contracts::migration::migrate::<Runtime>()
-	}
 }

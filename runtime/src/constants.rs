@@ -62,7 +62,7 @@ pub mod fee {
 			// in Kusama, extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT:
 			// in Statemine, we map to 1/10 of that, or 1/100 CENT
 			let p = super::currency::CENTS;
-			let q = 100 * Balance::from(ExtrinsicBaseWeight::get());
+			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 			smallvec![WeightToFeeCoefficient {
 				degree: 1,
 				negative: false,
@@ -77,8 +77,8 @@ pub mod fee {
 	}
 
 	pub fn default_fee_per_second() -> u128 {
-		let base_weight = Balance::from(ExtrinsicBaseWeight::get());
-		let base_tx_per_second = (WEIGHT_PER_SECOND as u128) / base_weight;
+		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
+		let base_tx_per_second = (WEIGHT_PER_SECOND.ref_time() as u128) / base_weight;
 		base_tx_per_second * base_tx_fee()
 	}
 }
