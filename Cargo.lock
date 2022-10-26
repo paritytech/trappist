@@ -5459,7 +5459,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex"
 version = "0.0.1"
-source = "git+https://github.com/evilrobot-01/substrate-dex.git?branch=upgrade-v0.9.30#a8eeccde3cf12e81a6f6d0e34f6ae8a18b4010e3"
+source = "git+https://github.com/paritytech/substrate-dex.git#fe793352c7b030fda6fb35406fcedaae55f4ab6e"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5473,7 +5473,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
-source = "git+https://github.com/evilrobot-01/substrate-dex.git?branch=upgrade-v0.9.30#a8eeccde3cf12e81a6f6d0e34f6ae8a18b4010e3"
+source = "git+https://github.com/paritytech/substrate-dex.git#fe793352c7b030fda6fb35406fcedaae55f4ab6e"
 dependencies = [
  "jsonrpsee",
  "pallet-dex-rpc-runtime-api",
@@ -5486,7 +5486,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
-source = "git+https://github.com/evilrobot-01/substrate-dex.git?branch=upgrade-v0.9.30#a8eeccde3cf12e81a6f6d0e34f6ae8a18b4010e3"
+source = "git+https://github.com/paritytech/substrate-dex.git#fe793352c7b030fda6fb35406fcedaae55f4ab6e"
 dependencies = [
  "pallet-dex",
  "parity-scale-codec",

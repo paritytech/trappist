@@ -96,8 +96,8 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 xcm-primitives = { path = "../primitives/xcm/", default-features = false }
 
 # External Pallets
-pallet-dex = { version = "0.0.1", git = "https://github.com/evilrobot-01/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30" }
-pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/evilrobot-01/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30" }
+pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
+pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
 pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytech/pallet-contracts-xcm", default-features = false,  branch = "trappist/polkadot-v0.9.30" }
 
 # Trappist Pallets
