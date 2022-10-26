@@ -267,6 +267,8 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 			match asset {
 				MultiAsset { id: Concrete(asset_loc), fun: Fungible(_a) } =>
 					matches_prefix(&prefix, asset_loc),
+				MultiAsset { id: Concrete(asset_loc), fun: NonFungible(_a) } =>
+					matches_prefix(&prefix, asset_loc),
 				_ => false,
 			}
 	}
@@ -280,11 +282,7 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveU
 }
 //--
 
-pub type Reserves = (
-	NativeAsset,
-	ReserveAssetsFrom<StatemineLocation>,
-	ReserveUniquesFrom<PenpalLocation>
-);
+pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -295,7 +293,7 @@ impl xcm_executor::Config for XcmConfig {
 	type IsReserve = Reserves;
 	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
-	type Barrier = AllowUnpaidExecutionFrom<Everything>;  // TODO: FIXME
+	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<XUsdPerSecond, ()>,
