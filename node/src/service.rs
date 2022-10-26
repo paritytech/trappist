@@ -289,7 +289,7 @@ where
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
-	let (network, system_rpc_tx, start_network) =
+	let (network, system_rpc_tx, tx_handler_controller, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
@@ -327,6 +327,7 @@ where
 		backend: backend.clone(),
 		network: network.clone(),
 		system_rpc_tx,
+		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
 	})?;
 
@@ -433,7 +434,6 @@ pub fn parachain_build_import_queue(
 		_,
 		_,
 		_,
-		_,
 	>(cumulus_client_consensus_aura::ImportQueueParams {
 		block_import: client.clone(),
 		client,
@@ -446,10 +446,9 @@ pub fn parachain_build_import_queue(
 					slot_duration,
 				);
 
-			Ok((timestamp, slot))
+			Ok((slot, timestamp))
 		},
 		registry: config.prometheus_registry(),
-		can_author_with: sp_consensus::AlwaysCanAuthor,
 		spawner: &task_manager.spawn_essential_handle(),
 		telemetry,
 	})
@@ -528,7 +527,7 @@ pub async fn start_parachain_node(
 								)
 							})?;
 
-							Ok((timestamp, slot, parachain_inherent))
+							Ok((slot, timestamp, parachain_inherent))
 						}
 					},
 					block_import: client.clone(),
