@@ -18,7 +18,7 @@ use crate::constants::fee::default_fee_per_second;
 use super::{
 	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, RuntimeCall, RuntimeEvent,
 	ForeignUniques, RuntimeOrigin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
-	WeightToFee, XcmpQueue,
+	WeightToFee, XcmpQueue, WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -32,7 +32,8 @@ use parachains_common::{
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
 	AssetId,
 };
-use xcm_executor::traits::JustTry;
+use xcm_executor::traits::{FilterAssetLocation, JustTry};
+use xcm_primitives::AsAssetMultiLocation;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
@@ -116,20 +117,16 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	CheckingAccount,
 >;
 
-/// Means for transacting assets from Statemine.
-/// We assume Statemine acts as reserve for all assets defined in its Assets pallet,
-/// and the same asset ID is used locally.
-/// (this is rather simplistic, a more refined implementation could implement
-/// something like an "asset manager" where only assets that have been specifically
-/// registered are considered for reserve-based asset transfers).
-pub type StatemineFungiblesTransactor = FungiblesAdapter<
+/// Means for transacting reserved fungible assets.
+/// AsAssetMultiLocation uses pallet_asset_registry to convert between AssetId and MultiLocation.
+pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	ConvertedConcreteId<
 		AssetId,
 		Balance,
-		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
+		AsAssetMultiLocation<AssetId, AssetRegistry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -257,7 +254,6 @@ fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 			.zip(loc.interior().iter())
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
-
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {

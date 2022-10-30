@@ -512,6 +512,13 @@ impl pallet_dex::Config for Runtime {
 	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
+impl pallet_asset_registry::Config for Runtime {
+	type Event = Event;
+	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Assets = Assets;
+	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -563,6 +570,7 @@ construct_runtime!(
 
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
 	}
 );
 
@@ -574,6 +582,7 @@ extern crate frame_benchmarking;
 mod benches {
 	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
+		[pallet_asset_registry, AssetRegistry]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
