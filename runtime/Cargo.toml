@@ -95,9 +95,9 @@ xcm-builder = { git = "https://github.com/arturgontijo/polkadot", default-featur
 xcm-executor = { git = "https://github.com/arturgontijo/polkadot", default-features = false, branch = "trappist-xcm-v3" }
 
 # External Pallets
-pallet-dex = { version = "0.0.1", git = "https://github.com/evilrobot-01/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30" }
-pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/evilrobot-01/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30" }
-
+pallet-dex = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30" }
+pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/Wiezzel/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30" }
+pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytech/pallet-contracts-xcm", default-features = false,  branch = "trappist/polkadot-v0.9.30" }
 
 
 [features]
@@ -105,6 +105,7 @@ default = ["std"]
 std = [
     "codec/std",
     "serde",
+	"pallet-contracts-xcm/std",
     "scale-info/std",
     "log/std",
 	"sp-api/std",
