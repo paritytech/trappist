@@ -23,6 +23,8 @@ use super::{
 use frame_support::{
 	match_types, parameter_types,
 	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+	AccountId, AssetRegistry, Assets, Balance, Balances, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, WeightToFee, XcmpQueue,
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
@@ -53,10 +55,18 @@ use xcm_executor::XcmExecutor;
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
+<<<<<<< HEAD
 	pub const RelayNetwork: Option<NetworkId> = None;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub SelfReserve: MultiLocation = Here.into_location();
+=======
+	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
+	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub const Local: MultiLocation = Here.into();
+	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
+>>>>>>> fecf905 (build(deps): update dependencies to polkadot v0.9.30 (#68))
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
@@ -324,8 +334,11 @@ pub type XcmRouter = (
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+<<<<<<< HEAD
 	type Currency = Balances;
 	type CurrencyMatcher = ();
+=======
+>>>>>>> fecf905 (build(deps): update dependencies to polkadot v0.9.30 (#68))
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -334,7 +347,11 @@ impl pallet_xcm::Config for Runtime {
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
+<<<<<<< HEAD
 	type UniversalLocation = UniversalLocation;
+=======
+	type LocationInverter = LocationInverter<Ancestry>;
+>>>>>>> fecf905 (build(deps): update dependencies to polkadot v0.9.30 (#68))
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;

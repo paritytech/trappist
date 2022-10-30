@@ -1,6 +1,11 @@
 use crate::{
+<<<<<<< HEAD
 	constants::currency::deposit, Balance, Balances, RuntimeCall, RuntimeEvent, RandomnessCollectiveFlip,
 	Runtime, RuntimeBlockWeights, Timestamp,
+=======
+	constants::currency::deposit, Balance, Balances, RuntimeCall, RuntimeEvent,
+	RandomnessCollectiveFlip, Runtime, RuntimeBlockWeights, Timestamp,
+>>>>>>> fecf905 (build(deps): update dependencies to polkadot v0.9.30 (#68))
 };
 use frame_support::{
 	parameter_types,
@@ -59,13 +64,6 @@ impl Config for Runtime {
 	type ContractAccessWeight = pallet_contracts::DefaultContractAccessWeight<RuntimeBlockWeights>;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
-}
-
-pub struct Migrations;
-impl OnRuntimeUpgrade for Migrations {
-	fn on_runtime_upgrade() -> Weight {
-		pallet_contracts::migration::migrate::<Runtime>()
-	}
 }
 
 impl pallet_contracts_xcm::Config for Runtime {}

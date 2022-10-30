@@ -106,7 +106,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	pallet_contracts::Migration<Runtime>,
+	pallet_contracts::Migration<Runtime>
 >;
 
 impl_opaque_keys! {
@@ -513,7 +513,7 @@ impl pallet_dex::Config for Runtime {
 }
 
 impl pallet_asset_registry::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Assets = Assets;
 	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
