@@ -103,7 +103,7 @@ polkadot-service = { git = "https://github.com/arturgontijo/polkadot", branch = 
 xcm = { git = "https://github.com/arturgontijo/polkadot", default-features = false, branch = "trappist-xcm-v3" }
 
 # External Dependencies
-pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/evilrobot-01/substrate-dex.git", default-features = false, branch = "upgrade-v0.9.30"}
+pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
 
 [dev-dependencies]
 assert_cmd = "2.0"

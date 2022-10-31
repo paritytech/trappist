@@ -1,11 +1,6 @@
 use crate::{
-<<<<<<< HEAD
-	constants::currency::deposit, Balance, Balances, RuntimeCall, RuntimeEvent, RandomnessCollectiveFlip,
-	Runtime, RuntimeBlockWeights, Timestamp,
-=======
 	constants::currency::deposit, Balance, Balances, RuntimeCall, RuntimeEvent,
 	RandomnessCollectiveFlip, Runtime, RuntimeBlockWeights, Timestamp,
->>>>>>> fecf905 (build(deps): update dependencies to polkadot v0.9.30 (#68))
 };
 use frame_support::{
 	parameter_types,
