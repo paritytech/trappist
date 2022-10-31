@@ -60,7 +60,7 @@ cargo build --release
 
 Create a `bin` directory into the root of this repository and place the following binaries inside of it:
 - `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
-- `polkadot-collator` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
+- `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
 - `trappist-collator` (which you will build from this repository) 
 
 Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
