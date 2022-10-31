@@ -5522,6 +5522,7 @@ dependencies = [
 [[package]]
 name = "pallet-contracts-xcm"
 version = "0.1.0"
+source = "git+https://github.com/paritytech/pallet-contracts-xcm?branch=trappist/xcmv3#4beb388643fdb1639dafb6fe5c62a1537cd35290"
 dependencies = [
  "frame-support",
  "frame-system",
