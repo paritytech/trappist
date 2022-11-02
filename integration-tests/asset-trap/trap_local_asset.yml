@@ -1,0 +1,199 @@
+---
+settings:
+  chains:
+    relay_chain:
+      wsPort: 9900
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: &tp_id 2000
+  variables:
+    common:
+      amount_to_mint: &amount_to_mint 100000000000000
+      amount_to_trap: &amount_to_trap 10000000000000
+      require_weight_at_most: &weight_at_most 2000000000
+    chains:
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_account: &tp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+        asset_pallet_id: &trappist_asset_pallet_id 43
+        asset_id: &trappist_asset_id 200
+        asset_min_balance: &trappist_assets_min_balance 1
+
+tests:
+  - name: Simplest possible way to trap and claim a local asset
+    before:
+      - name: DEPENDENCY | Create asset on Trappist Parachain
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: assets
+                call: forceCreate
+                sudo: true
+                args: [
+                  *trappist_asset_id,
+                  { id: *tp_wallet }, # owner
+                  false, # isSufficient
+                  *trappist_assets_min_balance #minBalance
+                ]
+                events:
+                  - name: sudo.Sudid
+                    attributes:
+                      - type: Result<Null, SpRuntimeDispatchError>
+                        value: Ok
+                  - name: assets.ForceCreated
+          - queries:
+            forced_created_asset:
+              chain: *trappist_parachain
+              pallet: assets
+              call: asset
+              args: [ *trappist_asset_id ]
+          - asserts:
+            isSome:
+            args: [ $forced_created_asset ]
+
+      - name: DEPENDENCY | Mint asset on Trappist Parachain
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: assets
+                call: mint
+                args: [
+                  *trappist_asset_id,
+                  *tp_wallet,
+                  *amount_to_mint
+                ]
+                events:
+                  - name: assets.Issued
+
+    its:
+      - name: Trap local asset
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: polkadotXcm
+                call: execute
+                args: [
+                  {
+                    v2: [
+                      {
+                        WithdrawAsset: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: {
+                                  X2: [
+                                    {
+                                      PalletInstance: *trappist_asset_pallet_id
+                                    },
+                                    {
+                                      GeneralIndex: *trappist_asset_id
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_trap
+                            }
+                          }
+                        ]
+                      },
+                    ]
+                  },
+                  *weight_at_most, # maxWeight
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 1,000,000,000
+
+                  - name: polkadotXcm.AssetsTrapped
+                    attributes:
+                      - type: H256
+                        value: "0x40996f6a7d7302c11aca1e3056fca012a6d26b3042ca650efd37ed31d18ac5d7"
+                      - type: XcmV1MultiLocation
+                        value: {"parents":"0","interior":{"X1":{"AccountId32":{"network":"Polkadot","id":"0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"}}}}
+                      - type: XcmVersionedMultiAssets
+                        value: {"V1":[{"id":{"Concrete":{"parents":"0","interior":{"X2":[{"PalletInstance":*trappist_asset_pallet_id},{"GeneralIndex":*trappist_asset_id}]}}},"fun":{"Fungible":*amount_to_trap}}]}
+
+      - name: Claim local asset
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: polkadotXcm
+                call: execute
+                args: [
+                  {
+                    v2: [
+                      {
+                        ClaimAsset: {
+                          assets: [
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 0,
+                                  interior: {
+                                    X2: [
+                                      {
+                                        PalletInstance: *trappist_asset_pallet_id
+                                      },
+                                      {
+                                        GeneralIndex: *trappist_asset_id
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              fun: {
+                                Fungible: *amount_to_trap
+                              }
+                            }
+                          ],
+                          ticket: {
+                            parents: 0,
+                            interior: {
+                              Here
+                            }
+                          }
+                        }
+                      },
+                      {
+                        DepositAsset: {
+                          assets: {
+                            Wild: All
+                          },
+                          maxAssets: 1,
+                          beneficiary: {
+                            parents: 0,
+                            interior: {
+                              X1: {
+                                AccountId32: {
+                                  network: null,
+                                  id: *tp_bob_acc
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  *weight_at_most,
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 2,000,000,000
