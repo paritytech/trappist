@@ -30,7 +30,6 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          components: rustfmt, clippy
 
       - name: Install Nightly
         uses: actions-rs/toolchain@v1
@@ -38,6 +37,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           target: wasm32-unknown-unknown
+          components: rustfmt
 
       - name: Check Build
         run: |
@@ -47,3 +47,10 @@ jobs:
         run: >
           pushd node &&
           cargo check --features=runtime-benchmarks --release
+
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: nightly
+          command: fmt
+          args: --all --check
