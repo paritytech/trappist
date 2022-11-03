@@ -96,7 +96,7 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 # External Pallets
 pallet-dex = { version = "0.0.1", git = "https://github.com/arturgontijo/substrate-dex.git", default-features = false, branch = "master" }
 pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/arturgontijo/substrate-dex.git", default-features = false, branch = "master" }
-pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytech/pallet-contracts-xcm", default-features = false,  branch = "hb-dependencies-update" }
+pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytech/pallet-contracts-xcm", default-features = false,  branch = "artur-xcm-v3" }
 
 
 [features]
