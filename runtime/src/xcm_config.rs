@@ -110,8 +110,8 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We don't track any teleports of `Assets`. TODO: Nothing does not impl AssetChecking.
-	parachains_common::impls::NonZeroIssuance<AccountId, Assets>,
+	// We don't track any teleports of `Assets`.
+	NoChecking,
 	// We don't track any teleports of `Assets`.
 	CheckingAccount,
 >;
@@ -136,8 +136,8 @@ pub type StatemineFungiblesTransactor = FungiblesAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We don't track any teleports of `Assets`. TODO: Nothing does not impl AssetChecking.
-	parachains_common::impls::NonZeroIssuance<AccountId, Assets>,
+	// We don't track any teleports of `Assets`.
+	NoChecking,
 	// We don't track any teleports of `Assets`.
 	CheckingAccount,
 >;
