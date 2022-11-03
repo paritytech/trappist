@@ -16,9 +16,9 @@
 use crate::constants::fee::default_fee_per_second;
 
 use super::{
-	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, RuntimeCall, RuntimeEvent,
-	ForeignUniques, RuntimeOrigin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
-	WeightToFee, XcmpQueue,
+	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, ForeignUniques, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
+	XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -43,7 +43,7 @@ use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
 	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, NativeAsset, NonFungiblesAdapter, NoChecking, ParentAsSuperuser,
+	FungiblesAdapter, IsConcrete, NativeAsset, NoChecking, NonFungiblesAdapter, ParentAsSuperuser,
 	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	UsingComponents,
@@ -150,12 +150,7 @@ pub type SovereignAccountOf = (
 
 pub type StatemineNonFungiblesTransactor = NonFungiblesAdapter<
 	ForeignUniques,
-	ConvertedConcreteId<
-		MultiLocation,
-		AssetInstance,
-		JustTry,
-		JustTry,
-	>,
+	ConvertedConcreteId<MultiLocation, AssetInstance, JustTry, JustTry>,
 	SovereignAccountOf,
 	AccountId,
 	NoChecking,
@@ -167,7 +162,7 @@ pub type AssetTransactors = (
 	LocalAssetTransactor,
 	StatemineFungiblesTransactor,
 	LocalFungiblesTransactor,
-	StatemineNonFungiblesTransactor
+	StatemineNonFungiblesTransactor,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,

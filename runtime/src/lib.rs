@@ -46,8 +46,8 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
-		EqualPrivilegeOnly, Everything, EnsureOrigin, EnsureOriginWithArg,
+		ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse, EnsureOrigin,
+		EnsureOriginWithArg, EqualPrivilegeOnly, Everything,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
@@ -55,7 +55,10 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot};
+use frame_system::{
+	limits::{BlockLength, BlockWeights},
+	EnsureRoot,
+};
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::{AssetsToBlockAuthor, DealWithFees},
@@ -96,7 +99,8 @@ pub type SignedExtra = (
 	pallet_asset_tx_payment::ChargeAssetTxPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
-pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+pub type UncheckedExtrinsic =
+	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
@@ -441,10 +445,7 @@ pub struct ForeignCreators;
 impl EnsureOriginWithArg<RuntimeOrigin, MultiLocation> for ForeignCreators {
 	type Success = AccountId;
 
-	fn try_origin(
-		o: RuntimeOrigin,
-		a: &MultiLocation,
-	) -> Result<Self::Success, RuntimeOrigin> {
+	fn try_origin(o: RuntimeOrigin, a: &MultiLocation) -> Result<Self::Success, RuntimeOrigin> {
 		let origin_location = EnsureXcm::<Everything>::try_origin(o.clone())?;
 		if !a.starts_with(&origin_location) {
 			return Err(o)
