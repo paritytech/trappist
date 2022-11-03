@@ -13,10 +13,6 @@ use pallet_contracts::{
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 
-// Prints debug output of the `contracts` pallet to stdout if the node is
-// started with `-lruntime::contracts=debug`.
-pub const CONTRACTS_DEBUG_OUTPUT: bool = true;
-
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
 	pub const DepositPerByte: Balance = deposit(0, 1);
@@ -55,7 +51,6 @@ impl Config for Runtime {
 	type Schedule = MySchedule;
 	type CallStack = [Frame<Self>; 31];
 	type AddressGenerator = DefaultAddressGenerator;
-	type ContractAccessWeight = pallet_contracts::DefaultContractAccessWeight<RuntimeBlockWeights>;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
 }
