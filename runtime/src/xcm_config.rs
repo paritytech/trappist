@@ -268,13 +268,6 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 			}
 	}
 }
-
-pub struct ReserveUniquesFrom<T>(PhantomData<T>);
-impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveUniquesFrom<T> {
-	fn contains(_: &MultiAsset, _: &MultiLocation) -> bool {
-		true
-	}
-}
 //--
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);
