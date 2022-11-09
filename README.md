@@ -63,7 +63,7 @@ cargo b -r --features with-trappist-runtime
 
 Create a `bin` directory into the root of this repository and place the following binaries inside of it:
 - `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
-- `polkadot-collator` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
+- `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
 - `trappist-collator` (which you will build from this repository) 
 - `base-collator` (which you will build from this repository) 
 
