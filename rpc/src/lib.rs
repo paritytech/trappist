@@ -20,15 +20,13 @@
 
 use std::sync::Arc;
 
-use parachains_common::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Index as Nonce};
+use parachains_common::{AccountId, Balance, Block, BlockNumber, Hash, Index as Nonce};
 use sc_client_api::AuxStore;
 pub use sc_rpc::{DenyUnsafe, SubscriptionTaskExecutor};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-
-use trappist_runtime::AssetBalance;
 
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpsee::RpcModule<()>;
@@ -59,7 +57,12 @@ where
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: pallet_contracts_rpc::ContractsRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
-	C::Api: pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, AssetBalance>,
+	C::Api: pallet_dex_rpc::DexRuntimeApi<
+		trappist_runtime::opaque::Block,
+		trappist_runtime::AssetId,
+		trappist_runtime::Balance,
+		trappist_runtime::AssetBalance,
+	>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {

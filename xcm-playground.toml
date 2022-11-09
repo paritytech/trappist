@@ -62,14 +62,14 @@ add_to_genesis = true
 cumulus_based = true
 
   [[parachains.collators]]
-  name = "collator01"
-  command = "./bin/polkadot-parachain"
+  name = "base-collator01"
+  command = "./bin/base-collator"
   ws_port = 9930
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
   [[parachains.collators]]
-  name = "collator02"
-  command = "./bin/polkadot-parachain"
+  name = "base-collator02"
+  command = "./bin/base-collator"
   ws_port = 9931
   args = ["--log=xcm=trace,pallet-assets=trace"]
 

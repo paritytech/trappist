@@ -42,14 +42,16 @@ use sp_version::RuntimeVersion;
 
 use constants::{currency::*, fee::WeightToFee};
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, 
+	dispatch::DispatchClass,
+	parameter_types,
 	traits::{
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
 		EqualPrivilegeOnly, Everything,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
-		ConstantMultiplier, DispatchClass, Weight,
+		ConstantMultiplier, Weight,
 	},
 	PalletId,
 };
