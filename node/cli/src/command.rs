@@ -15,24 +15,23 @@ use sc_service::{
 };
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as BlockT};
+
+#[cfg(feature = "with-trappist-runtime")]
 use trappist_runtime::{Block, RuntimeApi};
+#[cfg(feature = "with-base-runtime")]
+use base_runtime::{Block, RuntimeApi};
 
-use crate::{
-	chain_spec,
-	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, TrappistRuntimeExecutor},
+use crate::cli::{Cli, RelayChainCli, Subcommand};
+use service::{chain_spec, new_partial, RuntimeExecutor};
+
+#[cfg(feature = "with-trappist-runtime")]
+use service::chain_spec::trappist::{
+	development_config, local_testnet_config, Extensions, ChainSpec as ServiceChainSpec
 };
-
-fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
-	Ok(match id {
-		// -- Trappist
-		"dev" | "trappist_dev" => Box::new(chain_spec::development_config()),
-		"" | "local" | "trappist-local" | "trappist-rococo" =>
-			Box::new(chain_spec::local_testnet_config()),
-		// -- Loading a specific spec from disk
-		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
-	})
-}
+#[cfg(feature = "with-base-runtime")]
+use service::chain_spec::base::{
+	development_config, local_testnet_config, Extensions, ChainSpec as ServiceChainSpec
+};
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -66,7 +65,14 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id)
+		Ok(match id {
+			// -- Trappist
+			"dev" | "trappist_dev" => Box::new(development_config()),
+			"" | "local" | "trappist-local" | "trappist-rococo" =>
+				Box::new(local_testnet_config()),
+			// -- Loading a specific spec from disk
+			path => Box::new(ServiceChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+		})
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -120,11 +126,11 @@ macro_rules! construct_async_run {
 		runner.async_run(|$config| {
 			let $components = new_partial::<
 				RuntimeApi,
-				TrappistRuntimeExecutor,
+				RuntimeExecutor,
 				_
 			>(
 				&$config,
-				crate::service::parachain_build_import_queue,
+				service::parachain_build_import_queue,
 			)?;
 			let task_manager = $components.task_manager;
 			{ $( $code )* }.map(|v| (v, task_manager))
@@ -206,16 +212,16 @@ pub fn run() -> Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) =>
 					if cfg!(feature = "runtime-benchmarks") {
-						runner.sync_run(|config| cmd.run::<Block, TrappistRuntimeExecutor>(config))
+						runner.sync_run(|config| cmd.run::<Block, RuntimeExecutor>(config))
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
 							.into())
 					},
 				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					let partials = new_partial::<RuntimeApi, TrappistRuntimeExecutor, _>(
+					let partials = new_partial::<RuntimeApi, RuntimeExecutor, _>(
 						&config,
-						crate::service::parachain_build_import_queue,
+						service::parachain_build_import_queue,
 					)?;
 					cmd.run(partials.client)
 				}),
@@ -228,9 +234,9 @@ pub fn run() -> Result<()> {
 					).into()),
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					let partials = new_partial::<RuntimeApi, TrappistRuntimeExecutor, _>(
+					let partials = new_partial::<RuntimeApi, RuntimeExecutor, _>(
 						&config,
-						crate::service::parachain_build_import_queue,
+						service::parachain_build_import_queue,
 					)?;
 					let db = partials.backend.expose_db();
 					let storage = partials.backend.expose_storage();
@@ -256,7 +262,7 @@ pub fn run() -> Result<()> {
 						.map_err(|e| format!("Error: {:?}", e))?;
 
 				runner.async_run(|config| {
-					Ok((cmd.run::<Block, TrappistRuntimeExecutor>(config), task_manager))
+					Ok((cmd.run::<Block, RuntimeExecutor>(config), task_manager))
 				})
 			} else {
 				Err("Try-runtime must be enabled by `--features try-runtime`.".into())
@@ -276,7 +282,7 @@ pub fn run() -> Result<()> {
 					None
 				};
 
-				let para_id = chain_spec::Extensions::try_get(&*config.chain_spec)
+				let para_id = Extensions::try_get(&*config.chain_spec)
 					.map(|e| e.para_id)
 					.ok_or_else(|| "Could not find parachain ID in chain-spec.")?;
 
@@ -305,7 +311,7 @@ pub fn run() -> Result<()> {
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if config.role.is_authority() { "yes" } else { "no" });
 
-				crate::service::start_parachain_node(
+				service::start_parachain_node(
 					config,
 					polkadot_config,
 					collator_options,
