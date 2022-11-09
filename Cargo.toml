@@ -2,6 +2,10 @@
 members = [
     "node",
     "runtime",
+    "primitives/xcm",
+]
+exclude = [
+    "contracts"
 ]
 
 [profile.release]

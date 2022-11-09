@@ -6,8 +6,7 @@ use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, DexConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig,
-	SystemConfig,
+	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -193,9 +192,7 @@ pub fn local_testnet_config() -> ChainSpec {
 	)
 }
 
-fn get_account_id(name: &str) -> AccountId {
-	get_account_id_from_seed::<sr25519::Public>(name)
-}
+pub const LOCAL_ASSET_ID: u32 = 10;
 
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
@@ -245,30 +242,18 @@ fn testnet_genesis(
 			key: Some(root_key),
 		},
 		assets: AssetsConfig {
-			assets: vec![(
-				T_USD_ASSET_ID,
-				get_account_id(ALICE),
-				T_USD_IS_SUFFICIENT,
-				T_USD_MIN_BALANCE,
-			)],
-			metadata: vec![(
-				T_USD_ASSET_ID,
-				T_USD_TOKEN_NAME.into(),
-				T_USD_TOKEN_SYMBOL.into(),
-				T_USD_TOKEN_DECIMALS,
-			)],
-			accounts: get_initialized_accounts(
-				T_USD_ASSET_ID,
-				T_USD_INITIAL_BALANCE,
-				vec![
-					get_account_id(ALICE),
-					get_account_id(BOB),
-					get_account_id(CHARLIE),
-					get_account_id(DAVE),
-					get_account_id(FERDIE),
-					get_account_id(EVE),
-				],
-			),
+			assets: vec![
+				// id, owner, is_sufficient, min_balance
+				(LOCAL_ASSET_ID, get_account_id_from_seed::<sr25519::Public>("Alice"), true, 1),
+			],
+			metadata: vec![
+				// id, name, symbol, decimals
+				(LOCAL_ASSET_ID, "txUSD".into(), "txUSD".into(), 10),
+			],
+			accounts: vec![
+				// id, account_id, balance
+				(LOCAL_ASSET_ID, get_account_id_from_seed::<sr25519::Public>("Alice"), 100),
+			],
 		},
 		council: CouncilConfig {
 			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
