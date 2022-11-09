@@ -15,5 +15,8 @@ Please refer to the [project's `README.md`](https://github.com/paritytech/parach
 
 For example, to use zombienet and perform a reserve transfer that tests the functionality of `asset-registry` pallet:
 ```
-$ parachains-integration-tests -m zombienet-test -c xcm-playground.toml -t integration-tests/asset-registry/0_reserve_transfer.yml
+$ parachains-integration-tests -m zombienet-test -c integration-tests/config.toml -t integration-tests/asset-registry/0_reserve_transfer.yml
+
+$ parachains-integration-tests -m zombienet-test -c integration-tests/config.toml -t integration-tests/teleport-asset
+$ parachains-integration-tests -m zombienet-test -c integration-tests/config.toml -t integration-tests/reserve-transfer-asset
 ```

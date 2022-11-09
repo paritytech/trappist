@@ -1,0 +1,338 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: 2000
+    tertiary_parachain: &tertiary_parachain
+      wsPort: 9930
+      paraId: &3p_id 3000
+  variables:
+    common:
+      asset_decimals: &asset_decimals 12
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+      reserve_parachain:
+        assets_pallet: &rp_assets_pallet_id 50
+        asset:
+          id: &rp_asset_id 1
+        max_individual: &rp_dmp_max_individual 10000000000
+        trappist_parachain_sovereign_account: &tp_sovereign_account FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
+        tertiary_parachain_sovereign_account: &3p_sovereign_account FBeL7E5qk5Jt7ZHCNrMj5WyEC5Tpm7eoisxW9k14zPJr99B
+      trappist_parachain:
+        sender: &tp_sender //Bob
+        derivative_asset:
+          id: &tp_asset_id 10
+        transfer_amount: &tp_transfer_amount 1000000000000000 # 1,000,000,000,000,000
+        beneficiary_account: &tp_beneficiary_account 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
+        execution_cost: &tp_execution_cost 100000000000000
+        max_weight: &tp_max_weight 100000000000
+      tertiary_parachain:
+        signer: &3p_signer //Alice
+        derivative_asset:
+          id: &3p_asset_id 1
+          owner: &3p_asset_owner 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+          min_balance: &3p_asset_min_balance 1000000000
+          name: &3p_asset_name pxUSD
+          symbol: &3p_asset_symbol pxUSD
+        beneficiary_account: &3p_beneficiary_account 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
+        beneficiary_account_key: &3p_beneficiary_account_key '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48' # Bob
+  decodedCalls:
+    update_weight_restrict_decay:
+      chain: *reserve_parachain
+      pallet: xcmpQueue
+      call: updateWeightRestrictDecay
+      args: [ 0 ]
+
+tests:
+  - name: HRMP
+    describes:
+      - name: polkadotXcm.limitedReserveTransferAssets | Trappist Parachain -> Tertiary Parachain
+        before:
+          # Hack to enable processing of large xcm message
+          - name: Update XCMP queue config (on Reserve Parachain) via Relay Chain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    sudo: true
+                    signer: *rc_signer
+                    pallet: parasSudoWrapper
+                    call: sudoQueueDownwardXcm
+                    delay: 0
+                    args: [
+                      *rp_id, # id
+                      {
+                        v2: [
+                          {
+                            Transact: {
+                              originType: Superuser,
+                              requireWeightAtMost: *rp_dmp_max_individual,
+                              call: $update_weight_restrict_decay
+                            }
+                          }
+                        ]
+                      }, # xcm
+                    ]
+                    events:
+                      - chain: *relay_chain
+                        name: sudo.Sudid
+                        attributes:
+                          - key: sudoResult
+                            value: Ok
+                      - chain: *reserve_parachain
+                        name: parachainSystem.DownwardMessagesReceived
+                      - chain: *reserve_parachain
+                        name: parachainSystem.DownwardMessagesProcessed
+                      - chain: *reserve_parachain
+                        name: dmpQueue.ExecutedDownward
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 10,021,258,000
+              - queries:
+                  weight_restrict_decay:
+                    chain: *reserve_parachain
+                    pallet: xcmpQueue
+                    call: queueConfig
+                    delay: 0
+                    args: []
+                    selector: 'weightRestrictDecay'
+              - asserts:
+                  equal:
+                    args: [ $weight_restrict_decay, { refTime: 0 } ]
+
+          - name: Create fungible asset on Tertiary Parachain
+            actions:
+              - extrinsics:
+                  # Create asset
+                  - chain: *tertiary_parachain
+                    signer: *3p_signer
+                    pallet: assets
+                    call: create
+                    delay: 0
+                    args: [
+                      *3p_asset_id, # id
+                      { id: *3p_asset_owner }, # owner
+                      *3p_asset_min_balance # min balance
+                    ]
+                    events:
+                      - chain: *tertiary_parachain
+                        name: assets.Created
+                        attributes:
+                          - key: assetId
+                            value: *3p_asset_id
+                          - key: creator
+                            value: *3p_asset_owner
+                          - key: owner
+                            value: *3p_asset_owner
+                  # Set metadata
+                  - chain: *tertiary_parachain
+                    signer: *3p_signer
+                    pallet: assets
+                    call: setMetadata
+                    args: [
+                      *3p_asset_id, # id
+                      *3p_asset_name, # name
+                      *3p_asset_symbol, # symbol
+                      *asset_decimals # decimals
+                    ]
+                    events:
+                      - chain: *tertiary_parachain
+                        name: assets.MetadataSet
+                        attributes:
+                          - key: assetId
+                            value: *3p_asset_id
+                          - key: name
+                            value: *3p_asset_name
+                          - key: symbol
+                            value: *3p_asset_symbol
+                          - key: decimals
+                            value: *asset_decimals
+
+        its:
+          - name: Trappist parachain should be able to reserve-transfer an asset to Tertiary Parachain
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_sender
+                    pallet: polkadotXcm
+                    call: execute
+                    args: [
+                      # message: XcmVersionedXcm
+                      {
+                        V2: [
+                          {
+                            WithdrawAsset: [
+                              {
+                                id: {
+                                  Concrete: {
+                                    parents: 1,
+                                    interior: {
+                                      X3: [
+                                        { Parachain: *rp_id },
+                                        { PalletInstance: *rp_assets_pallet_id },
+                                        { GeneralIndex: *rp_asset_id }
+                                      ]
+                                    }
+                                  }
+                                },
+                                fun: { Fungible: *tp_transfer_amount}
+                              }
+                            ]
+                          },
+                          {
+                            InitiateReserveWithdraw: {
+                              assets: { Wild: All },
+                              reserve: { parents: 1, interior: { X1: { Parachain: *rp_id } } },
+                              xcm: [
+                                {
+                                  BuyExecution: {
+                                    fees: {
+                                      id: {
+                                        Concrete: {
+                                          parents: 0,
+                                          interior: {
+                                            X2: [
+                                              {  PalletInstance: *rp_assets_pallet_id },
+                                              { GeneralIndex: *rp_asset_id }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      fun: { Fungible: *tp_execution_cost }
+                                    },
+                                    weightLimit: Unlimited
+                                  }
+                                },
+                                {
+                                  DepositReserveAsset: {
+                                    assets: { Wild: All },
+                                    maxAssets: 1,
+                                    dest: {
+                                      parents: 1,
+                                      interior: {
+                                        X1: { Parachain: *3p_id }
+                                      }
+                                    },
+                                    xcm: [
+                                      {
+                                        DepositAsset: {
+                                          assets: { Wild: All },
+                                          maxAssets: 1,
+                                          beneficiary: {
+                                            parents: 0,
+                                            interior: {
+                                              X1: { AccountId32: { network: Any, id: *3p_beneficiary_account_key } }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      # maxWeight: Weight
+                      { refTime: *tp_max_weight }
+                    ]
+                    events:
+                      # XCM message attempted
+                      - chain: *trappist_parachain
+                        name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 2,000,000,000
+                      # Amount transferred burned from sender account (derivative asset)
+                      - chain: *trappist_parachain
+                        name: assets.Burned
+                        attributes:
+                          - key: assetId
+                            value: *tp_asset_id
+                          - key: owner
+                            value: *tp_beneficiary_account
+                          - key: balance
+                            value: *tp_transfer_amount
+                      # Amount transferred burned from sender account (real asset)
+                      - chain: *reserve_parachain
+                        name: assets.Burned
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+                          - key: owner
+                            value: *tp_sovereign_account
+                          - key: balance
+                            value: *tp_transfer_amount
+                      # Amount issued to sovereign account of tertiary parachain
+                      - chain: *reserve_parachain
+                        name: assets.Issued
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+                          - key: owner
+                            value: *3p_sovereign_account
+                          - key: totalSupply
+                            threshold: [ 10, 0 ] # less fees
+                            value: *tp_transfer_amount
+                      # HRMP message sent to sibling parachain
+                      - chain: *reserve_parachain
+                        name: xcmpQueue.XcmpMessageSent
+                      # Amount issued to sovereign account of tertiary parachain
+                      - chain: *tertiary_parachain
+                        name: assets.Issued
+                        attributes:
+                          - key: assetId
+                            value: *3p_asset_id
+                          - key: owner
+                            value: *3p_beneficiary_account
+                          - key: totalSupply
+                            threshold: [ 10, 0 ] # less fees
+                            value: *tp_transfer_amount
+                      # Amount issued to sovereign account of tertiary parachain
+                      - chain: *tertiary_parachain
+                        name: xcmpQueue.Success
+              - queries:
+                  sovereign_account_balance:
+                    chain: *reserve_parachain
+                    pallet: assets
+                    call: account
+                    delay: 0
+                    args: [ *rp_asset_id, *3p_sovereign_account ]
+                  beneficiary_account:
+                    chain: *tertiary_parachain
+                    pallet: assets
+                    call: account
+                    delay: 0
+                    args: [ *3p_asset_id, *3p_beneficiary_account ]
+              - asserts:
+                  - assetsIncreased:
+                      args: [
+                        {
+                          balances: {
+                            amount: *tp_transfer_amount,
+                            fees: 65000000000,
+                            after: $sovereign_account_balance,
+                          }
+                        }
+                      ]
+                  - assetsIncreased:
+                      args: [
+                        {
+                          balances: {
+                            amount: *tp_transfer_amount,
+                            fees: 65000000000,
+                            after: $beneficiary_account,
+                          }
+                        }
+                      ]

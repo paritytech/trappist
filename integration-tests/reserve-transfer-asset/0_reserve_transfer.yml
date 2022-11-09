@@ -1,0 +1,429 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: &tp_id 2000
+  variables:
+    common:
+      asset_decimals: &asset_decimals 12
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+      reserve_parachain:
+        signer: &rp_signer //Alice
+        assets_pallet: &rp_assets_pallet_id 50
+        asset:
+          id: &rp_asset_id 1
+          owner: &rp_asset_owner HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F # Alice
+          min_balance: &rp_asset_min_balance 1000000000
+          name: &rp_asset_name xUSD
+          symbol: &rp_asset_symbol xUSD
+          mint_amount: &rp_mint_amount 1000000000000000000
+          mint_amount_string: &rp_mint_amount_string '1000000000000000000' # Workaround: string required when value > Number.MAX_SAFE_INTEGER
+          beneficiary: &rp_asset_beneficiary FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP # Bob
+        max_individual: &rp_dmp_max_individual 10000000000
+        transfer_amount: &rp_transfer_amount 10000000000000000 # 10,000,000,000,000,000
+        transfer_amount_string: &rp_transfer_amount_string '10000000000000000' # 10,000,000,000,000,000
+        beneficiary: &rp_asset_signer //Bob
+        trappist_parachain_sovereign_account: &tp_sovereign_account FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        derivative_asset:
+          id: &tp_asset_id 10
+          owner: &tp_asset_owner 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+          min_balance: &tp_asset_min_balance 1000000000
+          name: &tp_asset_name txUSD
+          symbol: &tp_asset_symbol txUSD
+        beneficiary_account: &tp_beneficiary_account 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
+        beneficiary_account_key: &tp_beneficiary_account_key '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48' # Bob
+  decodedCalls:
+    force_asset_status:
+      chain: *reserve_parachain
+      pallet: assets
+      call: forceAssetStatus
+      args: [
+        *rp_asset_id, # id
+        { id: *rp_asset_owner }, # owner
+        { id: *rp_asset_owner }, # issuer
+        { id: *rp_asset_owner }, # admin
+        { id: *rp_asset_owner }, # freezer
+        *rp_asset_min_balance, # minBalance
+        true, # isSufficient
+        false, # isFrozen
+      ]
+
+tests:
+  - name: HRMP
+    describes:
+      - name: polkadotXcm.limitedReserveTransferAssets | Reserve Parachain -> Trappist Parachain
+        before:
+          - name: Create fungible asset on Reserve Parachain
+            actions:
+              - extrinsics:
+                  # Create asset
+                  - chain: *reserve_parachain
+                    signer: *rp_signer
+                    pallet: assets
+                    call: create
+                    delay: 0
+                    args: [
+                      *rp_asset_id, # id
+                      { id: *rp_asset_owner }, # owner
+                      *rp_asset_min_balance # min balance
+                    ]
+                    events:
+                      - chain: *reserve_parachain
+                        name: assets.Created
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+                          - key: creator
+                            value: *rp_asset_owner
+                          - key: owner
+                            value: *rp_asset_owner
+                  # Set metadata
+                  - chain: *reserve_parachain
+                    signer: *rp_signer
+                    pallet: assets
+                    call: setMetadata
+                    args: [
+                      *rp_asset_id, # id
+                      *rp_asset_name, # name
+                      *rp_asset_symbol, # symbol
+                      *asset_decimals # decimals
+                    ]
+                    events:
+                      - chain: *reserve_parachain
+                        name: assets.MetadataSet
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+                          - key: name
+                            value: *rp_asset_name
+                          - key: symbol
+                            value: *rp_asset_symbol
+                          - key: decimals
+                            value: *asset_decimals
+
+          - name: Mint fungible asset and check balances
+            actions:
+              - extrinsics:
+                  - chain: *reserve_parachain
+                    signer: *rp_signer
+                    pallet: assets
+                    call: mint
+                    delay: 0
+                    args: [
+                      *rp_asset_id, # id
+                      { id: *rp_asset_beneficiary }, # beneficiary
+                      *rp_mint_amount_string, # amount
+                    ]
+                    events:
+                      - chain: *reserve_parachain
+                        name: assets.Issued
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+                          - key: owner
+                            value: *rp_asset_beneficiary
+                          - key: totalSupply
+                            type: u128
+                            value: *rp_mint_amount
+              - queries:
+                  beneficiary_asset_balance:
+                    chain: *reserve_parachain
+                    pallet: assets
+                    call: account
+                    delay: 0
+                    args: [ *rp_asset_id, *rp_asset_beneficiary ]
+                    selector: 'value.balance'
+              - asserts:
+                  equal:
+                    args: [ $beneficiary_asset_balance, *rp_mint_amount ]
+
+          - name: Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    sudo: true
+                    signer: *rc_signer
+                    pallet: parasSudoWrapper
+                    call: sudoQueueDownwardXcm
+                    delay: 0
+                    args: [
+                      *rp_id, # id
+                      {
+                        v2: [
+                          {
+                            Transact: {
+                              originType: Superuser,
+                              requireWeightAtMost: *rp_dmp_max_individual,
+                              call: $force_asset_status
+                            }
+                          }
+                        ]
+                      }, # xcm
+                    ]
+                    events:
+                      - chain: *relay_chain
+                        name: sudo.Sudid
+                        attributes:
+                          - key: sudoResult
+                            value: Ok
+                      - chain: *reserve_parachain
+                        name: assets.AssetStatusChanged
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+              - queries:
+                  is_sufficient:
+                    chain: *reserve_parachain
+                    pallet: assets
+                    call: asset
+                    delay: 0
+                    args: [ *rp_asset_id ]
+                    selector: 'value.isSufficient'
+              - asserts:
+                  equal:
+                    args: [ $is_sufficient, true ]
+
+          - name: Create derivative asset on Trappist Parachain
+            actions:
+              - extrinsics:
+                  # Create asset
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: assets
+                    call: create
+                    delay: 0
+                    args: [
+                      *tp_asset_id, # id
+                      { id: *tp_asset_owner }, # owner
+                      *tp_asset_min_balance # min balance
+                    ]
+                    events:
+                      - chain: *trappist_parachain
+                        name: assets.Created
+                        attributes:
+                          - key: assetId
+                            value: *tp_asset_id
+                          - key: creator
+                            value: *tp_asset_owner
+                          - key: owner
+                            value: *tp_asset_owner
+                  # Set metadata
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: assets
+                    call: setMetadata
+                    args: [
+                      *tp_asset_id, # id
+                      *tp_asset_name, # name
+                      *tp_asset_symbol, # symbol
+                      *asset_decimals # decimals
+                    ]
+                    events:
+                      - chain: *trappist_parachain
+                        name: assets.MetadataSet
+                        attributes:
+                          - key: assetId
+                            value: *tp_asset_id
+                          - key: name
+                            value: *tp_asset_name
+                          - key: symbol
+                            value: *tp_asset_symbol
+                          - key: decimals
+                            value: *asset_decimals
+                  # todo: set as sufficient once removed from chain spec
+
+          - name: Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve Parachain) via Asset Registry
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    sudo: true
+                    signer: *tp_signer
+                    pallet: assetRegistry
+                    call: registerReserveAsset
+                    delay: 0
+                    args: [
+                      *tp_asset_id, # asset id
+                      {
+                        parents: 1,
+                        interior: {
+                          X3: [
+                            {
+                              Parachain: *rp_id
+                            },
+                            {
+                              PalletInstance: *rp_assets_pallet_id
+                            },
+                            {
+                              GeneralIndex: *rp_asset_id
+                            }
+                          ]
+                        }
+                      } # asset multi-location
+                    ]
+                    events:
+                      - chain: *trappist_parachain
+                        name: sudo.Sudid
+                        attributes:
+                          - key: sudoResult
+                            value: Ok
+                      - chain: *trappist_parachain
+                        name: assetRegistry.ReserveAssetRegistered
+                        attributes:
+                          - key: assetId
+                            value: *tp_asset_id
+              - queries:
+                  asset_registered:
+                    chain: *trappist_parachain
+                    pallet: assetRegistry
+                    call: assetIdMultiLocation
+                    delay: 0
+                    args: [ *tp_asset_id ]
+              - asserts:
+                  isSome:
+                    args: [ $asset_registered ]
+
+        its:
+          - name: Reserve parachain should be able to reserve-transfer an asset to Trappist Parachain
+            actions:
+              - extrinsics:
+                  - chain: *reserve_parachain
+                    signer: *rp_asset_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      # dest: XcmVersionedMultiLocation
+                      {
+                        v1: {
+                          parents: 1,
+                          interior: {
+                            x1: {
+                              Parachain: *tp_id
+                            }
+                          }
+                        }
+                      },
+                      # beneficiary: XcmVersionedMultiLocation
+                      {
+                        v1: {
+                          parents: 0,
+                          interior: {
+                            x1: {
+                              AccountId32: {
+                                network: Any,
+                                id: *tp_beneficiary_account_key
+                              }
+                            }
+                          }
+                        }
+                      },
+                      # assets: XcmVersionedMultiAssets
+                      {
+                        v1: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: {
+                                  x2: [
+                                    {
+                                      PalletInstance: *rp_assets_pallet_id
+                                    },
+                                    {
+                                      GeneralIndex: *rp_asset_id
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            fun: {
+                              Fungible: *rp_transfer_amount_string
+                            }
+                          }
+                        ]
+                      },
+                      # feeAssetItem: u32
+                      0,
+                      # weightLimit: XcmV2WeightLimit
+                      Unlimited
+                    ]
+                    events:
+                      # XCM message attempted
+                      - chain: *reserve_parachain
+                        name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 654,608,000
+                      # Amount transferred from sender to sovereign account
+                      - chain: *reserve_parachain
+                        name: assets.Transferred
+                        attributes:
+                          - key: assetId
+                            value: *rp_asset_id
+                          - key: from
+                            value: *rp_asset_beneficiary
+                          - key: to
+                            value: *tp_sovereign_account
+                          - key: amount
+                            value: *rp_transfer_amount
+                      # Sovereign account created
+                      - chain: *reserve_parachain
+                        name: system.NewAccount
+                        attributes:
+                          - type: AccountId32
+                            value: *tp_sovereign_account
+                      # XCM message queued on HRMP channel
+                      - chain: *reserve_parachain
+                        name: xcmpQueue.XcmpMessageSent
+                      # XCM message executed successfully
+                      - chain: *trappist_parachain
+                        name: xcmpQueue.Success
+                      # Derivative assets issued to beneficiary on Trappist chain
+                      - chain: *trappist_parachain
+                        name: assets.Issued
+                        attributes:
+                          - key: assetId
+                            value: *tp_asset_id
+                          - key: owner
+                            value: *tp_beneficiary_account
+                          - key: totalSupply
+                            value: *rp_transfer_amount
+                            threshold: [ 10, 0 ] # less fees
+              - queries:
+                  sovereign_account_balance:
+                    chain: *reserve_parachain
+                    pallet: assets
+                    call: account
+                    delay: 0
+                    args: [ *rp_asset_id, *tp_sovereign_account ]
+                    selector: 'value.balance'
+                  beneficiary_account:
+                    chain: *trappist_parachain
+                    pallet: assets
+                    call: account
+                    delay: 0
+                    args: [ *tp_asset_id, *tp_beneficiary_account ]
+              - asserts:
+                  equal:
+                    args: [ $sovereign_account_balance, *rp_transfer_amount ]
+                  assetsIncreased:
+                    args: [
+                      {
+                        balances: {
+                          amount: *rp_transfer_amount,
+                          fees: 1600000000,
+                          after: $beneficiary_account,
+                        }
+                      }
+                    ]

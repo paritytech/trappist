@@ -1,0 +1,353 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+  variables:
+    common:
+      teleport:
+        amount_dmp: &dmp_teleport_amount 1000000000000000 # 1,000,000,000,000,000
+        amount_ump: &ump_teleport_amount 500000000000000 # 500,000,000,000,000
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        sender_account: &rc_sender_account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        teleport_account: &rc_teleport_account 5EYCAe5ijiYgWYWi1fs8Xz1td1djEtJVVnNfzvDRP4VtLL7Y
+        receiver_account: &rc_receiver_account 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
+        receiver_account_key: &rc_receiver_account_key '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+      reserve_parachain:
+        signer: &rp_signer //Bob
+        account: &rp_receiver_account FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+        account_key: &rp_receiver_account_key '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+  decodedCalls: {}
+
+tests:
+  - name: DMP
+    describes:
+      - name: xcmPallet.limitedTeleportAssets | Relay Chain -> Reserve Parachain
+        before:
+          - name: Get the balances of the Relay Chain's sender & Reserve Parachain's receiver
+            actions:
+              - queries:
+                  relay_chain_sender_balance_before:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rc_sender_account ]
+                  reserve_chain_receiver_balance_before:
+                    chain: *reserve_parachain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rp_receiver_account ]
+                  reserve_chain_total_issuance_before:
+                    chain: *reserve_parachain
+                    pallet: balances
+                    call: totalIssuance
+                    delay: 0
+                    args: []
+
+        its:
+          - name: Relay chain should be able to teleport an asset to Reserve Parachain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    pallet: xcmPallet
+                    call: limitedTeleportAssets
+                    args: [
+                      # dest: XcmVersionedMultiLocation
+                      { v1: {  parents: 0, interior: { x1: { Parachain: *rp_id } } } },
+                      # beneficiary: XcmVersionedMultiLocation
+                      {
+                        v1: {
+                          parents: 0,
+                          interior: { x1: { AccountId32: { network: Any, id: *rp_receiver_account_key } } }
+                        }
+                      },
+                      # assets: XcmVersionedMultiAssets
+                      {
+                        v1: [
+                          {
+                            id: { Concrete: { parents: 0, interior: Here } },
+                            fun: { Fungible: *dmp_teleport_amount }
+                          }
+                        ]
+                      },
+                      # feeAssetItem: u32
+                      0,
+                      # weightLimit: XcmV2WeightLimit
+                      Unlimited
+                    ]
+                    events:
+                      # XCM message attempted
+                      - chain: *relay_chain
+                        name: xcmPallet.Attempted
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 761,173,000
+                      # Teleport amount withdrawn from sender's account (on relay chain)
+                      - chain: *relay_chain
+                        name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_sender_account
+                          - type: u128
+                            value: *dmp_teleport_amount
+                      # Fees deducted from sender's account for the teleport (on relay chain)
+                      - chain: *relay_chain
+                        name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_sender_account
+                          - type: u128
+                            threshold: [10, 10]
+                            value: 148,804,953
+                      # Teleport checking account created
+                      - chain: *relay_chain
+                        name: system.NewAccount
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_teleport_account
+                      # Teleport checking account endowed with balance
+                      - chain: *relay_chain
+                        name: balances.Endowed
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_teleport_account
+                          - type: u128
+                            value: *dmp_teleport_amount
+                      # Amount deposited into teleport checking account
+                      - chain: *relay_chain
+                        name: balances.Deposit
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_teleport_account
+                          - type: u128
+                            value: *dmp_teleport_amount
+
+                      # XCM message(s) received on reserve parachain
+                      - chain: *reserve_parachain
+                        name: parachainSystem.DownwardMessagesReceived
+                      # XCM message executed on reserve parachain
+                      - chain: *reserve_parachain
+                        name: dmpQueue.ExecutedDownward
+                      # Teleported amount deposited into receiver account (less fees)
+                      - chain: *reserve_parachain
+                        name: balances.Deposit
+                        attributes:
+                          - type: AccountId32
+                            value: *rp_receiver_account
+                          - type: u128
+                            threshold: [10, 0]
+                            value: *dmp_teleport_amount
+              - queries:
+                  relay_chain_sender_balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rc_sender_account ]
+                  teleport_account_balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rc_teleport_account ]
+                    selector: 'data.free'
+                  reserve_chain_receiver_balance:
+                    chain: *reserve_parachain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rp_receiver_account ]
+                  reserve_chain_total_issuance:
+                    chain: *reserve_parachain
+                    pallet: balances
+                    call: totalIssuance
+                    delay: 0
+                    args: []
+              - asserts:
+                  # Sender's account was decreased by teleported amount + fees
+                  - balanceDecreased:
+                      args: [
+                        {
+                          amount: *dmp_teleport_amount,
+                          balances: {
+                            before: $relay_chain_sender_balance_before,
+                            after: $relay_chain_sender_balance,
+                          }
+                        }
+                      ]
+                  # Teleport account balance is teleported amount
+                  - equal:
+                      args: [ $teleport_account_balance, *dmp_teleport_amount ]
+                  # Reserve parachain total issuance increased by teleported amount
+                  - valueIncreased:
+                      args: [
+                        {
+                          before: $reserve_chain_total_issuance_before,
+                          after: $reserve_chain_total_issuance,
+                        }
+                      ]
+                  # Receiver's account increased by teleported amount - fees
+                  - balanceIncreased:
+                      args: [
+                        {
+                          amount: *dmp_teleport_amount,
+                          fees: 3947456,
+                          balances: {
+                            before: $reserve_chain_receiver_balance_before,
+                            after: $reserve_chain_receiver_balance,
+                          }
+                        }
+                      ]
+
+  - name: UMP
+    describes:
+      - name: polkadotXcm.limitedTeleportAssets | Reserve Parachain -> Relay Chain
+        before:
+          - name: Get the balances of the Reserve Parachain's sender & total issuance
+            actions:
+              - queries:
+                  reserve_chain_sender_balance_before:
+                    chain: *reserve_parachain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rp_receiver_account ]
+                  reserve_chain_total_issuance_before:
+                    chain: *reserve_parachain
+                    pallet: balances
+                    call: totalIssuance
+                    delay: 0
+                    args: []
+
+        its:
+          - name: Reserve parachain should be able to teleport an asset to Relay Chain
+            actions:
+              - extrinsics:
+                  - chain: *reserve_parachain
+                    signer: *rp_signer
+                    pallet: polkadotXcm
+                    call: limitedTeleportAssets
+                    args: [
+                      # dest: XcmVersionedMultiLocation
+                      { v1: { parents: 1, interior: Here } },
+                      # beneficiary: XcmVersionedMultiLocation
+                      {
+                        v1: {
+                          parents: 0,
+                          interior: {
+                            x1: { AccountId32: { network: Any, id: *rc_receiver_account_key } }
+                          }
+                        }
+                      },
+                      # assets: XcmVersionedMultiAssets
+                      {
+                        v1: [
+                          {
+                            id: { Concrete: { parents: 1, interior: Here } },
+                            fun: { Fungible: *ump_teleport_amount }
+                          }
+                        ]
+                      },
+                      # feeAssetItem: u32
+                      0,
+                      # weightLimit: XcmV2WeightLimit
+                      Unlimited
+                    ]
+                    events:
+                      # XCM message attempted
+                      - chain: *reserve_parachain
+                        name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 360,315,000
+                      # Teleport amount withdrawn from sender's account (on reserve parachain)
+                      - chain: *reserve_parachain
+                        name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *rp_receiver_account
+                          - type: u128
+                            value: *ump_teleport_amount
+                      # Fees deducted from sender's account for the teleport (on reserve parachain)
+                      - chain: *reserve_parachain
+                        name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *rp_receiver_account
+                          - type: u128
+                            threshold: [10, 10]
+                            value: 7,822,644
+
+                      # XCM UMP messages received
+                      - chain: *relay_chain
+                        name: ump.UpwardMessagesReceived
+                      # XCM UMP message executed
+                      - chain: *relay_chain
+                        name: ump.ExecutedUpward
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 297,578,000
+                      # Requested withdrawn from Teleport checking account (on relay chain)
+                      - chain: *relay_chain
+                        name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_teleport_account
+                          - type: u128
+                            value: *ump_teleport_amount
+                      # Amount deposited into receiver's account
+                      - chain: *relay_chain
+                        name: balances.Deposit
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_receiver_account
+                          - type: u128
+                            threshold: [ 10, 0 ]
+                            value: *ump_teleport_amount
+              - queries:
+                  reserve_chain_sender_balance:
+                    chain: *reserve_parachain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *rp_receiver_account ]
+                  reserve_chain_total_issuance:
+                    chain: *reserve_parachain
+                    pallet: balances
+                    call: totalIssuance
+                    delay: 0
+                    args: []
+              - asserts:
+                  # Sender's account was decreased by teleported amount + fees
+                  - balanceDecreased:
+                      args: [
+                        {
+                          amount: *ump_teleport_amount,
+                          balances: {
+                            before: $reserve_chain_sender_balance_before,
+                            after: $reserve_chain_sender_balance,
+                          }
+                        }
+                      ]
+                  # Reserve parachain total issuance increased by teleported amount
+                  - valueDecreased:
+                      args: [
+                        {
+                          before: $reserve_chain_total_issuance_before,
+                          after: $reserve_chain_total_issuance,
+                        }
+                      ]
