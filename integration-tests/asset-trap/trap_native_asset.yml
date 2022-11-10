@@ -12,7 +12,7 @@ settings:
   variables:
     common:
       amount_to_trap: &amount_to_trap 10000000000000
-      require_weight_at_most: &weight_at_most 2000000000
+      require_weight_at_most: &weight_at_most [ 2000000000 ]
     chains:
       trappist_parachain:
         signer: &tp_signer //Alice
