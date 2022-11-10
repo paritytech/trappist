@@ -227,7 +227,7 @@ tests:
                           - type: XcmV2TraitsOutcome
                             xcmOutcome: Complete
                             threshold: [10, 10]
-                            value: 654,608,000
+                            value: 1,000,000,000
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32
