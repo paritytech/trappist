@@ -37,8 +37,8 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		type ReserveAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type ReserveAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type Assets: Inspect<Self::AccountId>;
 		type WeightInfo: WeightInfo;
 	}
@@ -87,7 +87,7 @@ pub mod pallet {
 
 			// verify asset is not yet registered
 			ensure!(
-				!AssetIdMultiLocation::<T>::contains_key(&asset_id),
+				!AssetIdMultiLocation::<T>::contains_key(asset_id),
 				Error::<T>::AssetAlreadyRegistered
 			);
 
@@ -104,8 +104,8 @@ pub mod pallet {
 			);
 
 			// register asset
-			AssetIdMultiLocation::<T>::insert(&asset_id, &asset_multi_location);
-			AssetMultiLocationId::<T>::insert(&asset_multi_location, &asset_id);
+			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
+			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
 
 			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
 
@@ -120,11 +120,11 @@ pub mod pallet {
 			T::ReserveAssetModifierOrigin::ensure_origin(origin)?;
 
 			// verify asset is registered
-			let asset_multi_location = AssetIdMultiLocation::<T>::get(&asset_id)
-				.ok_or(Error::<T>::AssetIsNotRegistered)?;
+			let asset_multi_location =
+				AssetIdMultiLocation::<T>::get(asset_id).ok_or(Error::<T>::AssetIsNotRegistered)?;
 
 			// unregister asset
-			AssetIdMultiLocation::<T>::remove(&asset_id);
+			AssetIdMultiLocation::<T>::remove(asset_id);
 			AssetMultiLocationId::<T>::remove(&asset_multi_location);
 
 			Self::deposit_event(Event::ReserveAssetUnregistered { asset_id, asset_multi_location });
