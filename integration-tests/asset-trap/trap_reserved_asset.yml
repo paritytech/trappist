@@ -172,9 +172,6 @@ tests:
                       - type: u32
                         value: *trappist_asset_id
 
-
-
-
       - name: Reserve transfer asset to Trappist Parachain
         actions:
           - extrinsics:
@@ -252,7 +249,7 @@ tests:
                 args: [ $bob_received_asset ]
 
     its:
-      - name: Trap asset by doing WithdrawAsset and nothing else
+      - name: Trap reserved asset by doing WithdrawAsset and nothing else
         actions:
           - extrinsics:
               - chain: *trappist_parachain
@@ -306,15 +303,50 @@ tests:
                         value: "0xf12ee5fa3b8b536014833a70280d046e57b499ef6c43e6bdfcf641f02ef8c525"
                       - type: XcmV1MultiLocation
                         value: {
-                          parents:0,interior:{X1:{AccountId32:{network:Polkadot,"id":"0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"}}}}
+                          parents: 0,
+                            interior: {
+                              X1: {
+                                AccountId32: {
+                                  network: Polkadot,
+                                  id: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"
+                                }
+                              }
+                            }
+                        }
                       - type: XcmVersionedMultiAssets
-                        value: {"V1":[{"id":{"Concrete":{"parents":"1","interior":{"X3":[{"Parachain":"1,000"},{"PalletInstance":"50"},{"GeneralIndex":"1"}]}}},"fun":{"Fungible":*amount_to_trap}}]}
+                        value: {
+                          V1: [
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 1,
+                                    interior: {
+                                      X3: [
+                                        {
+                                          Parachain: *rp_id
+                                        },
+                                        {
+                                          PalletInstance: *reserve_asset_pallet_id
+                                        },
+                                        {
+                                          GeneralIndex: *reserve_asset_id
+                                        }
+                                      ]
+                                    }
+                                }
+                              },
+                              fun: {
+                                Fungible: *amount_to_trap
+                              }
+                            }
+                          ]
+                        }
 
-      - name: Claim native asset
+      - name: Claim reserved asset
         actions:
           - extrinsics:
               - chain: *trappist_parachain
-                signer: *tp_signer
+                signer: *tp_bob_signer
                 pallet: polkadotXcm
                 call: execute
                 args: [
@@ -326,9 +358,19 @@ tests:
                             {
                               id: {
                                 Concrete: {
-                                  parents: 0,
+                                  parents: 1,
                                   interior: {
-                                    Here
+                                    X3: [
+                                      {
+                                        Parachain: *rp_id
+                                      },
+                                      {
+                                        PalletInstance: *reserve_asset_pallet_id
+                                      },
+                                      {
+                                        GeneralIndex: *reserve_asset_id
+                                      }
+                                    ]
                                   }
                                 }
                               },
