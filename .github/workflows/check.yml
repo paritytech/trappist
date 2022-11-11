@@ -39,7 +39,8 @@ jobs:
           target: wasm32-unknown-unknown
           components: rustfmt
 
-      - uses: actions/cache@v2
+      - name: Cache Build artefacts
+        uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/registry
