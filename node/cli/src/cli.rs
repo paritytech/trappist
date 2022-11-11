@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::path::PathBuf;
 use service::chain_spec;
-#[cfg(feature = "with-trappist-runtime")]
-use service::chain_spec::trappist::Extensions;
 #[cfg(feature = "with-base-runtime")]
 use service::chain_spec::base::Extensions;
+#[cfg(feature = "with-trappist-runtime")]
+use service::chain_spec::trappist::Extensions;
+use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, clap::Subcommand)]

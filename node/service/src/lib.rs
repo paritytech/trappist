@@ -7,7 +7,9 @@ use std::{sync::Arc, time::Duration};
 use jsonrpsee::RpcModule;
 
 // Common Runtime Types
-pub use parachains_common::{AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce};
+pub use parachains_common::{
+	AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
+};
 
 // Cumulus Imports
 use cumulus_client_cli::CollatorOptions;
@@ -33,10 +35,10 @@ use substrate_prometheus_endpoint::Registry;
 
 use polkadot_service::CollatorPair;
 
-#[cfg(feature = "with-trappist-runtime")]
-use trappist_runtime::AssetBalance;
 #[cfg(feature = "with-base-runtime")]
 use base_runtime::AssetBalance;
+#[cfg(feature = "with-trappist-runtime")]
+use trappist_runtime::AssetBalance;
 
 pub mod chain_spec;
 
@@ -76,10 +78,10 @@ mod base_executor {
 	}
 }
 
-#[cfg(feature = "with-trappist-runtime")]
-pub use trappist_executor::*;
 #[cfg(feature = "with-base-runtime")]
 pub use base_executor::*;
+#[cfg(feature = "with-trappist-runtime")]
+pub use trappist_executor::*;
 
 #[cfg(feature = "with-trappist-runtime")]
 pub type RuntimeApi = trappist_runtime::RuntimeApi;
@@ -655,24 +657,14 @@ where
 /// Build the import queue for the rococo parachain runtime.
 #[allow(clippy::type_complexity)]
 pub fn parachain_build_import_queue(
-	client: Arc<
-		TFullClient<
-			Block,
-			RuntimeApi,
-			NativeElseWasmExecutor<RuntimeExecutor>,
-		>,
-	>,
+	client: Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<RuntimeExecutor>>>,
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 ) -> Result<
 	sc_consensus::DefaultImportQueue<
 		Block,
-		TFullClient<
-			Block,
-			RuntimeApi,
-			NativeElseWasmExecutor<RuntimeExecutor>,
-		>,
+		TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<RuntimeExecutor>>,
 	>,
 	sc_service::Error,
 > {
@@ -715,13 +707,7 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(
 	TaskManager,
-	Arc<
-		TFullClient<
-			Block,
-			RuntimeApi,
-			NativeElseWasmExecutor<RuntimeExecutor>,
-		>,
-	>,
+	Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<RuntimeExecutor>>>,
 )> {
 	start_node_impl::<RuntimeApi, RuntimeExecutor, _, _, _>(
 		parachain_config,
