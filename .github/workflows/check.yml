@@ -39,6 +39,14 @@ jobs:
           target: wasm32-unknown-unknown
           components: rustfmt
 
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Check Build
         run: |
           SKIP_WASM_BUILD=1 cargo check --release
