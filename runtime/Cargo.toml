@@ -98,6 +98,8 @@ pallet-dex = { version = "0.0.1", git = "https://github.com/arturgontijo/substra
 pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/arturgontijo/substrate-dex.git", default-features = false, branch = "master" }
 pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytech/pallet-contracts-xcm", default-features = false,  branch = "artur-xcm-v3" }
 
+# Trappist Pallets
+pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../pallets/asset-registry" }
 
 [features]
 default = ["std"]
@@ -139,6 +141,7 @@ std = [
     "pallet-randomness-collective-flip/std",
     "pallet-scheduler/std",
     "pallet-session/std",
+    "pallet-society/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
@@ -146,6 +149,7 @@ std = [
     "pallet-uniques/std",
     "pallet-utility/std",
     "pallet-xcm/std",
+	"pallet-asset-registry/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
@@ -168,10 +172,11 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
-	"frame-system-benchmarking",
+	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
     "pallet-assets/runtime-benchmarks",
+	"pallet-asset-registry/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-collective/runtime-benchmarks",

@@ -116,20 +116,16 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	CheckingAccount,
 >;
 
-/// Means for transacting assets from Statemine.
-/// We assume Statemine acts as reserve for all assets defined in its Assets pallet,
-/// and the same asset ID is used locally.
-/// (this is rather simplistic, a more refined implementation could implement
-/// something like an "asset manager" where only assets that have been specifically
-/// registered are considered for reserve-based asset transfers).
-pub type StatemineFungiblesTransactor = FungiblesAdapter<
+/// Means for transacting reserved fungible assets.
+/// AsAssetMultiLocation uses pallet_asset_registry to convert between AssetId and MultiLocation.
+pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	ConvertedConcreteId<
 		AssetId,
 		Balance,
-		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
+		AsAssetMultiLocation<AssetId, AssetRegistry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -160,7 +156,7 @@ pub type StatemineNonFungiblesTransactor = NonFungiblesAdapter<
 /// Means for transacting assets on this chain.
 pub type AssetTransactors = (
 	LocalAssetTransactor,
-	StatemineFungiblesTransactor,
+	ReservedFungiblesTransactor,
 	LocalFungiblesTransactor,
 	StatemineNonFungiblesTransactor,
 );
