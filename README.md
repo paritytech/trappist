@@ -58,6 +58,9 @@ cargo b -r --features with-base-runtime
 cargo b -r --features with-trappist-runtime
 ```
 
+Alternatively, run 
+`bash build_runtimes.sh` .
+
 
 ### XCM Playground via Zombienet
 

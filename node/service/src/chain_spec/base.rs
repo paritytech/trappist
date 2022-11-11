@@ -9,7 +9,7 @@ use base_runtime::{
 	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
-const DEFAULT_PROTOCOL_ID: &str = "bsd";
+const DEFAULT_PROTOCOL_ID: &str = "base";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<base_runtime::GenesisConfig, Extensions>;
@@ -68,7 +68,7 @@ fn session_keys(aura: AuraId) -> SessionKeys {
 pub fn development_config() -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "BSD".into());
+	properties.insert("tokenSymbol".into(), "xUSD".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
@@ -122,7 +122,7 @@ pub fn development_config() -> ChainSpec {
 pub fn local_testnet_config() -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "BSD".into());
+	properties.insert("tokenSymbol".into(), "xUSD".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
@@ -232,7 +232,7 @@ fn testnet_genesis(
 			],
 			metadata: vec![
 				// id, name, symbol, decimals
-				(LOCAL_ASSET_ID, "bUSD".into(), "BSD".into(), 10),
+				(LOCAL_ASSET_ID, "BASE".into(), "xUSD".into(), 10),
 			],
 			accounts: vec![
 				// id, account_id, balance
