@@ -16,7 +16,7 @@
 use crate::constants::fee::default_fee_per_second;
 
 use super::{
-	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, ForeignUniques, ParachainInfo,
+	AccountId, AllPalletsWithSystem, AssetRegistry, Assets, Balance, Balances, ForeignUniques, ParachainInfo,
 	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
 	XcmpQueue,
 };
@@ -33,6 +33,7 @@ use parachains_common::{
 	AssetId,
 };
 use xcm_executor::traits::JustTry;
+use xcm_primitives::AsAssetMultiLocation;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};

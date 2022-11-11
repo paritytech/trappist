@@ -92,6 +92,7 @@ polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", defa
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "trappist-xcm-v3" }
 xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "trappist-xcm-v3" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "trappist-xcm-v3" }
+xcm-primitives = { path = "../primitives/xcm/", default-features = false }
 
 # External Pallets
 pallet-dex = { version = "0.0.1", git = "https://github.com/arturgontijo/substrate-dex.git", default-features = false, branch = "master" }

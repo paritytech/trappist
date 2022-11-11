@@ -7,9 +7,6 @@ members = [
 exclude = [
     "contracts"
 ]
-exclude = [
-    "contracts"
-]
 
 [profile.release]
 panic = "unwind"
