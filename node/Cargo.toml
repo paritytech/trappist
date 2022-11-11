@@ -112,6 +112,7 @@ tempfile = "3.2.0"
 [features]
 default = []
 runtime-benchmarks = [
+    "polkadot-cli/runtime-benchmarks",
     "trappist-runtime/runtime-benchmarks"
 ]
 try-runtime = [
