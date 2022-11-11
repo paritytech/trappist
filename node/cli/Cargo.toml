@@ -86,6 +86,7 @@ cli = [
 	"try-runtime-cli",
 ]
 runtime-benchmarks = [
+	"polkadot-cli/runtime-benchmarks",
     "trappist-runtime/runtime-benchmarks"
 ]
 try-runtime = [
