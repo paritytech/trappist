@@ -16,6 +16,8 @@ jobs:
   check:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+    env:
+      NIGHTLY: nightly-2022-11-02
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -35,7 +37,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2022-11-02 # Specific version required otherwise new cache each day due to nightly changes
+          toolchain: ${{ env.NIGHTLY }} # Specific version used otherwise potentially new cache each day due to nightly changes
           override: true
           target: wasm32-unknown-unknown
           components: rustfmt
@@ -57,6 +59,6 @@ jobs:
       - name: Check formatting
         uses: actions-rs/cargo@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY }}
           command: fmt
           args: --all --check
