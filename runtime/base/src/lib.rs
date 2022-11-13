@@ -547,7 +547,6 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_assets, Assets]
-		//[pallet_dex, Dex]
 		[pallet_identity, Identity]
 		[pallet_multisig, Multisig]
 		[pallet_uniques, Uniques]
@@ -657,36 +656,6 @@ impl_runtime_apis! {
 			TransactionPayment::query_fee_details(uxt, len)
 		}
 	}
-
-	// impl pallet_dex_rpc_runtime_api::DexApi<Block, AssetId, Balance, AssetBalance> for Runtime {
-	// 	fn get_currency_to_asset_input_price(
-	// 		asset_id: AssetId,
-	// 		currency_amount: Balance
-	// 	) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-	// 		Dex::get_currency_to_asset_input_price(asset_id, currency_amount)
-	// 	}
-
-	// 	fn get_currency_to_asset_output_price(
-	// 		asset_id: AssetId,
-	// 		token_amount: AssetBalance
-	// 	) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-	// 		Dex::get_currency_to_asset_output_price(asset_id, token_amount)
-	// 	}
-
-	// 	fn get_asset_to_currency_input_price(
-	// 		asset_id: AssetId,
-	// 		token_amount: AssetBalance
-	// 	) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-	// 		Dex::get_asset_to_currency_input_price(asset_id, token_amount)
-	// 	}
-
-	// 	fn get_asset_to_currency_output_price(
-	// 		asset_id: AssetId,
-	// 		currency_amount: Balance
-	// 	) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-	// 		Dex::get_asset_to_currency_output_price(asset_id, currency_amount)
-	// 	}
-	// }
 
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {

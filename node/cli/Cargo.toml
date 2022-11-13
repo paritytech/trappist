@@ -87,7 +87,8 @@ cli = [
 ]
 runtime-benchmarks = [
 	"polkadot-cli/runtime-benchmarks",
-    "trappist-runtime/runtime-benchmarks"
+    "trappist-runtime/runtime-benchmarks",
+	"base-runtime/runtime-benchmarks"
 ]
 try-runtime = [
 	"service/try-runtime"
