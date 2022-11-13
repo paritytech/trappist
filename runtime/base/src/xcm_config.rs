@@ -32,7 +32,7 @@ use parachains_common::{
 	AssetId,
 };
 use xcm_executor::traits::{FilterAssetLocation, JustTry};
-use xcm_primitives::AsAssetMultiLocation;
+use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
@@ -121,8 +121,9 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
+	// Use this currency when it is a registered fungible asset matching the given location or name
+	// Assets not found in AssetRegistry will not be used
+	ConvertedRegisteredAssetId<
 		AssetId,
 		Balance,
 		AsAssetMultiLocation<AssetId, AssetRegistry>,

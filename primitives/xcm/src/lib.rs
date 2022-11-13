@@ -1,7 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use sp_std::{borrow::Borrow, marker::PhantomData};
-use xcm::latest::MultiLocation;
+use xcm::latest::{AssetId::Concrete, Fungibility::Fungible, MultiAsset, MultiLocation};
+use xcm_executor::traits::{Convert, Error as MatchError, MatchesFungibles};
 
 pub struct AsAssetMultiLocation<AssetId, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetIdInfoGetter)>,
@@ -24,4 +25,27 @@ where
 pub trait AssetMultiLocationGetter<AssetId> {
 	fn get_asset_multi_location(asset_id: AssetId) -> Option<MultiLocation>;
 	fn get_asset_id(asset_multi_location: MultiLocation) -> Option<AssetId>;
+}
+
+pub struct ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertBalance>(
+	PhantomData<(AssetId, Balance, ConvertAssetId, ConvertBalance)>,
+);
+impl<
+		AssetId: Clone,
+		Balance: Clone,
+		ConvertAssetId: Convert<MultiLocation, AssetId>,
+		ConvertBalance: Convert<u128, Balance>,
+	> MatchesFungibles<AssetId, Balance>
+	for ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertBalance>
+{
+	fn matches_fungibles(a: &MultiAsset) -> Result<(AssetId, Balance), MatchError> {
+		let (amount, id) = match (&a.fun, &a.id) {
+			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
+			_ => return Err(MatchError::AssetNotFound),
+		};
+		let what = ConvertAssetId::convert_ref(id).map_err(|_| MatchError::AssetNotFound)?;
+		let amount = ConvertBalance::convert_ref(amount)
+			.map_err(|_| MatchError::AmountToBalanceConversionFailed)?;
+		Ok((what, amount))
+	}
 }
