@@ -7,7 +7,9 @@ use std::{sync::Arc, time::Duration};
 use jsonrpsee::RpcModule;
 
 // Common Runtime Types
-pub use parachains_common::{AccountId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce};
+pub use parachains_common::{
+	AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
+};
 
 // Cumulus Imports
 use cumulus_client_cli::CollatorOptions;
@@ -33,22 +35,58 @@ use substrate_prometheus_endpoint::Registry;
 
 use polkadot_service::CollatorPair;
 
-use trappist_runtime::{AssetBalance, AssetId};
+#[cfg(feature = "with-base-runtime")]
+use base_runtime::AssetBalance;
+#[cfg(feature = "with-trappist-runtime")]
+use trappist_runtime::AssetBalance;
 
-/// Native executor instance.
-pub struct TrappistRuntimeExecutor;
+pub mod chain_spec;
 
-impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
-	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+#[cfg(feature = "with-trappist-runtime")]
+mod trappist_executor {
+	pub use trappist_runtime;
 
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		trappist_runtime::api::dispatch(method, data)
-	}
+	pub struct RuntimeExecutor;
+	impl sc_executor::NativeExecutionDispatch for RuntimeExecutor {
+		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
-	fn native_version() -> sc_executor::NativeVersion {
-		trappist_runtime::native_version()
+		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+			trappist_runtime::api::dispatch(method, data)
+		}
+
+		fn native_version() -> sc_executor::NativeVersion {
+			trappist_runtime::native_version()
+		}
 	}
 }
+
+#[cfg(feature = "with-base-runtime")]
+mod base_executor {
+	pub use base_runtime;
+
+	pub struct RuntimeExecutor;
+	impl sc_executor::NativeExecutionDispatch for RuntimeExecutor {
+		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+			base_runtime::api::dispatch(method, data)
+		}
+
+		fn native_version() -> sc_executor::NativeVersion {
+			base_runtime::native_version()
+		}
+	}
+}
+
+#[cfg(feature = "with-base-runtime")]
+pub use base_executor::*;
+#[cfg(feature = "with-trappist-runtime")]
+pub use trappist_executor::*;
+
+#[cfg(feature = "with-trappist-runtime")]
+pub type RuntimeApi = trappist_runtime::RuntimeApi;
+#[cfg(feature = "with-base-runtime")]
+pub type RuntimeApi = base_runtime::RuntimeApi;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -191,6 +229,7 @@ async fn build_relay_chain_interface(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
+#[cfg(feature = "with-trappist-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl<RuntimeApi, Executor, RB, BIQ, BIC>(
 	parachain_config: Configuration,
@@ -307,13 +346,227 @@ where
 		let transaction_pool = transaction_pool.clone();
 
 		Box::new(move |deny_unsafe, _| {
-			let deps = crate::rpc::FullDeps {
+			let deps = trappist_rpc::FullDeps {
 				client: client.clone(),
 				pool: transaction_pool.clone(),
 				deny_unsafe,
 			};
 
-			crate::rpc::create_full(deps).map_err(Into::into)
+			trappist_rpc::trappist_create_full(deps).map_err(Into::into)
+		})
+	};
+
+	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+		rpc_builder,
+		client: client.clone(),
+		transaction_pool: transaction_pool.clone(),
+		task_manager: &mut task_manager,
+		config: parachain_config,
+		keystore: params.keystore_container.sync_keystore(),
+		backend: backend.clone(),
+		network: network.clone(),
+		system_rpc_tx,
+		tx_handler_controller,
+		telemetry: telemetry.as_mut(),
+	})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
+
+	let announce_block = {
+		let network = network.clone();
+		Arc::new(move |hash, data| network.announce_block(hash, data))
+	};
+
+	let relay_chain_slot_duration = Duration::from_secs(6);
+
+	if validator {
+		let parachain_consensus = build_consensus(
+			client.clone(),
+			prometheus_registry.as_ref(),
+			telemetry.as_ref().map(|t| t.handle()),
+			&task_manager,
+			relay_chain_interface.clone(),
+			transaction_pool,
+			network,
+			params.keystore_container.sync_keystore(),
+			force_authoring,
+		)?;
+
+		let spawner = task_manager.spawn_handle();
+
+		let params = StartCollatorParams {
+			para_id: id,
+			block_status: client.clone(),
+			announce_block,
+			client: client.clone(),
+			task_manager: &mut task_manager,
+			relay_chain_interface: relay_chain_interface.clone(),
+			spawner,
+			parachain_consensus,
+			import_queue,
+			collator_key: collator_key.expect("Command line arguments do not allow this. qed"),
+			relay_chain_slot_duration,
+		};
+
+		start_collator(params).await?;
+	} else {
+		let params = StartFullNodeParams {
+			client: client.clone(),
+			announce_block,
+			task_manager: &mut task_manager,
+			para_id: id,
+			relay_chain_interface,
+			relay_chain_slot_duration,
+			import_queue,
+			collator_options,
+		};
+
+		start_full_node(params)?;
+	}
+
+	start_network.start_network();
+
+	Ok((task_manager, client))
+}
+
+// TODO: how to avoid having two of these huge functions?
+/// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
+///
+/// This is the actual implementation that is abstract over the executor and the runtime api.
+#[cfg(feature = "with-base-runtime")]
+#[sc_tracing::logging::prefix_logs_with("Parachain")]
+async fn start_node_impl<RuntimeApi, Executor, RB, BIQ, BIC>(
+	parachain_config: Configuration,
+	polkadot_config: Configuration,
+	collator_options: CollatorOptions,
+	id: ParaId,
+	_rpc_ext_builder: RB,
+	build_import_queue: BIQ,
+	build_consensus: BIC,
+	hwbench: Option<sc_sysinfo::HwBench>,
+) -> sc_service::error::Result<(
+	TaskManager,
+	Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+)>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>
+		+ Send
+		+ Sync
+		+ 'static,
+	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+		+ sp_api::Metadata<Block>
+		+ sp_session::SessionKeys<Block>
+		+ sp_api::ApiExt<
+			Block,
+			StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>,
+		> + sp_offchain::OffchainWorkerApi<Block>
+		+ sp_block_builder::BlockBuilder<Block>
+		+ cumulus_primitives_core::CollectCollationInfo<Block>
+		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
+		+ pallet_contracts_rpc::ContractsRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
+	sc_client_api::StateBackendFor<TFullBackend<Block>, Block>: sp_api::StateBackend<BlakeTwo256>,
+	Executor: sc_executor::NativeExecutionDispatch + 'static,
+	RB: Fn(
+			Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		) -> Result<RpcModule<()>, sc_service::Error>
+		+ Send
+		+ 'static,
+	BIQ: FnOnce(
+			Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+			&Configuration,
+			Option<TelemetryHandle>,
+			&TaskManager,
+		) -> Result<
+			sc_consensus::DefaultImportQueue<
+				Block,
+				TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
+			>,
+			sc_service::Error,
+		> + 'static,
+	BIC: FnOnce(
+		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		Option<&Registry>,
+		Option<TelemetryHandle>,
+		&TaskManager,
+		Arc<dyn RelayChainInterface>,
+		Arc<
+			sc_transaction_pool::FullPool<
+				Block,
+				TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
+			>,
+		>,
+		Arc<NetworkService<Block, Hash>>,
+		SyncCryptoStorePtr,
+		bool,
+	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
+{
+	let parachain_config = prepare_node_config(parachain_config);
+
+	let params = new_partial::<RuntimeApi, Executor, BIQ>(&parachain_config, build_import_queue)?;
+	let (mut telemetry, telemetry_worker_handle) = params.other;
+
+	let client = params.client.clone();
+	let backend = params.backend.clone();
+
+	let mut task_manager = params.task_manager;
+	let (relay_chain_interface, collator_key) = build_relay_chain_interface(
+		polkadot_config,
+		&parachain_config,
+		telemetry_worker_handle,
+		&mut task_manager,
+		collator_options.clone(),
+		hwbench.clone(),
+	)
+	.await
+	.map_err(|e| match e {
+		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
+		s => s.to_string().into(),
+	})?;
+
+	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
+
+	let force_authoring = parachain_config.force_authoring;
+	let validator = parachain_config.role.is_authority();
+	let prometheus_registry = parachain_config.prometheus_registry().cloned();
+	let transaction_pool = params.transaction_pool.clone();
+	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
+	let (network, system_rpc_tx, tx_handler_controller, start_network) =
+		sc_service::build_network(sc_service::BuildNetworkParams {
+			config: &parachain_config,
+			client: client.clone(),
+			transaction_pool: transaction_pool.clone(),
+			spawn_handle: task_manager.spawn_handle(),
+			import_queue: import_queue.clone(),
+			block_announce_validator_builder: Some(Box::new(|_| {
+				Box::new(block_announce_validator)
+			})),
+			warp_sync: None,
+		})?;
+
+	let rpc_builder = {
+		let client = client.clone();
+		let transaction_pool = transaction_pool.clone();
+
+		Box::new(move |deny_unsafe, _| {
+			let deps = trappist_rpc::FullDeps {
+				client: client.clone(),
+				pool: transaction_pool.clone(),
+				deny_unsafe,
+			};
+
+			trappist_rpc::base_create_full(deps).map_err(Into::into)
 		})
 	};
 
@@ -404,24 +657,14 @@ where
 /// Build the import queue for the rococo parachain runtime.
 #[allow(clippy::type_complexity)]
 pub fn parachain_build_import_queue(
-	client: Arc<
-		TFullClient<
-			Block,
-			trappist_runtime::RuntimeApi,
-			NativeElseWasmExecutor<TrappistRuntimeExecutor>,
-		>,
-	>,
+	client: Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<RuntimeExecutor>>>,
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 ) -> Result<
 	sc_consensus::DefaultImportQueue<
 		Block,
-		TFullClient<
-			Block,
-			trappist_runtime::RuntimeApi,
-			NativeElseWasmExecutor<TrappistRuntimeExecutor>,
-		>,
+		TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<RuntimeExecutor>>,
 	>,
 	sc_service::Error,
 > {
@@ -464,15 +707,9 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(
 	TaskManager,
-	Arc<
-		TFullClient<
-			Block,
-			trappist_runtime::RuntimeApi,
-			NativeElseWasmExecutor<TrappistRuntimeExecutor>,
-		>,
-	>,
+	Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<RuntimeExecutor>>>,
 )> {
-	start_node_impl::<trappist_runtime::RuntimeApi, TrappistRuntimeExecutor, _, _, _>(
+	start_node_impl::<RuntimeApi, RuntimeExecutor, _, _, _>(
 		parachain_config,
 		polkadot_config,
 		collator_options,
