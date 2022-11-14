@@ -39,14 +39,23 @@ jobs:
           target: wasm32-unknown-unknown
           components: rustfmt
 
-      - name: Check Build
+      - name: Check Build Trappist Runtime
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release
+          SKIP_WASM_BUILD=1 cargo check --release --features with-trappist-runtime
 
-      - name: Check Build for Benchmarking
+      - name: Check Build Base Runtime
+        run: |
+          SKIP_WASM_BUILD=1 cargo check --release --features with-base-runtime
+
+      - name: Check Build for Benchmarking Trappist Runtime
         run: >
           pushd node &&
-          cargo check --features=runtime-benchmarks --release
+          cargo check --features=runtime-benchmarks,with-trappist-runtime --release
+
+      - name: Check Build for Benchmarking Base Runtime
+        run: >
+          pushd node &&
+          cargo check --features=runtime-benchmarks,with-base-runtime --release 
 
       - name: Check formatting
         uses: actions-rs/cargo@v1

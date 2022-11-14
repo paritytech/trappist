@@ -52,9 +52,15 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 Use the following command to build the Trappist collector binary:
 
-```sh
-cargo build --release
+When the base collator is built, rename the binary into `base-collator` and place it into the `./bin` folder.
 ```
+cargo b -r --features with-base-runtime
+cargo b -r --features with-trappist-runtime
+```
+
+Alternatively, run 
+`bash build_runtimes.sh` .
+
 
 ### XCM Playground via Zombienet
 
@@ -62,6 +68,9 @@ Create a `bin` directory into the root of this repository and place the followin
 - `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
 - `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
 - `trappist-collator` (which you will build from this repository) 
+- `base-collator` (which you will build from this repository) 
+
+
 
 Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
 ```
