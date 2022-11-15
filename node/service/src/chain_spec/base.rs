@@ -68,7 +68,7 @@ fn session_keys(aura: AuraId) -> SessionKeys {
 pub fn development_config() -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "BASE".into());
+	properties.insert("tokenSymbol".into(), "Base".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
