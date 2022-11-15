@@ -63,13 +63,13 @@ cumulus_based = true
 
   [[parachains.collators]]
   name = "base-collator01"
-  command = "./target/release/base-collator"
+  command = "./target_base/release/trappist-collator"
   ws_port = 9930
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
   [[parachains.collators]]
   name = "base-collator02"
-  command = "./target/release/base-collator"
+  command = "./target_base/release/trappist-collator"
   ws_port = 9931
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
