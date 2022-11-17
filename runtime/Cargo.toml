@@ -101,6 +101,8 @@ pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytec
 
 # Trappist Pallets
 pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../pallets/asset-registry" }
+pallet-nft-loan = {  version = "4.0.0-dev", default-features = false, path = "../pallets/nft-loan" }
+
 
 [features]
 default = ["std"]
@@ -166,7 +168,8 @@ std = [
 	"polkadot-runtime-common/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"xcm/std"
+	"xcm/std",
+	"pallet-nft-loan/std"
 ]
 runtime-benchmarks = [
     "hex-literal",
