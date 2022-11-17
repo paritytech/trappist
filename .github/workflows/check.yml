@@ -68,7 +68,7 @@ jobs:
 
       - name: Check Build Base Runtime
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release --features with-base-runtime
+          SKIP_WASM_BUILD=1 cargo check --release --no-default-features --features with-base-runtime
 
       - name: Check Build for Benchmarking Trappist Runtime
         run: >
@@ -78,4 +78,4 @@ jobs:
       - name: Check Build for Benchmarking Base Runtime
         run: >
           pushd node &&
-          cargo check --features=runtime-benchmarks,with-base-runtime --release
+          cargo check --no-default-features --features=runtime-benchmarks,with-base-runtime --release
