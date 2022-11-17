@@ -438,13 +438,6 @@ impl pallet_uniques::Config for Runtime {
 	type Locker = ();
 }
 
-impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type Assets = Assets;
-	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
-}
-
 parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(10_000_000);
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
@@ -527,8 +520,6 @@ construct_runtime!(
 		ContractsXCM: pallet_contracts_xcm = 50,
 
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
-
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
 	}
 );
 
