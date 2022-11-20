@@ -404,6 +404,81 @@ dependencies = [
 ]
 
 [[package]]
+name = "base-runtime"
+version = "1.0.0"
+dependencies = [
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-session-benchmarking",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-ping",
+ "cumulus-primitives-core",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
+ "frame-benchmarking",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
+ "hex-literal",
+ "kusama-runtime-constants",
+ "log",
+ "pallet-asset-tx-payment",
+ "pallet-assets",
+ "pallet-aura",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-collective",
+ "pallet-contracts",
+ "pallet-contracts-primitives",
+ "pallet-contracts-xcm",
+ "pallet-identity",
+ "pallet-multisig",
+ "pallet-preimage",
+ "pallet-randomness-collective-flip",
+ "pallet-scheduler",
+ "pallet-session",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-uniques",
+ "pallet-utility",
+ "pallet-xcm",
+ "parachain-info",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-runtime-common",
+ "scale-info",
+ "serde",
+ "smallvec",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
 name = "base-x"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -932,17 +1007,47 @@ dependencies = [
 
 [[package]]
 name = "clap"
+version = "3.2.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71655c45cb9845d3270c9d6df84ebe72b4dad3c2ba3f7023ad47c144e4e473a5"
+dependencies = [
+ "atty",
+ "bitflags",
+ "clap_derive 3.2.18",
+ "clap_lex 0.2.4",
+ "indexmap",
+ "once_cell",
+ "strsim",
+ "termcolor",
+ "textwrap",
+]
+
+[[package]]
+name = "clap"
 version = "4.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2148adefda54e14492fb9bddcc600b4344c5d1a3123bd666dcb939c6f0e0e57e"
 dependencies = [
  "atty",
  "bitflags",
- "clap_derive",
- "clap_lex",
+ "clap_derive 4.0.21",
+ "clap_lex 0.3.0",
  "once_cell",
  "strsim",
  "termcolor",
+]
+
+[[package]]
+name = "clap_derive"
+version = "3.2.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea0c8bce528c4be4da13ea6fead8965e95b6073585a2f05204bd8f4119f82a65"
+dependencies = [
+ "heck",
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -956,6 +1061,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "clap_lex"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2850f2f5a82cbf437dd5af4d49848fbdfc27c157c3d010345776f952765261c5"
+dependencies = [
+ "os_str_bytes",
 ]
 
 [[package]]
@@ -1311,7 +1425,7 @@ name = "cumulus-client-cli"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?branch=trappist-xcm-v3#5ffe4e7153407549e8e685e68e0ad0c5e394b138"
 dependencies = [
- "clap",
+ "clap 4.0.26",
  "parity-scale-codec",
  "sc-chain-spec",
  "sc-cli",
@@ -2498,7 +2612,7 @@ dependencies = [
  "Inflector",
  "array-bytes",
  "chrono",
- "clap",
+ "clap 4.0.26",
  "comfy-table",
  "frame-benchmarking",
  "frame-support",
@@ -5300,6 +5414,23 @@ dependencies = [
 [[package]]
 name = "pallet-dex"
 version = "0.0.1"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-assets",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
+name = "pallet-dex"
+version = "0.0.1"
 source = "git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3#414da5efbefc9ab2305dfea1e736e1d3525073cd"
 dependencies = [
  "frame-benchmarking",
@@ -5314,10 +5445,10 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3#414da5efbefc9ab2305dfea1e736e1d3525073cd"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
 dependencies = [
  "jsonrpsee",
- "pallet-dex-rpc-runtime-api",
+ "pallet-dex-rpc-runtime-api 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset)",
  "parity-scale-codec",
  "sp-api",
  "sp-blockchain",
@@ -5327,9 +5458,20 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
+dependencies = [
+ "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset)",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-dex-rpc-runtime-api"
+version = "0.0.1"
 source = "git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3#414da5efbefc9ab2305dfea1e736e1d3525073cd"
 dependencies = [
- "pallet-dex",
+ "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
  "parity-scale-codec",
  "sp-api",
  "sp-runtime",
@@ -6508,7 +6650,7 @@ name = "polkadot-cli"
 version = "0.9.32"
 source = "git+https://github.com/paritytech/polkadot?branch=trappist-xcm-v3#4629118324288e62ec0f2a1f71ba50875392c093"
 dependencies = [
- "clap",
+ "clap 4.0.26",
  "frame-benchmarking-cli",
  "futures 0.3.25",
  "log",
@@ -8528,7 +8670,7 @@ source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.32#5e
 dependencies = [
  "array-bytes",
  "chrono",
- "clap",
+ "clap 4.0.26",
  "fdlimit",
  "futures 0.3.25",
  "libp2p",
@@ -8742,6 +8884,40 @@ dependencies = [
  "sc-consensus",
  "sp-blockchain",
  "sp-runtime",
+]
+
+[[package]]
+name = "sc-consensus-manual-seal"
+version = "0.10.0-dev"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.32#5ea6d95309aaccfa399c5f72e5a14a4b7c6c4ca1"
+dependencies = [
+ "assert_matches",
+ "async-trait",
+ "futures 0.3.25",
+ "jsonrpsee",
+ "log",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-aura",
+ "sc-consensus-babe",
+ "sc-consensus-epochs",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
+ "serde",
+ "sp-api",
+ "sp-blockchain",
+ "sp-consensus",
+ "sp-consensus-aura",
+ "sp-consensus-babe",
+ "sp-consensus-slots",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-timestamp",
+ "substrate-prometheus-endpoint",
+ "thiserror",
 ]
 
 [[package]]
@@ -10993,6 +11169,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95059e91184749cb66be6dc994f67f182b6d897cb3df74a5bf66b5e709295fd8"
 
 [[package]]
+name = "textwrap"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "222a222a5bfe1bba4a77b45ec488a741b3cb8872e5e499451fd7d0129c9c7c3d"
+
+[[package]]
 name = "thiserror"
 version = "1.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11304,7 +11486,175 @@ version = "1.0.0"
 dependencies = [
  "assert_cmd",
  "async-trait",
- "clap",
+ "clap 4.0.26",
+ "derive_more",
+ "futures 0.3.25",
+ "log",
+ "nix 0.23.1",
+ "substrate-build-script-utils",
+ "tempfile",
+ "trappist-cli",
+ "trappist-service",
+]
+
+[[package]]
+name = "trappist-cli"
+version = "1.0.0"
+dependencies = [
+ "assert_cmd",
+ "async-trait",
+ "base-runtime",
+ "clap 4.0.26",
+ "cumulus-client-cli",
+ "cumulus-client-consensus-aura",
+ "cumulus-client-consensus-common",
+ "cumulus-client-consensus-relay-chain",
+ "cumulus-client-network",
+ "cumulus-client-service",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-relay-chain-inprocess-interface",
+ "cumulus-relay-chain-interface",
+ "cumulus-relay-chain-rpc-interface",
+ "derive_more",
+ "frame-benchmarking-cli",
+ "futures 0.3.25",
+ "hex-literal",
+ "jsonrpsee",
+ "log",
+ "nix 0.23.1",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-cli",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "polkadot-service",
+ "sc-cli",
+ "sc-service",
+ "sc-sysinfo",
+ "sc-telemetry",
+ "sc-tracing",
+ "serde",
+ "sp-core",
+ "sp-runtime",
+ "substrate-build-script-utils",
+ "tempfile",
+ "trappist-runtime",
+ "trappist-service",
+ "try-runtime-cli",
+]
+
+[[package]]
+name = "trappist-rpc"
+version = "1.0.0"
+dependencies = [
+ "futures 0.3.25",
+ "jsonrpsee",
+ "pallet-dex-rpc",
+ "pallet-transaction-payment-rpc",
+ "parachains-common",
+ "parity-scale-codec",
+ "sc-client-api",
+ "sc-consensus-manual-seal",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sc-transaction-pool-api",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-runtime",
+ "substrate-frame-rpc-system",
+ "trappist-runtime",
+]
+
+[[package]]
+name = "trappist-runtime"
+version = "1.0.0"
+dependencies = [
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-session-benchmarking",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-ping",
+ "cumulus-primitives-core",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
+ "frame-benchmarking",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
+ "hex-literal",
+ "kusama-runtime-constants",
+ "log",
+ "pallet-asset-registry",
+ "pallet-asset-tx-payment",
+ "pallet-assets",
+ "pallet-aura",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-collective",
+ "pallet-contracts",
+ "pallet-contracts-primitives",
+ "pallet-contracts-xcm",
+ "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
+ "pallet-dex-rpc-runtime-api 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
+ "pallet-identity",
+ "pallet-multisig",
+ "pallet-nft-loan",
+ "pallet-preimage",
+ "pallet-randomness-collective-flip",
+ "pallet-scheduler",
+ "pallet-session",
+ "pallet-society",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-uniques",
+ "pallet-utility",
+ "pallet-xcm",
+ "parachain-info",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-runtime-common",
+ "scale-info",
+ "serde",
+ "smallvec",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
+name = "trappist-service"
+version = "1.0.0"
+dependencies = [
+ "assert_cmd",
+ "async-trait",
+ "base-runtime",
+ "clap 3.2.23",
  "cumulus-client-cli",
  "cumulus-client-consensus-aura",
  "cumulus-client-consensus-common",
@@ -11316,6 +11666,7 @@ dependencies = [
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
+ "cumulus-relay-chain-rpc-interface",
  "derive_more",
  "frame-benchmarking",
  "frame-benchmarking-cli",
@@ -11367,89 +11718,10 @@ dependencies = [
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
  "tempfile",
+ "trappist-rpc",
  "trappist-runtime",
  "try-runtime-cli",
  "xcm",
-]
-
-[[package]]
-name = "trappist-runtime"
-version = "1.0.0"
-dependencies = [
- "cumulus-pallet-aura-ext",
- "cumulus-pallet-dmp-queue",
- "cumulus-pallet-parachain-system",
- "cumulus-pallet-session-benchmarking",
- "cumulus-pallet-xcm",
- "cumulus-pallet-xcmp-queue",
- "cumulus-ping",
- "cumulus-primitives-core",
- "cumulus-primitives-timestamp",
- "cumulus-primitives-utility",
- "frame-benchmarking",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "frame-system-rpc-runtime-api",
- "frame-try-runtime",
- "hex-literal",
- "kusama-runtime-constants",
- "log",
- "pallet-asset-registry",
- "pallet-asset-tx-payment",
- "pallet-assets",
- "pallet-aura",
- "pallet-authorship",
- "pallet-balances",
- "pallet-collator-selection",
- "pallet-collective",
- "pallet-contracts",
- "pallet-contracts-primitives",
- "pallet-contracts-xcm",
- "pallet-dex",
- "pallet-dex-rpc-runtime-api",
- "pallet-identity",
- "pallet-multisig",
- "pallet-nft-loan",
- "pallet-preimage",
- "pallet-randomness-collective-flip",
- "pallet-scheduler",
- "pallet-session",
- "pallet-society",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-uniques",
- "pallet-utility",
- "pallet-xcm",
- "parachain-info",
- "parachains-common",
- "parity-scale-codec",
- "polkadot-core-primitives",
- "polkadot-parachain",
- "polkadot-runtime-common",
- "scale-info",
- "serde",
- "smallvec",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder",
- "xcm",
- "xcm-builder",
- "xcm-executor",
- "xcm-primitives",
 ]
 
 [[package]]
@@ -11528,7 +11800,7 @@ name = "try-runtime-cli"
 version = "0.10.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.32#5ea6d95309aaccfa399c5f72e5a14a4b7c6c4ca1"
 dependencies = [
- "clap",
+ "clap 4.0.26",
  "frame-try-runtime",
  "log",
  "parity-scale-codec",

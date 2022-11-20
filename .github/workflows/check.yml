@@ -16,6 +16,8 @@ jobs:
   check:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+    env:
+      NIGHTLY: nightly-2022-11-02 # Fix version to prevent cache misses with nightly changes
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -35,22 +37,45 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY }}
+          override: true
           target: wasm32-unknown-unknown
           components: rustfmt
 
-      - name: Check Build
-        run: |
-          SKIP_WASM_BUILD=1 cargo check --release
-
-      - name: Check Build for Benchmarking
-        run: >
-          pushd node &&
-          cargo check --features=runtime-benchmarks --release
-
+      # Fail fast: check formatting first as it doesn't require compilation
       - name: Check formatting
         uses: actions-rs/cargo@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.NIGHTLY }}
           command: fmt
           args: --all --check
+
+      - name: Cache Build artefacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Check Build Trappist Runtime
+        run: |
+          SKIP_WASM_BUILD=1 cargo check --release --features with-trappist-runtime
+
+      - name: Check Build Base Runtime
+        run: |
+          SKIP_WASM_BUILD=1 cargo check --release --no-default-features --features with-base-runtime
+
+      - name: Check Build for Benchmarking Trappist Runtime
+        run: >
+          pushd node &&
+          cargo check --features=runtime-benchmarks,with-trappist-runtime --release
+
+      - name: Check Build for Benchmarking Base Runtime
+        run: >
+          pushd node &&
+          cargo check --no-default-features --features=runtime-benchmarks,with-base-runtime --release

@@ -42,7 +42,7 @@ pub struct FullDeps<C, P> {
 }
 
 /// Instantiate all RPCs we want at the canvas-kusama chain.
-pub fn create_full<C, P>(
+pub fn trappist_create_full<C, P>(
 	deps: FullDeps<C, P>,
 ) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
 where
@@ -56,16 +56,54 @@ where
 		+ 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: pallet_dex_rpc::DexRuntimeApi<
-		trappist_runtime::opaque::Block,
-		trappist_runtime::AssetId,
-		trappist_runtime::Balance,
-		trappist_runtime::AssetBalance,
-	>,
+	// C::Api: pallet_dex_rpc::DexRuntimeApi<
+	// 	trappist_runtime::opaque::Block,
+	// 	trappist_runtime::AssetId,
+	// 	trappist_runtime::Balance,
+	// 	trappist_runtime::AssetBalance,
+	// >,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
-	use pallet_dex_rpc::{Dex, DexApiServer};
+	// use pallet_dex_rpc::{Dex, DexApiServer};
+	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+	use sc_rpc::dev::{Dev, DevApiServer};
+	use substrate_frame_rpc_system::{System, SystemApiServer};
+
+	let mut module = RpcExtension::new(());
+	let FullDeps { client, pool, deny_unsafe } = deps;
+
+	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
+	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
+	// module.merge(Dev::new(client.clone(), deny_unsafe).into_rpc())?;
+	// module.merge(Dex::new(client).into_rpc())?;
+
+	// Extend this RPC with a custom API by using the following syntax.
+	// `YourRpcStruct` should have a reference to a client, which is needed
+	// to call into the runtime.
+	// `module.merge(YourRpcTrait::into_rpc(YourRpcStruct::new(ReferenceToClient, ...)))?;`
+
+	Ok(module)
+}
+
+/// Instantiate all RPCs we want at the canvas-kusama chain.
+pub fn base_create_full<C, P>(
+	deps: FullDeps<C, P>,
+) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
+where
+	C: ProvideRuntimeApi<Block>
+		+ sc_client_api::BlockBackend<Block>
+		+ HeaderBackend<Block>
+		+ AuxStore
+		+ HeaderMetadata<Block, Error = BlockChainError>
+		+ Send
+		+ Sync
+		+ 'static,
+	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+	C::Api: BlockBuilder<Block>,
+	P: TransactionPool + Sync + Send + 'static,
+{
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use sc_rpc::dev::{Dev, DevApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
@@ -76,7 +114,6 @@ where
 	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(Dev::new(client.clone(), deny_unsafe).into_rpc())?;
-	module.merge(Dex::new(client).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed

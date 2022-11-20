@@ -16,13 +16,13 @@
 use crate::constants::fee::default_fee_per_second;
 
 use super::{
-	AccountId, AllPalletsWithSystem, AssetRegistry, Assets, Balance, Balances, ForeignUniques, ParachainInfo,
+	AccountId, AllPalletsWithSystem, Assets, Balance, Balances, ForeignUniques, ParachainInfo,
 	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
 	XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing},
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
@@ -33,7 +33,6 @@ use parachains_common::{
 	AssetId,
 };
 use xcm_executor::traits::JustTry;
-use xcm_primitives::AsAssetMultiLocation;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
@@ -57,9 +56,6 @@ parameter_types! {
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub SelfReserve: MultiLocation = Here.into_location();
-	pub AssetsPalletLocation: MultiLocation =
-		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
-	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
@@ -83,12 +79,12 @@ pub type LocationToAccountId = (
 );
 
 /// Means for transacting the native currency on this chain.
-pub type LocalAssetTransactor = CurrencyAdapter<
+pub type CurrencyTransactor = CurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<SelfReserve>,
-	// Convert an XCM MultiLocation into a local account id:
+	IsConcrete<RelayLocation>,
+	// Convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
@@ -97,36 +93,14 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 >;
 
 /// Means for transacting assets besides the native currency on this chain.
-pub type LocalFungiblesTransactor = FungiblesAdapter<
+pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	ConvertedConcreteId<
 		AssetId,
 		Balance,
-		AsPrefixedGeneralIndex<AssetsPalletLocation, AssetId, JustTry>,
-		JustTry,
-	>,
-	// Convert an XCM MultiLocation into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports of `Assets`.
-	NoChecking,
-	// We don't track any teleports of `Assets`.
-	CheckingAccount,
->;
-
-/// Means for transacting reserved fungible assets.
-/// AsAssetMultiLocation uses pallet_asset_registry to convert between AssetId and MultiLocation.
-pub type ReservedFungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	Assets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteId<
-		AssetId,
-		Balance,
-		AsAssetMultiLocation<AssetId, AssetRegistry>,
+		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -155,12 +129,8 @@ pub type StatemineNonFungiblesTransactor = NonFungiblesAdapter<
 >;
 
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (
-	LocalAssetTransactor,
-	ReservedFungiblesTransactor,
-	LocalFungiblesTransactor,
-	StatemineNonFungiblesTransactor,
-);
+pub type AssetTransactors =
+	(CurrencyTransactor, FungiblesTransactor, StatemineNonFungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -232,6 +202,7 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 
 	pub XUsdPerSecond: (xcm::latest::AssetId, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
@@ -241,9 +212,9 @@ parameter_types! {
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
 fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
-	prefix.parent_count() == loc.parent_count() &&
-		loc.len() >= prefix.len() &&
-		prefix
+	prefix.parent_count() == loc.parent_count()
+		&& loc.len() >= prefix.len()
+		&& prefix
 			.interior()
 			.iter()
 			.zip(loc.interior().iter())
@@ -255,12 +226,14 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::ReserveAssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
-		&prefix == origin &&
-			match asset {
-				MultiAsset { id: Concrete(asset_loc), fun: Fungible(_a) } =>
-					matches_prefix(&prefix, asset_loc),
-				MultiAsset { id: Concrete(asset_loc), fun: NonFungible(_a) } =>
-					matches_prefix(&prefix, asset_loc),
+		&prefix == origin
+			&& match asset {
+				MultiAsset { id: Concrete(asset_loc), fun: Fungible(_a) } => {
+					matches_prefix(&prefix, asset_loc)
+				},
+				MultiAsset { id: Concrete(asset_loc), fun: NonFungible(_a) } => {
+					matches_prefix(&prefix, asset_loc)
+				},
 				_ => false,
 			}
 	}

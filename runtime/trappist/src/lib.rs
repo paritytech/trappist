@@ -448,7 +448,7 @@ impl EnsureOriginWithArg<RuntimeOrigin, MultiLocation> for ForeignCreators {
 	fn try_origin(o: RuntimeOrigin, a: &MultiLocation) -> Result<Self::Success, RuntimeOrigin> {
 		let origin_location = EnsureXcm::<Everything>::try_origin(o.clone())?;
 		if !a.starts_with(&origin_location) {
-			return Err(o)
+			return Err(o);
 		}
 		SovereignAccountOf::convert(origin_location).map_err(|_| o)
 	}
@@ -458,7 +458,6 @@ impl EnsureOriginWithArg<RuntimeOrigin, MultiLocation> for ForeignCreators {
 		pallet_xcm::Origin::Xcm(a.clone()).into()
 	}
 }
-
 
 parameter_types! {
 	pub const NftLoanId: PalletId = PalletId(*b"NftsLoan");
