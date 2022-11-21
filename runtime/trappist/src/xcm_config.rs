@@ -22,7 +22,7 @@ use super::{
 };
 use frame_support::{
     match_types, parameter_types,
-    traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+    traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess, OriginTrait},
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
@@ -32,7 +32,7 @@ use parachains_common::{
     xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
     AssetId,
 };
-use xcm_executor::traits::JustTry;
+use xcm_executor::traits::{JustTry,ConvertOrigin,Convert};
 use xcm_primitives::AsAssetMultiLocation;
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
@@ -47,7 +47,7 @@ use xcm_builder::{
     FungiblesAdapter, IsConcrete, NativeAsset, NoChecking, NonFungiblesAdapter, ParentAsSuperuser,
     ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
     SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-    UsingComponents,
+    UsingComponents
 };
 use xcm_executor::XcmExecutor;
 
@@ -70,6 +70,27 @@ pub type CollatorSelectionUpdateOrigin = EitherOfDiverse<
     EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
 >;
 
+pub struct ParachainAccountId32Aliases<Network, AccountId>(PhantomData<(Network, AccountId)>);
+impl<Network: Get<Option<NetworkId>>, AccountId: From<[u8; 32]> + Into<[u8; 32]> + Clone>
+	Convert<MultiLocation, AccountId> for ParachainAccountId32Aliases<Network, AccountId>
+{
+	fn convert(location: MultiLocation) -> Result<AccountId, MultiLocation> {
+		let id = match location {
+			MultiLocation { parents: 1, interior: X2(Parachain(_), AccountId32 { id, network: None }) } => id,
+			MultiLocation { parents: 1, interior: X2(Parachain(_), AccountId32 { id, network }) }
+				if network == Network::get() =>
+				id,
+			_ => return Err(location),
+		};
+		Ok(id.into())
+	}
+
+	fn reverse(who: AccountId) -> Result<MultiLocation, AccountId> {
+		Ok(AccountId32 { id: who.into(), network: Network::get() }.into())
+	}
+}
+
+
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
@@ -80,6 +101,7 @@ pub type LocationToAccountId = (
     SiblingParachainConvertsVia<Sibling, AccountId>,
     // Straight up local `AccountId32` origins just alias directly to `AccountId`.
     AccountId32Aliases<RelayNetwork, AccountId>,
+    ParachainAccountId32Aliases<RelayNetwork, AccountId>
 );
 
 /// Means for transacting the native currency on this chain.
@@ -162,6 +184,33 @@ pub type AssetTransactors = (
     StatemineNonFungiblesTransactor,
 );
 
+pub struct ParachainsSignedAccountId32AsNative<Network, RuntimeOrigin>(PhantomData<(Network, RuntimeOrigin)>);
+impl<Network: Get<Option<NetworkId>>, RuntimeOrigin: OriginTrait> ConvertOrigin<RuntimeOrigin>
+	for ParachainsSignedAccountId32AsNative<Network, RuntimeOrigin>
+where
+	RuntimeOrigin::AccountId: From<[u8; 32]>,
+{
+	fn convert_origin(
+		origin: impl Into<MultiLocation>,
+		kind: OriginKind,
+	) -> Result<RuntimeOrigin, MultiLocation> {
+		let origin = origin.into();
+		log::trace!(
+			target: "xcm::origin_conversion",
+			"ParachainSignedAccountId32AsNative origin: {:?}, kind: {:?}",
+			origin, kind,
+		);
+		match (kind, origin) {
+			(
+				OriginKind::Native,
+				MultiLocation { parents: 1, interior: X2(Junction::Parachain(_),Junction::AccountId32 { id, network }) },
+			) if matches!(network, None) || network == Network::get() =>
+				Ok(RuntimeOrigin::signed(id.into())),
+			(_, origin) => Err(origin),
+		}
+	}
+}
+
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
@@ -181,6 +230,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
     ParentAsSuperuser<RuntimeOrigin>,
     // Native signed account converter; this just converts an `AccountId32` origin into a normal
     // `Origin::Signed` origin of the same 32-byte value.
+    ParachainsSignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
     SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
     // Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
     XcmPassthrough<RuntimeOrigin>,
@@ -210,6 +260,12 @@ match_types! {
 	};
 }
 
+match_types! {
+	pub type Base: impl Contains<MultiLocation> = {
+		MultiLocation { parents: 1, interior: X1(Parachain(3000)) }
+	};
+}
+
 pub type Barrier = DenyThenTry<
     DenyReserveTransferToRelayChain,
     (
@@ -218,6 +274,7 @@ pub type Barrier = DenyThenTry<
         // Parent and its exec plurality get free execution
         AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
         AllowUnpaidExecutionFrom<Statemine>,
+        AllowUnpaidExecutionFrom<Base>,
         // Expected responses are OK.
         AllowKnownQueryResponses<PolkadotXcm>,
         // Subscriptions for version tracking are OK.
@@ -278,6 +335,7 @@ impl xcm_executor::Config for XcmConfig {
     type IsReserve = Reserves;
     type IsTeleporter = (); // Teleporting is disabled.
     type UniversalLocation = UniversalLocation;
+    // type Barrier = AllowUnpaidExecutionFrom<Everything>;
     type Barrier = Barrier;
     type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
     type Trader = (
