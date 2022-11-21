@@ -5429,26 +5429,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-dex"
-version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3#414da5efbefc9ab2305dfea1e736e1d3525073cd"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-assets",
- "parity-scale-codec",
- "scale-info",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
 source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
 dependencies = [
  "jsonrpsee",
- "pallet-dex-rpc-runtime-api 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset)",
+ "pallet-dex-rpc-runtime-api",
  "parity-scale-codec",
  "sp-api",
  "sp-blockchain",
@@ -5460,18 +5446,7 @@ name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
 source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
 dependencies = [
- "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset)",
- "parity-scale-codec",
- "sp-api",
- "sp-runtime",
-]
-
-[[package]]
-name = "pallet-dex-rpc-runtime-api"
-version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3#414da5efbefc9ab2305dfea1e736e1d3525073cd"
-dependencies = [
- "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
+ "pallet-dex",
  "parity-scale-codec",
  "sp-api",
  "sp-runtime",
@@ -11602,8 +11577,8 @@ dependencies = [
  "pallet-contracts",
  "pallet-contracts-primitives",
  "pallet-contracts-xcm",
- "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
- "pallet-dex-rpc-runtime-api 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
+ "pallet-dex",
+ "pallet-dex-rpc-runtime-api",
  "pallet-identity",
  "pallet-multisig",
  "pallet-nft-loan",

@@ -14,6 +14,7 @@
 // limitations under the License.
 
 use crate::constants::fee::default_fee_per_second;
+use crate::Dex;
 
 use super::{
 	AccountId, AllPalletsWithSystem, AssetRegistry, Assets, Balance, Balances, ForeignUniques,
@@ -289,7 +290,7 @@ impl xcm_executor::Config for XcmConfig {
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetLocker = ();
-	type AssetExchanger = ();
+	type AssetExchanger = Dex;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
