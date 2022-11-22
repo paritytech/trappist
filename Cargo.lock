@@ -5414,7 +5414,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#47b3b73e99d33e5e14a4aaa2040b0e498be48414"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5431,7 +5431,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#47b3b73e99d33e5e14a4aaa2040b0e498be48414"
 dependencies = [
  "jsonrpsee",
  "pallet-dex-rpc-runtime-api",
@@ -5444,7 +5444,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#651d5102e5b5f87fee93bfa658908b1fe3f13f14"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=bar/xcm-exchange-asset#47b3b73e99d33e5e14a4aaa2040b0e498be48414"
 dependencies = [
  "pallet-dex",
  "parity-scale-codec",
