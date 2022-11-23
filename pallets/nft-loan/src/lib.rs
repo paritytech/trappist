@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use pallet::*;
-
+use codec::{Decode, Encode, FullCodec};
 #[cfg(test)]
 mod mock;
 
@@ -23,9 +23,24 @@ pub use sp_std::{vec, boxed::Box};
 use frame_system::{pallet_prelude::OriginFor};
 use frame_support::traits::{Get};
 use sp_runtime::traits::{AccountIdConversion};
+use sp_std::vec::Vec;
 
+use pallet_dex::{AssetBalanceOf as DexAssetBalanceOf,AssetIdOf as DexAssetIdOf,BalanceOf as DexBalanceOf };
 
 pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm, v3::{Xcm,WeightLimit,Fungibility,AssetId,Parent,WildMultiAsset,MultiAsset,MultiAssets,MultiAssetFilter,Instruction::{DepositReserveAsset,InitiateReserveWithdraw,BuyExecution,DepositAsset,WithdrawAsset}}};
+
+#[derive(Encode, Decode, Debug)]
+pub enum TrappistPalletCall<T> {
+	#[codec(index = 100)] // the index should match the position of the module in `construct_runtime!`
+	Dex(DexCall<T>),
+}
+
+#[derive(Encode, Decode, Debug)]
+pub enum DexCall<T> {
+	#[codec(index = 1)] // the index should match the position of the dispatchable in the target pallet
+	AddLiquidity(OriginFor<T>,DexAssetIdOf<T>,DexAssetBalanceOf<T>,DexAssetBalanceOf<T>,DexAssetBalanceOf<T>,T::BlockNumber),
+}
+
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
@@ -135,11 +150,13 @@ pub mod pallet {
 			let admin_account_id = Self::pallet_account_id();
 			let value: u128 = amount.into();
 			let asset_id: T::AssetId =  1u32.into();
-			T::Items::transfer(&collection_id, &item_id,  &admin_account_id)?;
-			Self::deposit_event(Event::NFTLocked(collection_id, item_id));
-			T::Assets::transfer(asset_id, &admin_account_id, &_who, amount, true)?;
+			// T::Items::transfer(&collection_id, &item_id,  &admin_account_id)?;
+			// Self::deposit_event(Event::NFTLocked(collection_id, item_id));
+			// T::Assets::transfer(asset_id, &admin_account_id, &_who, amount, true)?;
 
-			Self::xcm_transfer(origin, value);
+			//Self::xcm_transfer(origin, value);
+
+			Self::add_liquidity_remote(origin);
 
 
 			Ok(())
@@ -216,35 +233,39 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn add_liquidity_remote(origin: OriginFor<T>) {
-		let para_1000 = Junctions::X1(Junction::Parachain(1000));
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
-		let buy_execution_asset = Junctions::X2(Junction::PalletInstance(50), Junction::GeneralIndex(1));
-		let reserved_asset = Junctions::X3(Junction::Parachain(1000), Junction::PalletInstance(50), Junction::GeneralIndex(1));
 		let dest = MultiLocation {
 			parents: 1,
 			interior: para_2000,
 		};
-		let buy_asset_location = MultiLocation {
+		let here_location = MultiLocation {
 			parents: 0,
-			interior: buy_execution_asset,
+			interior: Junctions::Here,
 		};
 		let fees = MultiAsset {
-			id: AssetId::Concrete(buy_asset_location),
+			id: AssetId::Concrete(here_location),
 			fun: Fungibility::Fungible(1000000000000_u128)
 		};
-		let reserved_location = MultiLocation {
-			parents: 1,
-			interior: reserved_asset,
-		};
 
-
-		let assets = MultiAssetFilter::Wild(WildMultiAsset::All);
 		let mut multi_assets = MultiAssets::new();
 		multi_assets.push(
 			MultiAsset {
-				id: AssetId::Concrete(reserved_location),
+				id: AssetId::Concrete(here_location),
 				fun: Fungibility::Fungible(1000000000000_u128)
 			} 
+		);
+
+		let asset_id: T::DexAssetIdOf =  1u32.into();
+		let call = TrappistPalletCall::Dex(DexCall::<T>::AddLiquidity(
+			origin,
+			asset_id,
+		));
+		
+		
+		log::info!(
+			target: "nft loan",
+			"Call {:#?}",
+			call
 		);
 
 		let versioned_xcm = Box::new(VersionedXcm::from(Xcm(vec![
@@ -252,12 +273,12 @@ impl<T: Config> Pallet<T> {
 			BuyExecution { fees, weight_limit: WeightLimit::Unlimited},
 			Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: 500000000000 as u64,
-				call: call.into()
+				require_weight_at_most: 1000000000_u64,
+				call: call.encode().into()
 			}
 		])));
 		let destination = Box::new(VersionedMultiLocation::V3(dest));
-		<pallet_xcm::Pallet<T>>::send(origin, destination, versioned_xcm ).unwrap();
+		<pallet_xcm::Pallet<T>>::send(origin, destination, versioned_xcm).unwrap();
 
 	}
 }

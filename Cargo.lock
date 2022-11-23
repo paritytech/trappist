@@ -5776,6 +5776,7 @@ dependencies = [
  "log",
  "pallet-assets",
  "pallet-balances",
+ "pallet-dex 0.0.1 (git+https://github.com/paritytech/substrate-dex.git?branch=trappist-xcm-v3)",
  "pallet-uniques",
  "pallet-xcm",
  "parity-scale-codec",
