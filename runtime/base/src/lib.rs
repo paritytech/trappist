@@ -440,6 +440,21 @@ impl pallet_uniques::Config for Runtime {
 }
 
 parameter_types! {
+	pub const NftLoanPalletId: PalletId = PalletId(*b"NFTsLoan");
+}
+
+impl pallet_nft_loan::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CollectionId = MultiLocation;
+	type ItemId = <Self as pallet_uniques::Config>::ItemId;
+	type AssetBalance = <Self as pallet_assets::Config>::Balance;
+	type AssetId = <Self as pallet_assets::Config>::AssetId;
+	type Assets = Assets;
+	type Items = ForeignUniques;
+	type PalletId = NftLoanPalletId;
+}
+
+parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(10_000_000);
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
@@ -517,7 +532,8 @@ construct_runtime!(
 		Preimage: pallet_preimage = 48,
 		Multisig: pallet_multisig = 49,
 		ContractsXCM: pallet_contracts_xcm = 50,
-
+		ContractsUniques: pallet_contracts_uniques = 51,
+		NftLoan: pallet_nft_loan = 52,
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 	}
 );

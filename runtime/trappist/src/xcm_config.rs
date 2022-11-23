@@ -335,7 +335,6 @@ impl xcm_executor::Config for XcmConfig {
     type IsReserve = Reserves;
     type IsTeleporter = (); // Teleporting is disabled.
     type UniversalLocation = UniversalLocation;
-    // type Barrier = AllowUnpaidExecutionFrom<Everything>;
     type Barrier = Barrier;
     type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
     type Trader = (

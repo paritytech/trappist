@@ -465,7 +465,6 @@ parameter_types! {
 
 impl pallet_nft_loan::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type CurrencyBalance = <Self as pallet_balances::Config>::Balance;
 	type CollectionId = <Self as pallet_uniques::Config>::CollectionId;
 	type AssetBalance = <Self as pallet_balances::Config>::Balance;
 	type ItemId = <Self as pallet_uniques::Config>::ItemId;

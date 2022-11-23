@@ -1,10 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-
-use ink_env::chain_extension::FromStatusCode;
-use ink_env::Environment;
-use ink_lang as ink;
+use ink::env::chain_extension::FromStatusCode;
+use ink::env::Environment;
 use scale::Decode;
 pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm};
+use frame_support::{weights::Weight};
 
 #[derive(Decode)]
 pub enum Error {
@@ -26,7 +25,7 @@ pub trait XCMExtension {
     type ErrorCode = Error;
 
     #[ink(extension = 0x00010000, handle_status = false, returns_result = false)]
-    fn prepare_execute(xcm: VersionedXcm<()>) -> u64;
+    fn prepare_execute(xcm: VersionedXcm<()>) -> Weight;
 
     #[ink(extension = 0x00010001, handle_status = false, returns_result = false)]
     fn execute();
@@ -47,13 +46,13 @@ pub trait XCMExtension {
 pub enum CustomEnvironment {}
 
 impl Environment for CustomEnvironment {
-    const MAX_EVENT_TOPICS: usize = <ink_env::DefaultEnvironment as Environment>::MAX_EVENT_TOPICS;
+    const MAX_EVENT_TOPICS: usize = <ink::env::DefaultEnvironment as Environment>::MAX_EVENT_TOPICS;
 
-    type AccountId = <ink_env::DefaultEnvironment as Environment>::AccountId;
-    type Balance = <ink_env::DefaultEnvironment as Environment>::Balance;
-    type Hash = <ink_env::DefaultEnvironment as Environment>::Hash;
-    type BlockNumber = <ink_env::DefaultEnvironment as Environment>::BlockNumber;
-    type Timestamp = <ink_env::DefaultEnvironment as Environment>::Timestamp;
+    type AccountId = <ink::env::DefaultEnvironment as Environment>::AccountId;
+    type Balance = <ink::env::DefaultEnvironment as Environment>::Balance;
+    type Hash = <ink::env::DefaultEnvironment as Environment>::Hash;
+    type BlockNumber = <ink::env::DefaultEnvironment as Environment>::BlockNumber;
+    type Timestamp = <ink::env::DefaultEnvironment as Environment>::Timestamp;
 
     type ChainExtension = XCMExtension;
 }
@@ -62,11 +61,11 @@ impl Environment for CustomEnvironment {
 mod xcm_contract_poc {
 
     pub use xcm::opaque::latest::prelude::{
-        Junction, Junctions::X1, MultiLocation,
-        Transact, Xcm, NetworkId::Any,OriginKind
+        Junction, Junctions, MultiLocation,
+        Transact, OriginKind
     };
     //pub use xcm::opaque::latest::prelude::*;
-    pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm};
+    pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm, v3::{Xcm,Transact,WeightLimit,Fungibility,AssetId,Parent,WildMultiAsset,MultiAsset,MultiAssets,MultiAssetFilter,Instruction::{DepositReserveAsset,InitiateReserveWithdraw,BuyExecution,DepositAsset,WithdrawAsset}}};
     use ink_prelude::vec::Vec;
     /// Defines the storage of your contract.
     /// Add new fields to the below struct in order
@@ -93,7 +92,7 @@ mod xcm_contract_poc {
 
         #[ink(message)]
         pub fn send_message(&mut self, paraId: u32, call: Vec<u8>, weight: u64) {
-            let multi_location = VersionedMultiLocation::V1(MultiLocation {
+            let multi_location = VersionedMultiLocation::V3(MultiLocation {
                 parents: 1,
                 interior: X1(Junction::Parachain(paraId)),
             });
