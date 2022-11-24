@@ -96,7 +96,7 @@ xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 # External Pallets
 pallet-contracts-xcm =  { version = "0.1.0", path = "../../../pallet-contracts-xcm/runtime", default-features = false }
 pallet-contracts-uniques =  { version = "0.1.0", path = "../../../pallet-contracts-uniques/runtime", default-features = false }
-pallet-nft-loan =  { version = "4.0.0-dev", path = "../../pallets/nft-loan", default-features = false }
+pallet-rwa-crosschain =  { version = "4.0.0-dev", path = "../../pallets/rwa-crosschain", default-features = false }
 
 
 
@@ -161,7 +161,7 @@ std = [
     "xcm-executor/std",
     "xcm/std",
     "pallet-contracts-uniques/std",
-    "pallet-nft-loan/std"
+    "pallet-rwa-crosschain/std"
 ]
 runtime-benchmarks = [
     "hex-literal",

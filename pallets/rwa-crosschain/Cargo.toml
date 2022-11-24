@@ -1,5 +1,5 @@
 [package]
-name = "pallet-nft-loan"
+name = "pallet-rwa-crosschain"
 version = "4.0.0-dev"
 description = "FRAME pallet for semi-fungible tokens."
 authors = ["Parity Technologies <admin@parity.io>"]

@@ -460,21 +460,6 @@ impl EnsureOriginWithArg<RuntimeOrigin, MultiLocation> for ForeignCreators {
 }
 
 parameter_types! {
-	pub const NftLoanId: PalletId = PalletId(*b"NftsLoan");
-}
-
-impl pallet_nft_loan::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type CollectionId = <Self as pallet_uniques::Config>::CollectionId;
-	type AssetBalance = <Self as pallet_balances::Config>::Balance;
-	type ItemId = <Self as pallet_uniques::Config>::ItemId;
-	type AssetId = <Self as pallet_assets::Config>::AssetId;
-	type Assets = Assets;
-	type Items = ForeignUniques;
-	type PalletId = NftLoanId;
-}
-
-parameter_types! {
 	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(10_000_000);
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
@@ -579,7 +564,6 @@ construct_runtime!(
 		Preimage: pallet_preimage = 48,
 		Multisig: pallet_multisig = 49,
 		ContractsXCM: pallet_contracts_xcm = 50,
-		LoanNft: pallet_nft_loan = 51,
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 
 		// Additional pallets

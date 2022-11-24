@@ -443,7 +443,7 @@ parameter_types! {
 	pub const NftLoanPalletId: PalletId = PalletId(*b"NFTsLoan");
 }
 
-impl pallet_nft_loan::Config for Runtime {
+impl pallet_rwa_crosschain::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = MultiLocation;
 	type ItemId = <Self as pallet_uniques::Config>::ItemId;
@@ -533,7 +533,7 @@ construct_runtime!(
 		Multisig: pallet_multisig = 49,
 		ContractsXCM: pallet_contracts_xcm = 50,
 		ContractsUniques: pallet_contracts_uniques = 51,
-		NftLoan: pallet_nft_loan = 52,
+		RwaCrossChain: pallet_rwa_crosschain = 52,
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 	}
 );
