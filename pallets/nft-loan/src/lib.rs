@@ -29,7 +29,7 @@ use frame_support::{RuntimeDebug};
 
 pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm, v3::{Xcm,WeightLimit,Fungibility,AssetId,Parent,WildMultiAsset,MultiAsset,MultiAssets,MultiAssetFilter,Instruction::{DepositReserveAsset,InitiateReserveWithdraw,BuyExecution,DepositAsset,WithdrawAsset}}};
 pub use pallet_dex::pallet::TradeAmount;
-
+use xcm::v3::ExecuteXcm;
 
 #[derive(Encode, Decode, Debug)]
 pub enum TrappistPalletCall<> {
@@ -140,6 +140,13 @@ pub mod pallet {
 		NFTLocked(
 			T::CollectionId,
 			T::ItemId,
+		),
+		TransferredAttempted(
+			T::AccountId,
+			AssetBalanceOf<T>
+		),
+		AddRemoteLiquidityAttempted(
+			T::AccountId
 		)
 	}
 
@@ -151,7 +158,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(10_000 + T::DbWeight::get().writes(2).ref_time())]
-		pub fn lock_nft_create_asset(
+		pub fn deposit_nft_and_transfer_liquidity(
 			origin: OriginFor<T>,
 			collection_id: T::CollectionId,
 			item_id: T::ItemId,
@@ -161,19 +168,28 @@ pub mod pallet {
 			let who = ensure_signed(origin.clone())?;
 			let admin_account_id = Self::pallet_account_id();
 			let value: u128 = amount.into();
-			let asset_id: T::AssetId =  1u32.into();
+
  			T::Items::transfer(&collection_id, &item_id,  &admin_account_id)?;
 			Self::deposit_event(Event::NFTLocked(collection_id, item_id));
-			T::Assets::transfer(asset_id, &admin_account_id, &who.clone(), amount, true)?;
 
-			Self::xcm_transfer(origin.clone(), value.clone()); 
-
-			Self::add_liquidity_remote(origin, value);
-
+			Self::xcm_transfer(origin.clone(), value); 
+			Self::deposit_event(Event::TransferredAttempted(who, amount));
 
 			Ok(())
 		}
+
+		#[pallet::weight(10_000 + T::DbWeight::get().writes(2).ref_time())]
+		pub fn add_remote_liquidity(
+			origin: OriginFor<T>,
+			// amount: u128,
+		) -> DispatchResult {
+			let who = ensure_signed(origin.clone())?;
+			Self::do_add_remote_liquidity(&who);
+			Self::deposit_event(Event::AddRemoteLiquidityAttempted(who));
+			Ok(())
+		}
 	}
+
 }
 
 impl<T: Config> Pallet<T> {
@@ -182,9 +198,10 @@ impl<T: Config> Pallet<T> {
 		T::PalletId::get().into_account_truncating()
 	}
 
-	pub fn xcm_transfer(origin: OriginFor<T>, amount: u128) {
+	pub fn xcm_transfer(_origin: OriginFor<T>, amount: u128) {
 		// how can i convert T::AccountId into [u8; 32] ?
-		let account: [u8; 32]= [142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72];
+
+		let account: [u8;32] = [109,111,100,108,78,70,84,115,76,111,97,110,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
 		let para_1000 = Junctions::X1(Junction::Parachain(1000));
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
@@ -228,7 +245,7 @@ impl<T: Config> Pallet<T> {
 			} 
 		);
 
-		let versioned_xcm = Box::new(VersionedXcm::from(Xcm(vec![
+		let versioned_xcm = Xcm(vec![
 			WithdrawAsset(multi_assets),
 			InitiateReserveWithdraw {
 				assets: assets.clone(),
@@ -242,12 +259,29 @@ impl<T: Config> Pallet<T> {
 					}
 				])
 			}
-		])));
-		<pallet_xcm::Pallet<T>>::execute(origin, versioned_xcm, 500000000000).unwrap();
+		]);
+
+		let origin_m = MultiLocation {
+			parents: 0,
+			interior: Junctions::X1(Junction::AccountId32 {
+				network: None,
+				id: account,
+			}),
+		};
+		let hash = versioned_xcm.using_encoded(sp_io::hashing::blake2_256);
+		T::XcmExecutor::execute_xcm_in_credit(
+			origin_m,
+			versioned_xcm.clone(),
+			hash,
+			10000000000000u64,
+			10000000000000u64,
+		);
+		//<pallet_xcm::Pallet<T>>::execute(origin, versioned_xcm, 500000000000).unwrap();
 
 	}
 
-	pub fn add_liquidity_remote(origin: OriginFor<T>, amount: u128) {
+	pub fn do_add_remote_liquidity(_who: &T::AccountId) {
+		let account: [u8;32] = [109,111,100,108,78,70,84,115,76,111,97,110,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
 		let dest = MultiLocation {
 			parents: 1,
@@ -274,7 +308,7 @@ impl<T: Config> Pallet<T> {
 			1_u32,
 			TradeAmount::FixedInput {
 				input_amount: 200000000000000u128,
-				min_output: 150000000000000u128,
+				min_output: 100000000000000u128,
 			},
 			5000_u32,
 			None
@@ -291,13 +325,7 @@ impl<T: Config> Pallet<T> {
 
 		let call = TrappistPalletCall::Utility(Box::new(UtilityCall::BatchAll(vec!(asset_to_currency_call,add_liquidity_call))));
 		
-		log::info!(
-			target: "nft loan",
-			"Call {:#?}",
-			call
-		);
-
-		let versioned_xcm = Box::new(VersionedXcm::from(Xcm(vec![
+		let versioned_xcm = Xcm(vec![
 			WithdrawAsset(multi_assets),
 			BuyExecution { fees, weight_limit: WeightLimit::Unlimited},
 			Transact {
@@ -305,9 +333,13 @@ impl<T: Config> Pallet<T> {
 				require_weight_at_most: 5000000000_u64,
 				call: call.encode().into()
 			}
-		])));
-		let destination = Box::new(VersionedMultiLocation::V3(dest));
-		<pallet_xcm::Pallet<T>>::send(origin, destination, versioned_xcm).unwrap();
+		]);
+		let origin_m = Junctions::X1(Junction::AccountId32 {
+			network: None,
+			id: account,
+		});
+
+		<pallet_xcm::Pallet<T>>::send_xcm(origin_m, dest, versioned_xcm).unwrap();
 
 	}
 }
