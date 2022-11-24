@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use pallet::*;
-use codec::{Decode, Encode, FullCodec};
+use codec::{Decode, Encode};
 #[cfg(test)]
 mod mock;
 
@@ -22,23 +22,35 @@ pub use sp_std::{vec, boxed::Box};
 
 use frame_system::{pallet_prelude::OriginFor};
 use frame_support::traits::{Get};
-use sp_runtime::traits::{AccountIdConversion};
-use sp_std::vec::Vec;
+use sp_runtime::{AccountId32, traits::{AccountIdConversion}};
 
-use pallet_dex::{AssetBalanceOf as DexAssetBalanceOf,AssetIdOf as DexAssetIdOf,BalanceOf as DexBalanceOf };
+use sp_std::vec::Vec;
+use frame_support::{RuntimeDebug};
 
 pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, VersionedXcm, v3::{Xcm,WeightLimit,Fungibility,AssetId,Parent,WildMultiAsset,MultiAsset,MultiAssets,MultiAssetFilter,Instruction::{DepositReserveAsset,InitiateReserveWithdraw,BuyExecution,DepositAsset,WithdrawAsset}}};
+pub use pallet_dex::pallet::TradeAmount;
+
 
 #[derive(Encode, Decode, Debug)]
-pub enum TrappistPalletCall<T> {
+pub enum TrappistPalletCall<> {
 	#[codec(index = 100)] // the index should match the position of the module in `construct_runtime!`
-	Dex(DexCall<T>),
+	Dex(DexCall),
+	#[codec(index = 47)]
+	Utility(Box<UtilityCall<Self>>),
 }
 
 #[derive(Encode, Decode, Debug)]
-pub enum DexCall<T> {
+pub enum DexCall<> {
 	#[codec(index = 1)] // the index should match the position of the dispatchable in the target pallet
-	AddLiquidity(OriginFor<T>,DexAssetIdOf<T>,DexAssetBalanceOf<T>,DexAssetBalanceOf<T>,DexAssetBalanceOf<T>,T::BlockNumber),
+	AddLiquidity(u32,u128,u128,u128,u32),
+	#[codec(index = 4)]
+	AssetToCurrency(u32,TradeAmount<u128,u128>,u32,Option<AccountId32>)
+}
+
+#[derive(Encode, Decode, RuntimeDebug)]
+pub enum UtilityCall<TrappistPalletCall> {
+	#[codec(index = 2)]
+	BatchAll(Vec<TrappistPalletCall>),
 }
 
 #[frame_support::pallet]
@@ -146,17 +158,17 @@ pub mod pallet {
 			amount: AssetBalanceOf<T>,
 			// amount: u128,
 		) -> DispatchResult {
-			let _who = ensure_signed(origin.clone())?;
+			let who = ensure_signed(origin.clone())?;
 			let admin_account_id = Self::pallet_account_id();
 			let value: u128 = amount.into();
 			let asset_id: T::AssetId =  1u32.into();
-			// T::Items::transfer(&collection_id, &item_id,  &admin_account_id)?;
-			// Self::deposit_event(Event::NFTLocked(collection_id, item_id));
-			// T::Assets::transfer(asset_id, &admin_account_id, &_who, amount, true)?;
+ 			T::Items::transfer(&collection_id, &item_id,  &admin_account_id)?;
+			Self::deposit_event(Event::NFTLocked(collection_id, item_id));
+			T::Assets::transfer(asset_id, &admin_account_id, &who.clone(), amount, true)?;
 
-			//Self::xcm_transfer(origin, value);
+			Self::xcm_transfer(origin.clone(), value.clone()); 
 
-			Self::add_liquidity_remote(origin);
+			Self::add_liquidity_remote(origin, value);
 
 
 			Ok(())
@@ -171,9 +183,12 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn xcm_transfer(origin: OriginFor<T>, amount: u128) {
-		let account: [u8; 32]= [0,68,31,24,120,181,36,104,199,244,218,65,206,194,125,193,62,104,67,194,131,165,141,51,72,82,18,174,72,207,148,251];
+		// how can i convert T::AccountId into [u8; 32] ?
+		let account: [u8; 32]= [142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72];
+
 		let para_1000 = Junctions::X1(Junction::Parachain(1000));
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
+
 		let account_dest = Junctions::X1(Junction::AccountId32 { network: None, id: account });
 		let reserved_asset = Junctions::X3(Junction::Parachain(1000), Junction::PalletInstance(50), Junction::GeneralIndex(1));
 		let buy_execution_asset = Junctions::X2(Junction::PalletInstance(50), Junction::GeneralIndex(1));
@@ -232,7 +247,7 @@ impl<T: Config> Pallet<T> {
 
 	}
 
-	pub fn add_liquidity_remote(origin: OriginFor<T>) {
+	pub fn add_liquidity_remote(origin: OriginFor<T>, amount: u128) {
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
 		let dest = MultiLocation {
 			parents: 1,
@@ -251,16 +266,30 @@ impl<T: Config> Pallet<T> {
 		multi_assets.push(
 			MultiAsset {
 				id: AssetId::Concrete(here_location),
-				fun: Fungibility::Fungible(1000000000000_u128)
+				fun: Fungibility::Fungible(5000000000000_u128)
 			} 
 		);
 
-		let asset_id: T::DexAssetIdOf =  1u32.into();
-		let call = TrappistPalletCall::Dex(DexCall::<T>::AddLiquidity(
-			origin,
-			asset_id,
+		let asset_to_currency_call = TrappistPalletCall::Dex(DexCall::AssetToCurrency(
+			1_u32,
+			TradeAmount::FixedInput {
+				input_amount: 200000000000000u128,
+				min_output: 150000000000000u128,
+			},
+			5000_u32,
+			None
 		));
 		
+
+		let add_liquidity_call = TrappistPalletCall::Dex(DexCall::AddLiquidity(
+			1_u32,
+			1000000000000000u128,
+			100000000000000u128,
+			1500000000000000u128,
+			5000_u32
+		));
+
+		let call = TrappistPalletCall::Utility(Box::new(UtilityCall::BatchAll(vec!(asset_to_currency_call,add_liquidity_call))));
 		
 		log::info!(
 			target: "nft loan",
@@ -273,7 +302,7 @@ impl<T: Config> Pallet<T> {
 			BuyExecution { fees, weight_limit: WeightLimit::Unlimited},
 			Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: 1000000000_u64,
+				require_weight_at_most: 5000000000_u64,
 				call: call.encode().into()
 			}
 		])));
