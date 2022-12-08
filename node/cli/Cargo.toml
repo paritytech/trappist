@@ -1,0 +1,101 @@
+[package]
+name = "trappist-cli"
+version = "1.0.0"
+authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
+description = "A versatile Proof-of-Authority (PoA) Blockchain network."
+license = "Unlicense"
+homepage = "https://trappist.io"
+repository = "https://github.com/TrappistNetwork/trappist"
+edition = "2021"
+build = "build.rs"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[build-dependencies]
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" }
+
+[dependencies]
+async-trait = "0.1.57"
+clap = { version = "3.2.17", features = ["derive"] }
+derive_more = "0.99.2"
+log = "0.4.17"
+codec = { package = "parity-scale-codec", version = "3.0.0" }
+serde = { version = "1.0.140", features = ["derive"] }
+hex-literal = "0.3.4"
+futures = { version = "0.3.1", features = ["compat"] }
+
+# RPC related Dependencies
+jsonrpsee = { version = "0.15.1", features = ["server"] }
+
+# Local Dependencies
+trappist-runtime = { path = "../../runtime/trappist" }
+base-runtime = { path = "../../runtime/base" }
+
+# Substrate Dependencies
+frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30", optional = true }
+try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30", optional = true }
+
+## Substrate Client Dependencies
+sc-cli = { git = "https://github.com/paritytech/substrate", features = ["wasmtime"], branch = "polkadot-v0.9.30", optional = true}
+sc-service = { git = "https://github.com/paritytech/substrate", features = ["wasmtime"], branch = "polkadot-v0.9.30", optional = true }
+sc-sysinfo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" }
+sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" }
+sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" }
+
+## Substrate Primitive Dependencies
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" , optional = true}
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" }
+
+# Cumulus dependencies
+cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-client-consensus-aura = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
+
+parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30", default-features = false }
+
+# Polkadot dependencies
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.30" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.30" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.30" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.30" }
+
+service = { package = "trappist-service", path = "../service", default-features = false, optional = true }
+
+[dev-dependencies]
+assert_cmd = "2.0"
+nix = "0.23"
+tempfile = "3.2.0"
+
+[features]
+default = [ "cli" ]
+cli = [
+	"service",
+	"sp-core",
+	"sc-cli",
+	"sc-service",
+	"frame-benchmarking-cli",
+	"try-runtime-cli",
+]
+runtime-benchmarks = [
+	"polkadot-cli/runtime-benchmarks",
+    "trappist-runtime/runtime-benchmarks",
+	"base-runtime/runtime-benchmarks"
+]
+try-runtime = [
+	"service/try-runtime"
+]
+with-trappist-runtime = [
+	"service/with-trappist-runtime",
+]
+with-base-runtime = [
+	"service/with-base-runtime",
+]
