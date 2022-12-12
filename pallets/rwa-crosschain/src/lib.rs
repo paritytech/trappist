@@ -31,6 +31,8 @@ pub use xcm::{VersionedMultiAsset, VersionedMultiLocation, VersionedResponse, Ve
 pub use pallet_dex::pallet::TradeAmount;
 use xcm::v3::ExecuteXcm;
 
+const BOB: [u8;32] = [142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72];
+
 #[derive(Encode, Decode, Debug)]
 pub enum TrappistPalletCall<> {
 	#[codec(index = 100)] // the index should match the position of the module in `construct_runtime!`
@@ -166,10 +168,11 @@ pub mod pallet {
 			// amount: u128,
 		) -> DispatchResult {
 			let who = ensure_signed(origin.clone())?;
-			let admin_account_id = Self::pallet_account_id();
+			let vault_account_id = Self::pallet_account_id();
 			let value: u128 = amount.into();
-
- 			T::Items::transfer(&collection_id, &item_id,  &admin_account_id)?;
+			let asset_id = T::AssetId::from(1_u32);
+ 			T::Items::transfer(&collection_id, &item_id,  &vault_account_id)?;
+			T::Assets::transfer(asset_id, &vault_account_id, &who, amount, true)?;
 			Self::deposit_event(Event::NFTLocked(collection_id, item_id));
 
 			Self::xcm_transfer(origin.clone(), value); 
@@ -201,7 +204,7 @@ impl<T: Config> Pallet<T> {
 	pub fn xcm_transfer(_origin: OriginFor<T>, amount: u128) {
 		// how can i convert T::AccountId into [u8; 32] ?
 
-		let account: [u8;32] = [109,111,100,108,78,70,84,115,76,111,97,110,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+		let account: [u8;32] = BOB;
 
 		let para_1000 = Junctions::X1(Junction::Parachain(1000));
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
@@ -281,7 +284,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	pub fn do_add_remote_liquidity(_who: &T::AccountId) {
-		let account: [u8;32] = [109,111,100,108,78,70,84,115,76,111,97,110,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+		let account: [u8;32] = BOB;
 		let para_2000 = Junctions::X1(Junction::Parachain(2000));
 		let dest = MultiLocation {
 			parents: 1,
