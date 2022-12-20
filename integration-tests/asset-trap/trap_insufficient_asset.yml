@@ -1,0 +1,137 @@
+---
+settings:
+  chains:
+    relay_chain:
+      wsPort: 9900
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: &tp_id 2000
+    base_parachain: &base_parachain
+      wsPort: 9930
+      paraId: &bp_id 3000
+  variables:
+    common:
+      amount_to_mint: &amount_to_mint 100000000000000
+      amount_to_send: &amount_to_send 10000000000000
+      require_weight_at_most: &weight_at_most [ 2000000000 ]
+    chains:
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_account: &tp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+        asset_pallet_id: &tp_asset_pallet_id 43
+        asset_id: &tp_asset_id 200
+        asset_min_balance: &tp_assets_min_balance 1
+      base_parachain:
+        bob_account: &bp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+        base_parachain_dest_routed: &bp_dest_routed { v1: { parents: 1, interior: { x1: { parachain: *bp_id } } } }
+
+tests:
+  - name: Attempt to trap an asset because it is not sufficient
+    before:
+      - name: DEPENDENCY | Create asset on Trappist Parachain
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: assets
+                call: forceCreate
+                sudo: true
+                args: [
+                  *tp_asset_id,
+                  { id: *tp_wallet }, # owner
+                  false, # isSufficient
+                  *tp_assets_min_balance #minBalance
+                ]
+                events:
+                  - name: sudo.Sudid
+                    attributes:
+                      - type: Result<Null, SpRuntimeDispatchError>
+                        value: Ok
+                  - name: assets.ForceCreated
+          - queries:
+            forced_created_asset:
+              chain: *trappist_parachain
+              pallet: assets
+              call: asset
+              args: [ *tp_asset_id ]
+          - asserts:
+            isSome:
+            args: [ $forced_created_asset ]
+
+      - name: DEPENDENCY | Mint asset on Trappist Parachain
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: assets
+                call: mint
+                args: [
+                  *tp_asset_id,
+                  *tp_wallet,
+                  *amount_to_mint
+                ]
+                events:
+                  - name: assets.Issued
+
+    its:
+      - name: Reserve transfer asset to Base Parachain
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: polkadotXcm
+                call: limitedReserveTransferAssets
+                args: [
+                  *bp_dest_routed, # destination
+                  { # beneficiary
+                    v1: {
+                      parents: 0,
+                      interior: {
+                        x1: {
+                          AccountId32: {
+                            network: null,
+                            id: *bp_bob_acc
+                          }
+                        }
+                      }
+                    }
+                  },
+                  { # assets
+                    v1: [
+                      {
+                        id: {
+                          Concrete: {
+                            parents: 0,
+                            interior: {
+                              x2: [
+                                {
+                                  PalletInstance: *tp_asset_pallet_id
+                                },
+                                {
+                                  GeneralIndex: *tp_asset_id
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        fun: {
+                          Fungible: *amount_to_send
+                        }
+                      }
+                    ]
+                  },
+                  0, # feeAssetItem
+                  Unlimited # weightLimit
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 1,000,000,000
+                  - name: assets.Issued
+                    chain: *base_parachain
