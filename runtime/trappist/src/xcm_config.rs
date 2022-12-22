@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::constants::fee::default_fee_per_second;
+use crate::{constants::fee::default_fee_per_second, AssetTrap};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -263,8 +263,8 @@ impl xcm_executor::Config for XcmConfig {
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
-	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
+	type AssetTrap = AssetTrap;
+	type AssetClaims = AssetTrap;
 	type SubscriptionService = PolkadotXcm;
 }
 

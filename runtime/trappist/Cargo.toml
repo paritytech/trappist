@@ -101,6 +101,7 @@ pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytec
 
 # Trappist Pallets
 pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../../pallets/asset-registry" }
+pallet-asset-trap = { version = "0.0.1", default-features = false, path = "../../pallets/asset-trap" }
 
 [features]
 default = ["std"]
@@ -126,7 +127,9 @@ std = [
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
     "pallet-assets/std",
-	"pallet-asset-tx-payment/std",
+    "pallet-asset-tx-payment/std",
+    "pallet-asset-trap/std",
+    "pallet-asset-registry/std",
     "pallet-aura/std",
     "pallet-authorship/std",
     "pallet-balances/std",

@@ -499,6 +499,13 @@ impl pallet_asset_registry::Config for Runtime {
 	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_asset_trap::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Assets = Assets;
+	type AssetRegistry = AssetRegistry;
+	type Balances = Balances;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -551,6 +558,7 @@ construct_runtime!(
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
+		AssetTrap: pallet_asset_trap::{Pallet, Call, Storage, Event<T>} = 102,
 	}
 );
 
