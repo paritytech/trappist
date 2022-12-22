@@ -1,16 +1,14 @@
-use crate::{mock::*, Event};
+use crate::{mock::*, Event, MultiAssetVersion, TrappedAsset};
 use frame_support::assert_ok;
-use sp_runtime::{
-	traits::{BlakeTwo256, Hash},
-	AccountId32,
-};
-use xcm::{latest::prelude::*, VersionedMultiAssets};
+use sp_runtime::AccountId32;
+use xcm::latest::prelude::*;
 use xcm_executor::{
 	traits::{ClaimAssets, DropAssets},
 	Assets as XcmAssets,
 };
 
 const ALICE: AccountId32 = AccountId32::new([0u8; 32]);
+const BOB: AccountId32 = AccountId32::new([1u8; 32]);
 
 fn register_reserve_asset() {
 	let statemine_para_id = StatemineParaIdInfo::get();
@@ -58,32 +56,40 @@ fn native_trap_claim_works() {
 		let origin: MultiLocation =
 			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
 
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		// above min_balance
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() * 10) as u128;
+
 		let native_asset: XcmAssets = MultiAsset {
-			id: AssetId::Concrete(MultiLocation { parents: 0, interior: Junctions::Here }),
-			fun: Fungible((CurrencyMinBalance::get() * 10) as u128),
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
 		}
 		.into();
 
 		AssetTrap::drop_assets(&origin, native_asset.clone());
 
-		let expected_versioned =
-			VersionedMultiAssets::from(MultiAssets::from(native_asset.clone()));
-		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
-
 		System::assert_has_event(
 			Event::AssetTrapped {
-				0: expected_hash,
+				0: native_asset_multi_location.clone(),
 				1: origin.clone(),
-				2: expected_versioned.clone(),
+				2: native_asset_amount,
+				3: MultiAssetVersion::V1,
 			}
 			.into(),
 		);
 
 		// we can read the asset trap storage
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
 		assert_eq!(
 			read_asset_trap,
-			Some((MultiLocation { parents: 0, interior: Junctions::Here }, 1))
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: native_asset_amount,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
 		);
 
 		// claim the asset back
@@ -91,11 +97,16 @@ fn native_trap_claim_works() {
 		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into());
 
 		System::assert_has_event(
-			Event::AssetClaimed { 0: expected_hash, 1: origin.clone(), 2: expected_versioned }
-				.into(),
+			Event::AssetClaimed {
+				0: native_asset_multi_location.clone(),
+				1: origin.clone(),
+				2: native_asset_amount,
+				3: MultiAssetVersion::V1,
+			}
+			.into(),
 		);
 
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location);
 		assert_eq!(read_asset_trap, None);
 	});
 }
@@ -109,20 +120,22 @@ fn native_dust_trap_doesnt_work() {
 		let origin: MultiLocation =
 			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
 
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		// below min_balance
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() / 10) as u128;
+
 		let native_asset: XcmAssets = MultiAsset {
-			id: AssetId::Concrete(MultiLocation { parents: 0, interior: Junctions::Here }),
-			fun: Fungible((CurrencyMinBalance::get() / 10) as u128),
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
 		}
 		.into();
 
 		AssetTrap::drop_assets(&origin, native_asset.clone());
 
-		let expected_versioned =
-			VersionedMultiAssets::from(MultiAssets::from(native_asset.clone()));
-		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
-
 		// nothing was written into asset trap storage
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location);
 		assert_eq!(read_asset_trap, None);
 	});
 }
@@ -139,41 +152,56 @@ fn fungible_trap_claim_works() {
 		let origin: MultiLocation =
 			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
 
+		let fungible_asset_multi_location: MultiLocation = statemine_asset_multi_location();
+
+		// above min_balance
+		let fungible_asset_amount: u128 = (LocalAssetMinBalance::get() * 10) as u128;
+
 		let fungible_asset: XcmAssets = MultiAsset {
-			id: AssetId::Concrete(statemine_asset_multi_location()),
-			fun: Fungible((LocalAssetMinBalance::get() * 10) as u128),
+			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(fungible_asset_amount),
 		}
 		.into();
 
 		AssetTrap::drop_assets(&origin, fungible_asset.clone());
 
-		let expected_versioned =
-			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
-		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
-
 		System::assert_has_event(
 			Event::AssetTrapped {
-				0: expected_hash,
+				0: fungible_asset_multi_location.clone(),
 				1: origin.clone(),
-				2: expected_versioned.clone(),
+				2: fungible_asset_amount,
+				3: MultiAssetVersion::V1,
 			}
 			.into(),
 		);
 
 		// we can read the asset trap storage
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
-		assert_eq!(read_asset_trap, Some((statemine_asset_multi_location(), 1)));
+		let read_asset_trap = AssetTrap::asset_trap(fungible_asset_multi_location.clone());
+		assert_eq!(
+			read_asset_trap,
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: fungible_asset_amount.clone(),
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
+		);
 
 		// claim the asset back
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
 		AssetTrap::claim_assets(&origin, &claim_ticket, &fungible_asset.into());
 
 		System::assert_has_event(
-			Event::AssetClaimed { 0: expected_hash, 1: origin.clone(), 2: expected_versioned }
-				.into(),
+			Event::AssetClaimed {
+				0: fungible_asset_multi_location.clone(),
+				1: origin.clone(),
+				2: fungible_asset_amount,
+				3: MultiAssetVersion::V1,
+			}
+			.into(),
 		);
 
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		let read_asset_trap = AssetTrap::asset_trap(fungible_asset_multi_location);
 		assert_eq!(read_asset_trap, None);
 	});
 }
@@ -190,20 +218,21 @@ fn fungible_dust_trap_doesnt_work() {
 		let origin: MultiLocation =
 			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
 
+		let fungible_asset_multi_location: MultiLocation = statemine_asset_multi_location();
+
+		// below min_balance
+		let fungible_asset_amount: u128 = (LocalAssetMinBalance::get() / 10) as u128;
+
 		let fungible_asset: XcmAssets = MultiAsset {
-			id: AssetId::Concrete(statemine_asset_multi_location()),
-			fun: Fungible((LocalAssetMinBalance::get() / 10) as u128),
+			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(fungible_asset_amount),
 		}
 		.into();
 
 		AssetTrap::drop_assets(&origin, fungible_asset.clone());
 
-		let expected_versioned =
-			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
-		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
-
 		// nothing was written into asset trap storage
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		let read_asset_trap = AssetTrap::asset_trap(fungible_asset_multi_location);
 		assert_eq!(read_asset_trap, None);
 	});
 }
@@ -217,20 +246,21 @@ fn fungible_non_registered_trap_doesnt_work() {
 		let origin: MultiLocation =
 			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
 
+		let fungible_asset_multi_location: MultiLocation = statemine_asset_multi_location();
+
+		// above min_balance
+		let fungible_asset_amount: u128 = (LocalAssetMinBalance::get() * 10) as u128;
+
 		let fungible_asset: XcmAssets = MultiAsset {
-			id: AssetId::Concrete(statemine_asset_multi_location()),
-			fun: Fungible((LocalAssetMinBalance::get() / 10) as u128),
+			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(fungible_asset_amount),
 		}
 		.into();
 
 		AssetTrap::drop_assets(&origin, fungible_asset.clone());
 
-		let expected_versioned =
-			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
-		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
-
 		// nothing was written into asset trap storage
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		let read_asset_trap = AssetTrap::asset_trap(fungible_asset_multi_location);
 		assert_eq!(read_asset_trap, None);
 	});
 }
@@ -249,58 +279,78 @@ fn multiple_assets_trap_claim_works() {
 
 		let mut multi_assets = Vec::new();
 
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		// above min_balance
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() * 10) as u128;
+
 		let native_asset = MultiAsset {
-			id: AssetId::Concrete(MultiLocation { parents: 0, interior: Junctions::Here }),
-			fun: Fungible((CurrencyMinBalance::get() * 10) as u128),
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
 		};
+
 		multi_assets.push(native_asset.clone());
 
+		let fungible_asset_multi_location: MultiLocation = statemine_asset_multi_location();
+
+		// above min_balance
+		let fungible_asset_amount: u128 = (LocalAssetMinBalance::get() * 10) as u128;
+
 		let fungible_asset = MultiAsset {
-			id: AssetId::Concrete(statemine_asset_multi_location()),
-			fun: Fungible((LocalAssetMinBalance::get() * 10) as u128),
+			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(fungible_asset_amount),
 		};
+
 		multi_assets.push(fungible_asset.clone());
 
 		AssetTrap::drop_assets(&origin, multi_assets.clone().into());
 
-		let expected_versioned_native =
-			VersionedMultiAssets::from(MultiAssets::from(native_asset.clone()));
-		let expected_hash_native = BlakeTwo256::hash_of(&(&origin, &expected_versioned_native));
-
 		// assert trap event for native asset
 		System::assert_has_event(
 			Event::AssetTrapped {
-				0: expected_hash_native,
+				0: native_asset_multi_location.clone(),
 				1: origin.clone(),
-				2: expected_versioned_native.clone(),
+				2: native_asset_amount,
+				3: MultiAssetVersion::V1,
 			}
 			.into(),
 		);
 
 		// we can read the native trap storage
-		let read_native_trap = AssetTrap::asset_trap(expected_hash_native);
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
 		assert_eq!(
-			read_native_trap,
-			Some((MultiLocation { parents: 0, interior: Junctions::Here }, 1))
+			read_asset_trap,
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: native_asset_amount,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
 		);
-
-		let expected_versioned_fungible =
-			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
-		let expected_hash_fungible = BlakeTwo256::hash_of(&(&origin, &expected_versioned_fungible));
 
 		// assert trap event for fungible asset
 		System::assert_has_event(
 			Event::AssetTrapped {
-				0: expected_hash_fungible,
+				0: fungible_asset_multi_location.clone(),
 				1: origin.clone(),
-				2: expected_versioned_fungible.clone(),
+				2: fungible_asset_amount,
+				3: MultiAssetVersion::V1,
 			}
 			.into(),
 		);
 
 		// we can read the fungible trap storage
-		let read_fungible_trap = AssetTrap::asset_trap(expected_hash_fungible);
-		assert_eq!(read_fungible_trap, Some((statemine_asset_multi_location(), 1)));
+		let read_asset_trap = AssetTrap::asset_trap(fungible_asset_multi_location.clone());
+		assert_eq!(
+			read_asset_trap,
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: fungible_asset_amount.clone(),
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
+		);
 
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
 
@@ -309,30 +359,32 @@ fn multiple_assets_trap_claim_works() {
 
 		System::assert_has_event(
 			Event::AssetClaimed {
-				0: expected_hash_native,
+				0: native_asset_multi_location.clone(),
 				1: origin.clone(),
-				2: expected_versioned_native,
+				2: native_asset_amount,
+				3: MultiAssetVersion::V1,
 			}
 			.into(),
 		);
 
-		let read_native_trap = AssetTrap::asset_trap(expected_hash_native);
-		assert_eq!(read_native_trap, None);
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location);
+		assert_eq!(read_asset_trap, None);
 
 		// claim the fungible asset back
 		AssetTrap::claim_assets(&origin, &claim_ticket, &fungible_asset.into());
 
 		System::assert_has_event(
 			Event::AssetClaimed {
-				0: expected_hash_fungible,
+				0: fungible_asset_multi_location.clone(),
 				1: origin.clone(),
-				2: expected_versioned_fungible,
+				2: fungible_asset_amount,
+				3: MultiAssetVersion::V1,
 			}
 			.into(),
 		);
 
-		let read_fungible_trap = AssetTrap::asset_trap(expected_hash_fungible);
-		assert_eq!(read_fungible_trap, None);
+		let read_asset_trap = AssetTrap::asset_trap(fungible_asset_multi_location);
+		assert_eq!(read_asset_trap, None);
 	});
 }
 
@@ -345,9 +397,15 @@ fn trap_counter_works() {
 		let origin: MultiLocation =
 			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
 
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		// above min_balance
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() * 10) as u128;
+
 		let native_asset: XcmAssets = MultiAsset {
-			id: AssetId::Concrete(MultiLocation { parents: 0, interior: Junctions::Here }),
-			fun: Fungible((CurrencyMinBalance::get() * 10) as u128),
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
 		}
 		.into();
 
@@ -356,42 +414,196 @@ fn trap_counter_works() {
 		AssetTrap::drop_assets(&origin, native_asset.clone());
 		AssetTrap::drop_assets(&origin, native_asset.clone());
 
-		let expected_versioned =
-			VersionedMultiAssets::from(MultiAssets::from(native_asset.clone()));
-		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
-
-		// we can read the asset trap storage
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		// we can see the asset trap storage counter is 3
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
 		assert_eq!(
 			read_asset_trap,
-			Some((MultiLocation { parents: 0, interior: Junctions::Here }, 3))
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: native_asset_amount,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 3
+			}])
 		);
 
 		// claim the asset back (1)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
 		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into());
 
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		// we can see the asset trap storage counter is 2
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
 		assert_eq!(
 			read_asset_trap,
-			Some((MultiLocation { parents: 0, interior: Junctions::Here }, 2))
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: native_asset_amount,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 2
+			}])
 		);
 
 		// claim the asset back (2)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
 		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into());
 
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		// we can see the asset trap storage counter is 1
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
 		assert_eq!(
 			read_asset_trap,
-			Some((MultiLocation { parents: 0, interior: Junctions::Here }, 1))
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: native_asset_amount,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
 		);
 
 		// claim the asset back (3)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
 		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into());
 
-		let read_asset_trap = AssetTrap::asset_trap(expected_hash);
+		// we can see the asset trap storage is empty
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location);
+		assert_eq!(read_asset_trap, None);
+	});
+}
+
+// assert that traping different amounts work
+#[test]
+fn different_amounts_trap_claim_works() {
+	new_test_ext().execute_with(|| {
+		let origin: MultiLocation =
+			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
+
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		let native_asset_amount_a: u128 = (CurrencyMinBalance::get() * 10) as u128;
+		let native_asset_a: XcmAssets = MultiAsset {
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount_a),
+		}
+		.into();
+
+		let native_asset_amount_b: u128 = (CurrencyMinBalance::get() * 20) as u128;
+		let native_asset_b: XcmAssets = MultiAsset {
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount_b),
+		}
+		.into();
+
+		AssetTrap::drop_assets(&origin, native_asset_a.clone());
+		AssetTrap::drop_assets(&origin, native_asset_b.clone());
+
+		// we can see the assets are trapped separatedly
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
+		assert_eq!(
+			read_asset_trap,
+			Some(vec![
+				TrappedAsset {
+					origin: origin.clone(),
+					amount: native_asset_amount_a,
+					multi_asset_version: MultiAssetVersion::V1,
+					n: 1
+				},
+				TrappedAsset {
+					origin: origin.clone(),
+					amount: native_asset_amount_b,
+					multi_asset_version: MultiAssetVersion::V1,
+					n: 1
+				}
+			])
+		);
+
+		// claim the asset back (a)
+		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
+		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset_a.clone().into());
+
+		// we can see there's only one asset (b) remaining in trap
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
+		assert_eq!(
+			read_asset_trap,
+			Some(vec![TrappedAsset {
+				origin: origin.clone(),
+				amount: native_asset_amount_b,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
+		);
+
+		// claim the asset back (b)
+		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset_b.clone().into());
+
+		// we can see the asset trap storage is empty
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location);
+		assert_eq!(read_asset_trap, None);
+	});
+}
+
+// assert that trapping from different origins work
+#[test]
+fn different_origins_trap_claim_works() {
+	new_test_ext().execute_with(|| {
+		let origin_a: MultiLocation =
+			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
+
+		let origin_b: MultiLocation =
+			Junction::AccountId32 { network: NetworkId::Any, id: BOB.into() }.into();
+
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() * 10) as u128;
+		let native_asset: XcmAssets = MultiAsset {
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
+		}
+		.into();
+
+		AssetTrap::drop_assets(&origin_a, native_asset.clone());
+		AssetTrap::drop_assets(&origin_b, native_asset.clone());
+
+		// we can see the assets are trapped separatedly
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
+		assert_eq!(
+			read_asset_trap,
+			Some(vec![
+				TrappedAsset {
+					origin: origin_a.clone(),
+					amount: native_asset_amount,
+					multi_asset_version: MultiAssetVersion::V1,
+					n: 1
+				},
+				TrappedAsset {
+					origin: origin_b.clone(),
+					amount: native_asset_amount,
+					multi_asset_version: MultiAssetVersion::V1,
+					n: 1
+				}
+			])
+		);
+
+		// claim the asset back (a)
+		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
+		AssetTrap::claim_assets(&origin_a, &claim_ticket, &native_asset.clone().into());
+
+		// we can see there's only one asset (b) remaining in trap
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location.clone());
+		assert_eq!(
+			read_asset_trap,
+			Some(vec![TrappedAsset {
+				origin: origin_b.clone(),
+				amount: native_asset_amount,
+				multi_asset_version: MultiAssetVersion::V1,
+				n: 1
+			}])
+		);
+
+		// claim the asset back (b)
+		AssetTrap::claim_assets(&origin_b, &claim_ticket, &native_asset.clone().into());
+
+		// we can see the asset trap storage is empty
+		let read_asset_trap = AssetTrap::asset_trap(native_asset_multi_location);
 		assert_eq!(read_asset_trap, None);
 	});
 }
