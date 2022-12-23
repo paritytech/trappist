@@ -34,8 +34,8 @@ This default implementation is arguably opaque from the user's perspective. The 
     - The amount is bigger than the token's minimum balance (a.k.a. existential deposit).
 
 After the asset is trapped, the user can query storage with the origin's `MultiLocation`, getting back an array of `TrappedAssets` items, each of which shows the following details:
-- `multi_assets`: a `VersionedMultiAssets`, which holds all the necessary information about the trapped assets.
-- `n`: a `u32` counting how many times `multi_assets` has been trapped.
+- `multi_assets`: a `VersionedMultiAssets`, which holds all the necessary information about the trapped assets (potentially more than one).
+- `n`: a `u32` counting how many times `multi_assets` has been trapped under this origin.
 
 The array used as the `StorageMap`'s value is a `BoundedVec`. That ensures that some origin cannot trap assets indefinitely. After the `MaxTrapsPerOrigin` limit is reached, the oldest traps are discarded, and the assets are lost forever.
 
