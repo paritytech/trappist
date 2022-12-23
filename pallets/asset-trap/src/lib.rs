@@ -45,7 +45,7 @@ pub mod pallet {
 	type VecTrappedAssetsOf<T> = BoundedVec<TrappedAssets, <T as Config>::MaxTrapsPerOrigin>;
 
 	/// Keeps track of trapped `MultiAssets`, where n is a counter of
-	/// how many times the `MultiAssets` has been trapped
+	/// how many times the `MultiAssets` has been trapped under some specific origin
 	#[derive(Clone, Debug, Encode, Decode, TypeInfo, PartialEq)]
 	pub struct TrappedAssets {
 		pub multi_assets: VersionedMultiAssets,
