@@ -205,7 +205,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		fn trap(origin: MultiLocation, trap: VersionedMultiAssets) {
 			let trapped_assets = match AssetTraps::<T>::get(origin.clone()) {
-				// storage map is empty, we just initalize a new Vec<TrappedAssets>
+				// storage map is empty, we just initalize a new BoundedVec<TrappedAssets>
 				None => {
 					let v = vec![TrappedAssets { multi_assets: trap.clone(), n: 1 }];
 					v.try_into().expect("v has only 1 item, therefore try_into can never fail")
