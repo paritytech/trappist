@@ -42,7 +42,7 @@ pub mod pallet {
 		<<T as Config>::Assets as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 	type CurrencyBalanceOf<T> =
 		<<T as Config>::Balances as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-	type VecTrappedAssetsOf<T> = BoundedVec<TrappedAssets, <T as Config>::MaxTrapsPerOrigin>;
+	type BoundedVecTrappedAssetsOf<T> = BoundedVec<TrappedAssets, <T as Config>::MaxTrapsPerOrigin>;
 
 	/// Keeps track of trapped `MultiAssets`, where n is a counter of
 	/// how many times the `MultiAssets` has been trapped under some specific origin
@@ -84,7 +84,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn asset_trap)]
 	pub(super) type AssetTraps<T: Config> =
-		StorageMap<_, Identity, MultiLocation, VecTrappedAssetsOf<T>, OptionQuery>;
+		StorageMap<_, Identity, MultiLocation, BoundedVecTrappedAssetsOf<T>, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -187,7 +187,7 @@ pub mod pallet {
 			match trapped_assets_inner_vec.len() {
 				0 => AssetTraps::<T>::remove(origin),
 				_ => {
-					let bounded_trapped_assets: VecTrappedAssetsOf<T> =
+					let bounded_trapped_assets: BoundedVecTrappedAssetsOf<T> =
 						trapped_assets_inner_vec.try_into().expect(
 							"inner vec len is either equal or smaller than bound, \
 					therefore try_into can never fail",
@@ -204,7 +204,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		fn trap(origin: MultiLocation, trap: VersionedMultiAssets) {
-			let trapped_assets = match AssetTraps::<T>::get(origin.clone()) {
+			let trapped_assets: BoundedVecTrappedAssetsOf<T> = match AssetTraps::<T>::get(origin.clone()) {
 				// storage map is empty, we just initalize a new BoundedVec<TrappedAssets>
 				None => {
 					let v = vec![TrappedAssets { multi_assets: trap.clone(), n: 1 }];
