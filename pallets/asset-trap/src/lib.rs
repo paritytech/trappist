@@ -232,7 +232,7 @@ pub mod pallet {
 						let mut new_v = v.clone();
 						let t = TrappedAssets { multi_assets: trap.clone(), n: 1 };
 
-						// is the BoundedVec full? remove 0th element first
+						// is the BoundedVec full? remove 0th element
 						if new_v.len() as u32 == T::MaxTrapsPerOrigin::get() {
 							new_v.remove(0);
 							new_v
