@@ -198,7 +198,7 @@ pub mod pallet {
 
 			Self::deposit_event(Event::AssetsClaimed(origin.clone(), versioned));
 
-			return false;
+			return true;
 		}
 	}
 

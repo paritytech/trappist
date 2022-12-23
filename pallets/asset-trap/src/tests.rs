@@ -86,7 +86,7 @@ fn native_trap_claim_works() {
 
 		// claim the asset back
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into()));
 
 		System::assert_has_event(
 			Event::AssetsClaimed { 0: origin.clone(), 1: versioned_native_asset }.into(),
@@ -167,7 +167,7 @@ fn fungible_trap_claim_works() {
 
 		// claim the asset back
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &fungible_asset.into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &fungible_asset.into()));
 
 		System::assert_has_event(
 			Event::AssetsClaimed { 0: origin.clone(), 1: versioned_fungible_asset.clone() }.into(),
@@ -276,7 +276,7 @@ fn trap_counter_works() {
 
 		// claim the asset back (1)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into()));
 
 		// we can see the asset trap storage counter is 2
 		let read_asset_trap = AssetTrap::asset_trap(origin.clone());
@@ -289,7 +289,7 @@ fn trap_counter_works() {
 
 		// claim the asset back (2)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into()));
 
 		// we can see the asset trap storage counter is 1
 		let read_asset_trap = AssetTrap::asset_trap(origin.clone());
@@ -302,7 +302,7 @@ fn trap_counter_works() {
 
 		// claim the asset back (3)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into()));
 
 		// we can see the asset trap storage is empty
 		let read_asset_trap = AssetTrap::asset_trap(origin);
@@ -362,7 +362,7 @@ fn different_assets_trap_claim_works() {
 
 		// claim the native asset back
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.clone().into()));
 
 		// we can see fungible asset is remaining in trap
 		let read_asset_trap = AssetTrap::asset_trap(origin.clone());
@@ -373,7 +373,7 @@ fn different_assets_trap_claim_works() {
 		assert_eq!(read_asset_trap, Some(expected_bounded_vec));
 
 		// claim the fungible asset back
-		AssetTrap::claim_assets(&origin, &claim_ticket, &fungible_asset.clone().into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &fungible_asset.clone().into()));
 
 		// we can see the asset trap storage is empty
 		let read_asset_trap = AssetTrap::asset_trap(origin);
@@ -423,7 +423,7 @@ fn different_amounts_trap_claim_works() {
 
 		// claim the asset back (a)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset_a.clone().into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset_a.clone().into()));
 
 		// we can see there's only one asset (b) remaining in trap
 		let read_asset_trap = AssetTrap::asset_trap(origin.clone());
@@ -434,7 +434,7 @@ fn different_amounts_trap_claim_works() {
 		assert_eq!(read_asset_trap, Some(expected_bounded_vec));
 
 		// claim the asset back (b)
-		AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset_b.clone().into());
+		assert!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset_b.clone().into()));
 
 		// we can see the asset trap storage is empty
 		let read_asset_trap = AssetTrap::asset_trap(origin);
@@ -483,7 +483,7 @@ fn different_origins_trap_claim_works() {
 
 		// claim the asset back (a)
 		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
-		AssetTrap::claim_assets(&origin_a, &claim_ticket, &native_asset.clone().into());
+		assert!(AssetTrap::claim_assets(&origin_a, &claim_ticket, &native_asset.clone().into()));
 
 		// we can see only asset (b) remainins in trap
 		let read_asset_trap_a = AssetTrap::asset_trap(origin_a);
@@ -496,7 +496,7 @@ fn different_origins_trap_claim_works() {
 		assert_eq!(read_asset_trap_b, Some(expected_bounded_vec_b));
 
 		// claim the asset back (b)
-		AssetTrap::claim_assets(&origin_b, &claim_ticket, &native_asset.clone().into());
+		assert!(AssetTrap::claim_assets(&origin_b, &claim_ticket, &native_asset.clone().into()));
 
 		// we can see the asset trap storage is empty
 		let read_asset_trap = AssetTrap::asset_trap(origin_b);
@@ -567,5 +567,69 @@ fn max_traps_per_origin_works() {
 			read_asset_trap[(bound - 1) as usize],
 			TrappedAssets { multi_assets: extra_versioned_native_asset, n: 1 }
 		);
+	});
+}
+
+// assert bad claim fails
+#[test]
+fn bad_claim_fails() {
+	new_test_ext().execute_with(|| {
+		let origin: MultiLocation =
+			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
+
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() * 10) as u128;
+
+		let native_asset = MultiAsset {
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
+		};
+
+		// claim the asset back, but it has never been trapped!
+		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::Here };
+
+		// we expect claim_assets to return false
+		assert_eq!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into()), false);
+	});
+}
+
+// assert bad claim ticket
+#[test]
+fn bad_claim_ticket_fails() {
+	new_test_ext().execute_with(|| {
+		let origin: MultiLocation =
+			Junction::AccountId32 { network: NetworkId::Any, id: ALICE.into() }.into();
+
+		let native_asset_multi_location: MultiLocation =
+			MultiLocation { parents: 0, interior: Junctions::Here };
+
+		// above min_balance
+		let native_asset_amount: u128 = (CurrencyMinBalance::get() * 10) as u128;
+
+		let native_asset = MultiAsset {
+			id: AssetId::Concrete(native_asset_multi_location.clone()),
+			fun: Fungible(native_asset_amount),
+		};
+
+		let versioned_native_asset: VersionedMultiAssets =
+			VersionedMultiAssets::from(native_asset.clone());
+
+		AssetTrap::drop_assets(&origin, native_asset.clone().into());
+
+		// claim the asset with a bad ticket
+		let claim_ticket = MultiLocation { parents: 0, interior: Junctions::X1(GeneralIndex(3)) };
+
+		// we expect claim_assets to return false
+		assert_eq!(AssetTrap::claim_assets(&origin, &claim_ticket, &native_asset.into()), false);
+
+		// we can still read the asset trap storage, since the claim failed
+		let read_asset_trap = AssetTrap::asset_trap(origin.clone());
+		let expected_bounded_vec: BoundedVec<TrappedAssets, MaxTrapsPerOrigin> =
+			vec![TrappedAssets { multi_assets: versioned_native_asset.clone(), n: 1 }]
+				.try_into()
+				.unwrap();
+		assert_eq!(read_asset_trap, Some(expected_bounded_vec));
 	});
 }
