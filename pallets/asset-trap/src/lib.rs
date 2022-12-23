@@ -187,7 +187,11 @@ pub mod pallet {
 			match trapped_assets_inner_vec.len() {
 				0 => AssetTraps::<T>::remove(origin),
 				_ => {
-					let bounded_trapped_assets: VecTrappedAssetsOf<T> = trapped_assets_inner_vec.try_into().expect("inner vec len is either equal or smaller than bound, therefore try_into can never fail");
+					let bounded_trapped_assets: VecTrappedAssetsOf<T> =
+						trapped_assets_inner_vec.try_into().expect(
+							"inner vec len is either equal or smaller than bound, \
+					therefore try_into can never fail",
+						);
 					AssetTraps::<T>::insert(origin, bounded_trapped_assets)
 				},
 			}
