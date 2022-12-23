@@ -504,6 +504,7 @@ impl pallet_asset_trap::Config for Runtime {
 	type Assets = Assets;
 	type AssetRegistry = AssetRegistry;
 	type Balances = Balances;
+	type MaxTrapsPerOrigin = ConstU32<2048>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

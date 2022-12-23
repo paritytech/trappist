@@ -85,11 +85,16 @@ impl pallet_assets::Config for Test {
 	type Extra = ();
 }
 
+frame_support::parameter_types! {
+	pub const MaxTrapsPerOrigin: u32 = 10u32;
+}
+
 impl pallet_asset_trap::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Assets = Assets;
 	type AssetRegistry = AssetRegistry;
 	type Balances = Balances;
+	type MaxTrapsPerOrigin = MaxTrapsPerOrigin;
 }
 
 impl pallet_asset_registry::Config for Test {

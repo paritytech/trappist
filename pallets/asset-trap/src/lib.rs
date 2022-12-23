@@ -23,7 +23,7 @@ pub mod pallet {
 	use xcm::{
 		latest::{Junction::GeneralIndex, Junctions::*, MultiAssets, MultiLocation},
 		opaque::latest::{AssetId::Concrete, Fungibility::Fungible, MultiAsset},
-		VersionedMultiAsset, VersionedMultiAssets,
+		IntoVersion, VersionedMultiAssets,
 	};
 	use xcm_executor::{
 		traits::{ClaimAssets, DropAssets},
@@ -42,30 +42,23 @@ pub mod pallet {
 		<<T as Config>::Assets as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 	type CurrencyBalanceOf<T> =
 		<<T as Config>::Balances as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+	type VecTrappedAssetsOf<T> = BoundedVec<TrappedAssets, <T as Config>::MaxTrapsPerOrigin>;
 
-	#[derive(Clone, Debug, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen)]
-	pub enum MultiAssetVersion {
-		V0,
-		V1,
-	}
-
-	/// Keeps track of trapped assets, where n is a counter of
-	/// how many times the asset has been trapped
-	#[derive(Clone, Debug, Encode, Decode, MaxEncodedLen, TypeInfo, PartialEq)]
-	pub struct TrappedAsset {
-		pub origin: MultiLocation,
-		pub amount: u128,
-		pub multi_asset_version: MultiAssetVersion,
+	/// Keeps track of trapped `MultiAssets`, where n is a counter of
+	/// how many times the `MultiAssets` has been trapped
+	#[derive(Clone, Debug, Encode, Decode, TypeInfo, PartialEq)]
+	pub struct TrappedAssets {
+		pub multi_assets: VersionedMultiAssets,
 		pub n: u32,
 	}
 
-	impl TrappedAsset {
+	impl TrappedAssets {
 		fn increment(&mut self) {
 			self.n += 1;
 		}
 
-		fn matches(&self, origin: MultiLocation, amount: u128, version: MultiAssetVersion) -> bool {
-			self.origin == origin && self.amount == amount && self.multi_asset_version == version
+		fn decrement(&mut self) {
+			self.n -= 1;
 		}
 
 		fn non_zero(&self) -> bool {
@@ -79,28 +72,31 @@ pub mod pallet {
 		type Balances: Currency<Self::AccountId>;
 		type Assets: Inspect<Self::AccountId>;
 		type AssetRegistry: xcm_primitives::AssetMultiLocationGetter<AssetIdOf<Self>>;
+
+		#[pallet::constant]
+		type MaxTrapsPerOrigin: Get<u32>;
 	}
 
 	/// The existing asset traps.
 	///
 	/// Key is the asset's `MultiLocation`
-	/// Value is a `Vec` of `TrappedAsset`
+	/// Value is a `Vec` of `TrappedAssets`
 	#[pallet::storage]
 	#[pallet::getter(fn asset_trap)]
 	pub(super) type AssetTraps<T: Config> =
-		StorageMap<_, Identity, MultiLocation, Vec<TrappedAsset>, OptionQuery>;
+		StorageMap<_, Identity, MultiLocation, VecTrappedAssetsOf<T>, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Some asset have been placed in an asset trap.
 		///
-		/// \[ asset_multi_location, origin, amount, multi_asset_version \]
-		AssetTrapped(MultiLocation, MultiLocation, u128, MultiAssetVersion),
+		/// \[ origin, assets \]
+		AssetsTrapped(MultiLocation, VersionedMultiAssets),
 		/// Some asset have been claimed from an asset trap.
 		///
-		/// \[ asset_multi_location, origin, amount, multi_asset_version \]
-		AssetClaimed(MultiLocation, MultiLocation, u128, MultiAssetVersion),
+		/// \[ origin, assets \]
+		AssetsClaimed(MultiLocation, VersionedMultiAssets),
 	}
 
 	#[pallet::error]
@@ -112,6 +108,7 @@ pub mod pallet {
 	impl<T: Config> DropAssets for Pallet<T> {
 		fn drop_assets(origin: &MultiLocation, assets: Assets) -> u64 {
 			let multi_assets: Vec<MultiAsset> = assets.into();
+			let mut trap: Vec<MultiAsset> = Vec::new();
 
 			for asset in multi_assets {
 				if let MultiAsset { id: Concrete(location), fun: Fungible(amount) } = asset.clone()
@@ -120,11 +117,10 @@ pub mod pallet {
 					if let Some(asset_id) = T::AssetRegistry::get_asset_id(location.clone()) {
 						let min_balance = T::Assets::minimum_balance(asset_id);
 
-						// only trap if amount is more than min_balance
+						// only trap if amount ≥ min_balance
 						// do nothing otherwise (asset is lost)
 						if min_balance <= amount.saturated_into::<AssetBalanceOf<T>>() {
-							let version = Self::multi_asset_version(asset.clone());
-							Self::trap_asset(origin.clone(), location, amount, version);
+							trap.push(asset);
 						}
 
 					// is location the native token?
@@ -132,14 +128,18 @@ pub mod pallet {
 						let min_balance =
 							<<T as Config>::Balances as Currency<T::AccountId>>::minimum_balance();
 
-						// only trap if amount is more than min_balance
+						// only trap if amount ≥ min_balance
 						// do nothing otherwise (asset is lost)
 						if min_balance <= amount.saturated_into::<CurrencyBalanceOf<T>>() {
-							let version = Self::multi_asset_version(asset.clone());
-							Self::trap_asset(origin.clone(), location, amount, version);
+							trap.push(asset);
 						}
 					}
 				}
+			}
+
+			if !trap.is_empty() {
+				let versioned: VersionedMultiAssets = VersionedMultiAssets::from(trap);
+				Self::trap(origin.clone(), versioned);
 			}
 
 			// TODO #3735: Put the real weight in there.
@@ -153,129 +153,100 @@ pub mod pallet {
 			ticket: &MultiLocation,
 			assets: &MultiAssets,
 		) -> bool {
-			// only supports claiming one asset at a time
-			if assets.len() > 1 {
-				return false;
-			}
-
 			// checks ticket for matching versions
-			let version = match (ticket.parents, &ticket.interior) {
-				(0, X1(GeneralIndex(i))) => match i {
-					0 => MultiAssetVersion::V0,
-					1 => MultiAssetVersion::V1,
-					_ => return false,
+			let mut versioned = VersionedMultiAssets::from(assets.clone());
+			match (ticket.parents, &ticket.interior) {
+				(0, X1(GeneralIndex(i))) => {
+					versioned = match versioned.into_version(*i as u32) {
+						Ok(v) => v,
+						Err(()) => return false,
+					}
 				},
-				(0, Here) => match VersionedMultiAssets::from(assets.clone()) {
-					VersionedMultiAssets::V0(_) => MultiAssetVersion::V0,
-					VersionedMultiAssets::V1(_) => MultiAssetVersion::V1,
-				},
+				(0, Here) => (),
 				_ => return false,
 			};
 
-			let asset: &MultiAsset = &assets.inner()[0];
-			if let MultiAsset { id: Concrete(asset_multi_location), fun: Fungible(amount) } = asset
-			{
-				let mut r = false;
-				let trapped_assets: Vec<TrappedAsset> =
-					match AssetTraps::<T>::get(asset_multi_location.clone()) {
-						Some(v) => v
-							.into_iter()
-							.map(|trapped_asset| {
-								if trapped_asset.matches(
-									origin.clone(),
-									amount.clone(),
-									version.clone(),
-								) {
-									r = true;
-									TrappedAsset {
-										origin: origin.clone(),
-										amount: amount.clone(),
-										multi_asset_version: version.clone(),
-										n: trapped_asset.n - 1,
-									}
-								} else {
-									trapped_asset
-								}
-							})
-							.filter(|trapped_asset| trapped_asset.non_zero())
-							.collect(),
-						None => return false,
-					};
+			let trapped_assets_inner_vec: Vec<TrappedAssets> =
+				match AssetTraps::<T>::get(origin.clone()) {
+					Some(v) => v
+						.into_inner()
+						.into_iter()
+						.map(|mut t| {
+							if t.multi_assets == versioned {
+								t.decrement();
+								t
+							} else {
+								t
+							}
+						})
+						.filter(|t| t.non_zero())
+						.collect(),
+					None => return false,
+				};
 
-				match trapped_assets.len() {
-					0 => AssetTraps::<T>::remove(asset_multi_location),
-					_ => AssetTraps::<T>::insert(asset_multi_location, trapped_assets),
-				}
-
-				Self::deposit_event(Event::AssetClaimed(
-					asset_multi_location.clone(),
-					origin.clone(),
-					amount.clone(),
-					version,
-				));
-				return r;
+			match trapped_assets_inner_vec.len() {
+				0 => AssetTraps::<T>::remove(origin),
+				_ => {
+					let bounded_trapped_assets: VecTrappedAssetsOf<T> = trapped_assets_inner_vec.try_into().expect("inner vec len is either equal or smaller than bound, therefore try_into can never fail");
+					AssetTraps::<T>::insert(origin, bounded_trapped_assets)
+				},
 			}
 
-			// todo: else if let MultiAsset { id: Abstract ... }
+			Self::deposit_event(Event::AssetsClaimed(origin.clone(), versioned));
 
 			return false;
 		}
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn trap_asset(
-			origin: MultiLocation,
-			location: MultiLocation,
-			amount: u128,
-			version: MultiAssetVersion,
-		) {
-			let trapped_assets = match AssetTraps::<T>::get(location.clone()) {
-				// storage map is empty, we just initalize a new Vec<TrappedAsset>
-				None => vec![TrappedAsset {
-					origin: origin.clone(),
-					amount,
-					multi_asset_version: version.clone(),
-					n: 1,
-				}],
+		fn trap(origin: MultiLocation, trap: VersionedMultiAssets) {
+			let trapped_assets = match AssetTraps::<T>::get(origin.clone()) {
+				// storage map is empty, we just initalize a new Vec<TrappedAssets>
+				None => {
+					let v = vec![TrappedAssets { multi_assets: trap.clone(), n: 1 }];
+					v.try_into().expect("v has only 1 item, therefore try_into can never fail")
+				},
 				// storage map is not empty, we have to check the vec
-				Some(v) => match v.iter().any(|trapped_asset| {
-					trapped_asset.matches(origin.clone(), amount, version.clone())
-				}) {
-					// do we simply increment TrappedAsset?
+				Some(v) => match v.clone().into_inner().iter().any(|t| t.multi_assets == trap) {
+					// do we simply increment TrappedAssets?
 					true => v
+						.into_inner()
 						.into_iter()
-						.map(|mut trapped_asset| {
-							if trapped_asset.matches(origin.clone(), amount, version.clone()) {
-								trapped_asset.increment();
-								trapped_asset
+						.map(|mut t| {
+							if t.multi_assets == trap {
+								t.increment();
+								t
 							} else {
-								trapped_asset
+								t
 							}
 						})
-						.collect(),
-					// do we append the Vec<TrappedAsset>?
+						.collect::<Vec<TrappedAssets>>()
+						.try_into()
+						.expect("len stayed the same, therefore try_into can never fail"),
+					// do we append the BoundedVec<TrappedAssets>?
 					false => {
 						let mut new_v = v.clone();
-						new_v.push(TrappedAsset {
-							origin: origin.clone(),
-							amount,
-							multi_asset_version: version.clone(),
-							n: 1,
-						});
+						let t = TrappedAssets { multi_assets: trap.clone(), n: 1 };
+
+						// is the BoundedVec full? remove 0th element first
+						if new_v.len() as u32 == T::MaxTrapsPerOrigin::get() {
+							new_v.remove(0);
+							new_v
+								.try_push(t)
+								.expect("we just decreased len, therefore try_push can never fail");
+						// we can simply push
+						} else {
+							new_v
+								.try_push(t)
+								.expect("we just checked len, therefore try_push can never fail");
+						}
 						new_v
 					},
 				},
 			};
 
-			AssetTraps::<T>::insert(location.clone(), trapped_assets);
-			Self::deposit_event(Event::AssetTrapped(location, origin, amount, version.clone()));
-		}
-
-		fn multi_asset_version(asset: MultiAsset) -> MultiAssetVersion {
-			match VersionedMultiAsset::from(asset.clone()) {
-				VersionedMultiAsset::V0(_) => MultiAssetVersion::V0,
-				VersionedMultiAsset::V1(_) => MultiAssetVersion::V1,
-			}
+			AssetTraps::<T>::insert(origin.clone(), trapped_assets);
+			Self::deposit_event(Event::AssetsTrapped(origin, trap));
 		}
 	}
 }
