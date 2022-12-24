@@ -1,0 +1,201 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: &tp_id 2000
+  variables:
+    common:
+      amount_to_mint: &amount_to_mint 100000000000000
+      amount_to_send: &amount_to_send 10000000000000
+      require_weight_at_most: &weight_at_most 1000000000
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        trappist_parachain_dest_routed: &tp_dest_routed {v1: {parents: 1, interior: {
+              x1: {parachain: *tp_id}}}}
+      reserve_parachain:
+        signer: &rp_signer //Alice
+        wallet: &rp_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        bob_signer: &rp_bob_signer //Bob
+        bob_wallet: &rp_bob_wallet FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+        asset_id: &reserve_asset_id 1
+        asset_pallet_id: &reserve_asset_pallet_id 50
+        asset_min_balance: &reserve_assets_min_balance 1
+        asset_multi_location: &reserve_asset_multi_location {parents: 1, interior: {
+            X3: [Parachain: *rp_id, PalletInstance: *reserve_asset_pallet_id, GeneralIndex: *reserve_asset_id]}}
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_wallet: &tp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+        asset_id: &trappist_asset_id 100  # different from reserve_asset_id, so we can test pallet-assets-registry
+        asset_min_balance: &trappist_assets_min_balance 1
+        sovereign_account: &tp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
+        bob_account: &tp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+  decodedCalls:
+    force_create_asset:
+      chain: *reserve_parachain
+      pallet: assets
+      call: forceCreate
+      args:
+        - *reserve_asset_id
+        - {id: *rp_wallet}
+                             # owner
+        - true
+        - *reserve_assets_min_balance
+                                     # minBalance
+
+tests:
+  - name: HRMP
+    describes:
+      - name: polkadotXcm.limitedReserveTransferAssets (Asset) | Reserve Parachain
+          -> Trappist Parachain
+        before:
+          - name: DEPENDENCY | Create a sufficient Asset on Reserve Parachain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    sudo: true
+                    pallet: parasSudoWrapper
+                    call: sudoQueueDownwardXcm
+                    args:
+                      - *rp_id
+                               # id
+                      - {v2: [
+                                 # message
+                           Transact: {originType: Superuser, requireWeightAtMost: *weight_at_most,
+                                call: $force_create_asset}]}
+                    events:
+                      - name: sudo.Sudid
+                        attributes:
+                          - type: Result<Null, SpRuntimeDispatchError>
+                            value: Ok
+              - queries:
+                forced_created_asset:
+                  chain: *reserve_parachain
+                  pallet: assets
+                  call: asset
+                  args: [*reserve_asset_id]
+              - asserts:
+                isSome:
+                  args: [$forced_created_asset]
+
+          - name: DEPENDENCY | Mint assets on Reserve Parachain
+            actions:
+              - extrinsics:
+                  - chain: *reserve_parachain
+                    signer: *rp_signer
+                    pallet: assets
+                    call: mint
+                    args:
+                      - *reserve_asset_id
+                      - *rp_bob_wallet
+                      - *amount_to_mint
+                    events:
+                      - name: assets.Issued
+
+          - name: DEPENDENCY | Create asset on Trappist Parachain
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: assets
+                    call: forceCreate
+                    sudo: true
+                    args:
+                      - *trappist_asset_id
+                      - {id: *tp_wallet}
+                                           # owner
+                      - false
+                      - *trappist_assets_min_balance
+                                                    # minBalance
+                    events:
+                      - name: sudo.Sudid
+                        attributes:
+                          - type: Result<Null, SpRuntimeDispatchError>
+                            value: Ok
+                      - name: assets.ForceCreated
+              - queries:
+                forced_created_asset:
+                  chain: *trappist_parachain
+                  pallet: assets
+                  call: asset
+                  args:
+                    - *trappist_asset_id
+              - asserts:
+                isSome:
+                args: [$forced_created_asset]
+
+        its:
+          - name: Trappist Parachain has AssetId registered to Reserve Asset
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    sudo: true
+                    pallet: assetRegistry
+                    call: registerReserveAsset
+                    args:
+                      - *trappist_asset_id
+                      - *reserve_asset_multi_location
+                    events:
+                      - name: sudo.Sudid
+                        attributes:
+                          - type: Result<Null, SpRuntimeDispatchError>
+                            value: Ok
+                      - name: assetRegistry.ReserveAssetRegistered
+                        attributes:
+                          - type: u32
+                            value: *trappist_asset_id
+
+          - name: Assets Parachain should be able to reserve transfer an asset to
+              Trappist Parachain
+            actions:
+              - extrinsics:
+                  - chain: *reserve_parachain
+                    signer: *rp_bob_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args:
+                      - *tp_dest_routed
+                                        # destination
+                      - {v1: {parents: 0, interior: {x1: {AccountId32: {network: null,
+                                id: *tp_bob_acc}}}}}
+                      - {v1: [{id: {Concrete: {parents: 0, interior: {x2: [PalletInstance: *reserve_asset_pallet_id,
+                                       GeneralIndex: *reserve_asset_id]}}}, fun: {
+                                Fungible: *amount_to_send}}]}
+                      - 0
+                          # feeAssetItem
+                      - Unlimited # weightLimit
+                    events:
+                      - name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [10, 10]
+                            value: 654,608,000
+                      - name: assets.Transferred
+                        attributes:
+                          - type: AccountId32
+                            value: *tp_sovereign_sibl
+                          - type: u128
+                            value: *amount_to_send
+                      - name: assets.Issued
+                        chain: *trappist_parachain
+              - queries:
+                  bob_received_asset:
+                    chain: *trappist_parachain
+                    pallet: assets
+                    call: account
+                    args:
+                      - *trappist_asset_id
+                      - *tp_bob_wallet
+              - asserts:
+                  isSome:
+                    args: [$bob_received_asset]
