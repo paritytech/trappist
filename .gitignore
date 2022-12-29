@@ -22,4 +22,10 @@
 # Binaries
 **/bin/
 
+# zombienet binaries
 zombienet-macos
+zombienet-linux
+
+# IDEs
+.vscode/
+.idea/
