@@ -194,7 +194,7 @@ mod tests {
 	const ASSET_RESERVE_PALLET_INDEX: u8 = 50;
 
 	#[test]
-	fn teleport_asset_from_relay_chain_asset_reserve_parachain() {
+	fn teleport_asset_from_relay_chain_to_asset_reserve_parachain() {
 		init_tracing();
 
 		MockNet::reset();
@@ -239,7 +239,55 @@ mod tests {
 
 	#[test]
 	fn teleport_asset_from_asset_reserve_parachain_to_relay_chain() {
-		todo!()
+		init_tracing();
+
+		MockNet::reset();
+
+		const AMOUNT: u128 = 1_000_000_000;
+		let mut receiver_balance = 0;
+		let mut total_issuance = 0;
+
+		Relay::execute_with(|| {
+			// Teleport some amount to asset reserve so there are tokens to teleport back
+			assert_ok!(relay_chain::XcmPallet::teleport_assets(
+				relay_chain::RuntimeOrigin::signed(ALICE),
+				Box::new(Parachain(ASSET_RESERVE_PARA_ID).into().into()),
+				Box::new(X1(AccountId32 { network: Any, id: ALICE.into() }).into().into()),
+				Box::new((Here, AMOUNT).into()),
+				0
+			));
+
+			// Check receiver balance and total issuance
+			receiver_balance = relay_chain::Balances::free_balance(&ALICE);
+			total_issuance = relay_chain::Balances::total_issuance();
+		});
+
+		AssetReserve::execute_with(|| {
+			let sender_balance = asset_reserve::Balances::free_balance(&ALICE);
+			let total_issuance = asset_reserve::Balances::total_issuance();
+
+			assert_ok!(asset_reserve::PolkadotXcm::teleport_assets(
+				asset_reserve::RuntimeOrigin::signed(ALICE),
+				Box::new(Parent.into()),
+				Box::new(X1(AccountId32 { network: Any, id: ALICE.into() }).into().into()),
+				Box::new((Parent, AMOUNT).into()),
+				0
+			));
+
+			// Check sender balance and total issuance decreased by teleport amount
+			assert_eq!(asset_reserve::Balances::free_balance(&ALICE), sender_balance - AMOUNT);
+			assert_eq!(asset_reserve::Balances::total_issuance(), total_issuance - AMOUNT)
+		});
+
+		const EST_FEES: u128 = 4_000_000;
+		Relay::execute_with(|| {
+			// Check receiver balance increased by teleport amount
+			assert_balance(
+				relay_chain::Balances::free_balance(&ALICE),
+				receiver_balance + AMOUNT,
+				EST_FEES,
+			);
+		});
 	}
 
 	#[test]

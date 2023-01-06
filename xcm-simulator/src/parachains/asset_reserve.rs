@@ -244,6 +244,11 @@ construct_runtime!(
 );
 
 #[allow(dead_code)]
+pub(crate) fn check_account() -> AccountId {
+	PolkadotXcm::check_account()
+}
+
+#[allow(dead_code)]
 pub(crate) fn sovereign_account(para_id: u32) -> AccountId {
 	LocationToAccountId::convert_ref(MultiLocation::new(1, X1(Parachain(para_id)))).unwrap()
 }
