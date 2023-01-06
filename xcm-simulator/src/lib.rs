@@ -28,7 +28,7 @@ use sp_runtime::traits::AccountIdConversion;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 pub const ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([0u8; 32]);
-pub const INITIAL_BALANCE: u128 = 1_000_000_000;
+pub const INITIAL_BALANCE: u128 = 10_000_000_000;
 
 const ASSET_RESERVE_PARA_ID: u32 = 1000;
 decl_test_parachain! {
@@ -178,13 +178,12 @@ mod tests {
 	use crate::relay_chain::mock_paras_sudo_wrapper;
 	use codec::Encode;
 	use frame_support::assert_ok;
-	use sp_runtime::MultiAddress::Id;
 	use std::sync::Once;
-	use xcm::{latest::prelude::*, opaque::VersionedXcm, VersionedMultiAssets::V1};
+	use xcm::{latest::prelude::*, opaque::VersionedXcm};
 	use xcm_simulator::TestExt;
 
 	static INIT: Once = Once::new();
-	pub fn init() {
+	pub fn init_tracing() {
 		INIT.call_once(|| {
 			// Add test tracing
 			// todo: filter to only show xcm logs
@@ -195,19 +194,58 @@ mod tests {
 	const ASSET_RESERVE_PALLET_INDEX: u8 = 50;
 
 	#[test]
-	fn dmp_teleport_asset_from_relay_chain_asset_reserve_parachain() {
-		todo!()
+	fn teleport_asset_from_relay_chain_asset_reserve_parachain() {
+		init_tracing();
+
+		MockNet::reset();
+
+		const AMOUNT: u128 = 1_000_000_000;
+		let mut receiver_balance = 0;
+		let mut total_issuance = 0;
+
+		AssetReserve::execute_with(|| {
+			// Check receiver balance increased by teleport amount
+			receiver_balance = asset_reserve::Balances::free_balance(&ALICE);
+			total_issuance = asset_reserve::Balances::total_issuance();
+		});
+
+		Relay::execute_with(|| {
+			assert_ok!(relay_chain::XcmPallet::teleport_assets(
+				relay_chain::RuntimeOrigin::signed(ALICE),
+				Box::new(Parachain(ASSET_RESERVE_PARA_ID).into().into()),
+				Box::new(X1(AccountId32 { network: Any, id: ALICE.into() }).into().into()),
+				Box::new((Here, AMOUNT).into()),
+				0
+			));
+
+			// Check teleport amount checked out to check account
+			assert_eq!(relay_chain::Balances::free_balance(&relay_chain::check_account()), AMOUNT);
+
+			// Check sender balance decreased by teleport amount
+			assert_eq!(relay_chain::Balances::free_balance(&ALICE), INITIAL_BALANCE - AMOUNT);
+		});
+
+		const EST_FEES: u128 = 4_000_000;
+		AssetReserve::execute_with(|| {
+			// Check receiver balance and total issuance increased by teleport amount
+			assert_balance(
+				asset_reserve::Balances::free_balance(&ALICE),
+				receiver_balance + AMOUNT,
+				EST_FEES,
+			);
+			assert_eq!(asset_reserve::Balances::total_issuance(), total_issuance + AMOUNT)
+		});
 	}
 
 	#[test]
-	fn ump_teleport_asset_from_asset_reserve_parachain_to_relay_chain() {
+	fn teleport_asset_from_asset_reserve_parachain_to_relay_chain() {
 		todo!()
 	}
 
 	#[test]
 	#[allow(non_upper_case_globals)]
-	fn hrmp_reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
-		init();
+	fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
+		init_tracing();
 
 		MockNet::reset();
 
@@ -221,7 +259,7 @@ mod tests {
 			assert_ok!(asset_reserve::Assets::create(
 				asset_reserve::RuntimeOrigin::signed(ALICE),
 				xUSD,
-				Id(ALICE),
+				ALICE.into(),
 				MIN_BALANCE
 			));
 
@@ -229,7 +267,7 @@ mod tests {
 			assert_ok!(asset_reserve::Assets::mint(
 				asset_reserve::RuntimeOrigin::signed(ALICE),
 				xUSD,
-				Id(ALICE),
+				ALICE.into(),
 				MINT_AMOUNT
 			));
 			assert_eq!(asset_reserve::Assets::balance(xUSD, &ALICE), MINT_AMOUNT);
@@ -240,10 +278,10 @@ mod tests {
 			paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 				pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
 					id: xUSD,
-					owner: Id(ALICE),
-					issuer: Id(ALICE),
-					admin: Id(ALICE),
-					freezer: Id(ALICE),
+					owner: ALICE.into(),
+					issuer: ALICE.into(),
+					admin: ALICE.into(),
+					freezer: ALICE.into(),
 					min_balance: MIN_BALANCE,
 					is_sufficient: true,
 					is_frozen: false,
@@ -256,7 +294,7 @@ mod tests {
 			assert_ok!(trappist::Assets::create(
 				trappist::RuntimeOrigin::signed(ALICE),
 				txUSD,
-				Id(ALICE),
+				ALICE.into(),
 				MIN_BALANCE
 			));
 
@@ -282,7 +320,7 @@ mod tests {
 			assert!(trappist::AssetRegistry::asset_id_multilocation(txUSD).is_some())
 		});
 
-		const SEND_AMOUNT: u128 = 10_000_000_000_000_000;
+		const AMOUNT: u128 = 10_000_000_000_000_000;
 
 		AssetReserve::execute_with(|| {
 			// Reserve parachain should be able to reserve-transfer an asset to Trappist Parachain
@@ -290,37 +328,32 @@ mod tests {
 				asset_reserve::RuntimeOrigin::signed(ALICE),
 				Box::new((Parent, Parachain(TRAPPIST_PARA_ID)).into()),
 				Box::new(X1(AccountId32 { network: Any, id: ALICE.into() }).into().into()),
-				Box::new(V1(MultiAssets::from_sorted_and_deduplicated_skip_checks(vec![
-					MultiAsset {
-						id: Concrete(
-							X2(
-								PalletInstance(ASSET_RESERVE_PALLET_INDEX),
-								GeneralIndex(xUSD as u128)
-							)
-							.into(),
-						),
-						fun: Fungible(SEND_AMOUNT),
-					}
-				]))),
+				Box::new(
+					(
+						X2(PalletInstance(ASSET_RESERVE_PALLET_INDEX), GeneralIndex(xUSD as u128)),
+						AMOUNT
+					)
+						.into()
+				),
 				0,
 				WeightLimit::Unlimited,
 			));
 
 			// Check send amount moved to sovereign account
 			let sovereign_account = asset_reserve::sovereign_account(TRAPPIST_PARA_ID);
-			assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), SEND_AMOUNT);
+			assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), AMOUNT);
 		});
 
-		const FEES: u128 = 1_600_000_000;
+		const EST_FEES: u128 = 1_600_000_000;
 		Trappist::execute_with(|| {
 			// Check beneficiary account balance
-			assert_balance(trappist::Assets::balance(txUSD, &ALICE), SEND_AMOUNT, FEES);
+			assert_balance(trappist::Assets::balance(txUSD, &ALICE), AMOUNT, EST_FEES);
 		});
 	}
 
 	#[test]
 	#[allow(non_upper_case_globals)]
-	fn hrmp_two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
+	fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		todo!()
 	}
 

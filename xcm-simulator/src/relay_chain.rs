@@ -16,33 +16,31 @@
 
 //! Relay chain runtime mock.
 
+use crate::{relay_chain, ASSET_RESERVE_PARA_ID};
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, match_types, parameter_types,
 	traits::{Everything, Nothing},
 };
-use polkadot_core_primitives::BlockNumber;
-use sp_core::H256;
-use sp_runtime::{generic, traits::IdentityLookup, AccountId32};
-
+pub use polkadot_core_primitives::AccountId;
+use polkadot_core_primitives::{Balance, BlockNumber, Hash};
 use polkadot_parachain::primitives::Id as ParaId;
-use polkadot_runtime_parachains::{configuration, dmp, hrmp, origin, paras, shared, ump};
-use rococo_runtime::FirstMessageFactorPercent;
-use sp_runtime::traits::BlakeTwo256;
+use polkadot_runtime_common::BlockHashCount;
+use polkadot_runtime_parachains::{configuration, dmp, origin, shared, ump, Origin};
+use rococo_runtime::{ExistentialDeposit, FirstMessageFactorPercent, MaxLocks, MaxReserves};
+use sp_runtime::{
+	generic,
+	traits::{BlakeTwo256, IdentityLookup},
+};
 use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowUnpaidExecutionFrom, ChildParachainAsNative,
+	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, ChildParachainAsNative,
 	ChildParachainConvertsVia, ChildSystemParachainAsSuperuser,
-	CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible, FixedWeightBounds, IsConcrete,
+	CurrencyAdapter as XcmCurrencyAdapter, FixedWeightBounds, IsChildSystemParachain, IsConcrete,
 	LocationInverter, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
+	TakeWeightCredit, UsingComponents, WeightInfoBounds,
 };
 use xcm_executor::{Config, XcmExecutor};
-
-pub type AccountId = AccountId32;
-pub type Balance = u128;
-
-parameter_types! {
-	pub const BlockHashCount: BlockNumber = 250;
-}
 
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
@@ -52,7 +50,7 @@ impl frame_system::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Hash = H256;
+	type Hash = Hash;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
@@ -71,19 +69,13 @@ impl frame_system::Config for Runtime {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-parameter_types! {
-	pub ExistentialDeposit: Balance = 1;
-	pub const MaxLocks: u32 = 50;
-	pub const MaxReserves: u32 = 50;
-}
-
 impl pallet_balances::Config for Runtime {
 	type Balance = Balance;
 	type DustRemoval = ();
 	type RuntimeEvent = RuntimeEvent;
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
@@ -96,34 +88,54 @@ impl configuration::Config for Runtime {
 }
 
 parameter_types! {
-	pub const KsmLocation: MultiLocation = Here.into();
-	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
-	pub const AnyNetwork: NetworkId = NetworkId::Any;
+	pub const RocLocation: MultiLocation = Here.into();
+	pub RococoNetwork: NetworkId =
+		NetworkId::Named(b"Rococo".to_vec().try_into().expect("shorter than length limit; qed"));
 	pub Ancestry: MultiLocation = Here.into();
-	pub UnitWeightCost: u64 = 1_000;
+	pub CheckAccount: AccountId = XcmPallet::check_account();
 }
 
 pub type SovereignAccountOf =
-	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<KusamaNetwork, AccountId>);
+	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<RococoNetwork, AccountId>);
 
-pub type LocalAssetTransactor =
-	XcmCurrencyAdapter<Balances, IsConcrete<KsmLocation>, SovereignAccountOf, AccountId, ()>;
+pub type LocalAssetTransactor = XcmCurrencyAdapter<
+	Balances,
+	IsConcrete<RocLocation>,
+	SovereignAccountOf,
+	AccountId,
+	CheckAccount,
+>;
 
 type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, RuntimeOrigin>,
-	ChildParachainAsNative<origin::Origin, RuntimeOrigin>,
-	SignedAccountId32AsNative<KusamaNetwork, RuntimeOrigin>,
+	ChildParachainAsNative<Origin, RuntimeOrigin>,
+	SignedAccountId32AsNative<RococoNetwork, RuntimeOrigin>,
 	ChildSystemParachainAsSuperuser<ParaId, RuntimeOrigin>,
 );
 
 parameter_types! {
-	pub const BaseXcmWeight: u64 = 1_000;
-	pub KsmPerSecond: (AssetId, u128) = (Concrete(KsmLocation::get()), 1);
+	pub const BaseXcmWeight: u64 = 1_000_000_000;
 	pub const MaxInstructions: u32 = 100;
+	pub const Rococo: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(RocLocation::get()) });
+	pub const Statemine: MultiLocation = Parachain(ASSET_RESERVE_PARA_ID).into();
+	pub const RococoForStatemine: (MultiAssetFilter, MultiLocation) = (Rococo::get(), Statemine::get());
 }
 
+match_types! {
+	pub type OnlyParachains: impl Contains<MultiLocation> = {
+		MultiLocation { parents: 0, interior: X1(Parachain(_)) }
+	};
+}
+
+pub type Barrier = (
+	TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom<Everything>,
+	AllowUnpaidExecutionFrom<IsChildSystemParachain<ParaId>>,
+	AllowKnownQueryResponses<XcmPallet>,
+	AllowSubscriptionsFrom<OnlyParachains>,
+);
+pub type TrustedTeleporters = (xcm_builder::Case<RococoForStatemine>,);
 pub type XcmRouter = super::RelayChainXcmRouter;
-pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -132,18 +144,25 @@ impl Config for XcmConfig {
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = LocalOriginConverter;
 	type IsReserve = ();
-	type IsTeleporter = ();
+	type IsTeleporter = TrustedTeleporters;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
-	type Trader = FixedRateOfFungible<KsmPerSecond, ()>;
-	type ResponseHandler = ();
-	type AssetTrap = ();
-	type AssetClaims = ();
-	type SubscriptionService = ();
+	type Weigher =
+		WeightInfoBounds<weights::xcm::RococoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
+	type Trader = UsingComponents<
+		rococo_runtime_constants::fee::WeightToFee,
+		RocLocation,
+		AccountId,
+		Balances,
+		(),
+	>;
+	type ResponseHandler = XcmPallet;
+	type AssetTrap = XcmPallet;
+	type AssetClaims = XcmPallet;
+	type SubscriptionService = XcmPallet;
 }
 
-pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RococoNetwork>;
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -262,287 +281,446 @@ construct_runtime!(
 	}
 );
 
+#[allow(dead_code)]
+pub(crate) fn check_account() -> AccountId {
+	relay_chain::XcmPallet::check_account()
+}
+
 mod weights {
-	pub(crate) mod runtime_parachains_hrmp {
+
+	pub(crate) mod pallet_balances {
 		use frame_support::{traits::Get, weights::Weight};
 		use sp_std::marker::PhantomData;
 
-		/// Weight functions for `runtime_parachains::hrmp`.
+		/// Weight functions for `pallet_balances`.
 		pub struct WeightInfo<T>(PhantomData<T>);
-		impl<T: frame_system::Config> super::super::hrmp::WeightInfo for WeightInfo<T> {
-			// Storage: Paras ParaLifecycles (r:2 w:0)
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: Hrmp HrmpOpenChannelRequests (r:1 w:1)
-			// Storage: Hrmp HrmpChannels (r:1 w:0)
-			// Storage: Hrmp HrmpEgressChannelsIndex (r:1 w:0)
-			// Storage: Hrmp HrmpOpenChannelRequestCount (r:1 w:1)
-			// Storage: Hrmp HrmpOpenChannelRequestsList (r:1 w:1)
-			// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
-			// Storage: Dmp DownwardMessageQueues (r:1 w:1)
-			fn hrmp_init_open_channel() -> Weight {
-				Weight::from_ref_time(40_520_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(10 as u64))
-					.saturating_add(T::DbWeight::get().writes(5 as u64))
-			}
-			// Storage: Hrmp HrmpOpenChannelRequests (r:1 w:1)
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: Paras ParaLifecycles (r:1 w:0)
-			// Storage: Hrmp HrmpIngressChannelsIndex (r:1 w:0)
-			// Storage: Hrmp HrmpAcceptedChannelRequestCount (r:1 w:1)
-			// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
-			// Storage: Dmp DownwardMessageQueues (r:1 w:1)
-			fn hrmp_accept_open_channel() -> Weight {
-				Weight::from_ref_time(39_646_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(7 as u64))
-					.saturating_add(T::DbWeight::get().writes(4 as u64))
-			}
-			// Storage: Hrmp HrmpChannels (r:1 w:0)
-			// Storage: Hrmp HrmpCloseChannelRequests (r:1 w:1)
-			// Storage: Hrmp HrmpCloseChannelRequestsList (r:1 w:1)
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
-			// Storage: Dmp DownwardMessageQueues (r:1 w:1)
-			fn hrmp_close_channel() -> Weight {
-				Weight::from_ref_time(36_691_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(6 as u64))
-					.saturating_add(T::DbWeight::get().writes(4 as u64))
-			}
-			// Storage: Hrmp HrmpIngressChannelsIndex (r:128 w:127)
-			// Storage: Hrmp HrmpEgressChannelsIndex (r:1 w:1)
-			// Storage: Hrmp HrmpChannels (r:127 w:127)
-			// Storage: Hrmp HrmpAcceptedChannelRequestCount (r:0 w:1)
-			// Storage: Hrmp HrmpChannelContents (r:0 w:127)
-			// Storage: Hrmp HrmpOpenChannelRequestCount (r:0 w:1)
-			/// The range of component `i` is `[0, 127]`.
-			/// The range of component `e` is `[0, 127]`.
-			fn force_clean_hrmp(i: u32, e: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 16_000
-					.saturating_add(
-						Weight::from_ref_time(7_248_000 as u64).saturating_mul(i as u64),
-					)
-					// Standard Error: 16_000
-					.saturating_add(
-						Weight::from_ref_time(7_311_000 as u64).saturating_mul(e as u64),
-					)
-					.saturating_add(T::DbWeight::get().reads(2 as u64))
-					.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(i as u64)))
-					.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(e as u64)))
-					.saturating_add(T::DbWeight::get().writes(4 as u64))
-					.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(i as u64)))
-					.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(e as u64)))
-			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: Hrmp HrmpOpenChannelRequestsList (r:1 w:0)
-			// Storage: Hrmp HrmpOpenChannelRequests (r:2 w:2)
-			// Storage: Paras ParaLifecycles (r:4 w:0)
-			// Storage: Hrmp HrmpIngressChannelsIndex (r:2 w:2)
-			// Storage: Hrmp HrmpEgressChannelsIndex (r:2 w:2)
-			// Storage: Hrmp HrmpOpenChannelRequestCount (r:2 w:2)
-			// Storage: Hrmp HrmpAcceptedChannelRequestCount (r:2 w:2)
-			// Storage: Hrmp HrmpChannels (r:0 w:2)
-			/// The range of component `c` is `[0, 128]`.
-			fn force_process_hrmp_open(c: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 19_000
-					.saturating_add(
-						Weight::from_ref_time(15_783_000 as u64).saturating_mul(c as u64),
-					)
-					.saturating_add(T::DbWeight::get().reads(2 as u64))
-					.saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(c as u64)))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
-					.saturating_add(T::DbWeight::get().writes((6 as u64).saturating_mul(c as u64)))
-			}
-			// Storage: Hrmp HrmpCloseChannelRequestsList (r:1 w:0)
-			// Storage: Hrmp HrmpChannels (r:2 w:2)
-			// Storage: Hrmp HrmpEgressChannelsIndex (r:2 w:2)
-			// Storage: Hrmp HrmpIngressChannelsIndex (r:2 w:2)
-			// Storage: Hrmp HrmpCloseChannelRequests (r:0 w:2)
-			// Storage: Hrmp HrmpChannelContents (r:0 w:2)
-			/// The range of component `c` is `[0, 128]`.
-			fn force_process_hrmp_close(c: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 12_000
-					.saturating_add(
-						Weight::from_ref_time(9_624_000 as u64).saturating_mul(c as u64),
-					)
+		impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
+			// Storage: System Account (r:1 w:1)
+			fn transfer() -> Weight {
+				Weight::from_ref_time(40_460_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(c as u64)))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
-					.saturating_add(T::DbWeight::get().writes((5 as u64).saturating_mul(c as u64)))
 			}
-			// Storage: Hrmp HrmpOpenChannelRequestsList (r:1 w:1)
-			// Storage: Hrmp HrmpOpenChannelRequests (r:1 w:1)
-			// Storage: Hrmp HrmpOpenChannelRequestCount (r:1 w:1)
-			/// The range of component `c` is `[0, 128]`.
-			fn hrmp_cancel_open_request(c: u32) -> Weight {
-				Weight::from_ref_time(30_548_000 as u64)
-					// Standard Error: 1_000
-					.saturating_add(Weight::from_ref_time(89_000 as u64).saturating_mul(c as u64))
-					.saturating_add(T::DbWeight::get().reads(3 as u64))
-					.saturating_add(T::DbWeight::get().writes(3 as u64))
-			}
-			// Storage: Hrmp HrmpOpenChannelRequestsList (r:1 w:1)
-			// Storage: Hrmp HrmpOpenChannelRequests (r:2 w:2)
-			/// The range of component `c` is `[0, 128]`.
-			fn clean_open_channel_requests(c: u32) -> Weight {
-				Weight::from_ref_time(1_732_000 as u64)
-					// Standard Error: 4_000
-					.saturating_add(
-						Weight::from_ref_time(2_574_000 as u64).saturating_mul(c as u64),
-					)
+			// Storage: System Account (r:1 w:1)
+			fn transfer_keep_alive() -> Weight {
+				Weight::from_ref_time(29_508_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(c as u64)))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
-					.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(c as u64)))
+			}
+			// Storage: System Account (r:1 w:1)
+			fn set_balance_creating() -> Weight {
+				Weight::from_ref_time(22_142_000 as u64)
+					.saturating_add(T::DbWeight::get().reads(1 as u64))
+					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			}
+			// Storage: System Account (r:1 w:1)
+			fn set_balance_killing() -> Weight {
+				Weight::from_ref_time(25_653_000 as u64)
+					.saturating_add(T::DbWeight::get().reads(1 as u64))
+					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			}
+			// Storage: System Account (r:2 w:2)
+			fn force_transfer() -> Weight {
+				Weight::from_ref_time(39_913_000 as u64)
+					.saturating_add(T::DbWeight::get().reads(2 as u64))
+					.saturating_add(T::DbWeight::get().writes(2 as u64))
+			}
+			// Storage: System Account (r:1 w:1)
+			fn transfer_all() -> Weight {
+				Weight::from_ref_time(34_497_000 as u64)
+					.saturating_add(T::DbWeight::get().reads(1 as u64))
+					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			}
+			// Storage: System Account (r:1 w:1)
+			fn force_unreserve() -> Weight {
+				Weight::from_ref_time(19_749_000 as u64)
+					.saturating_add(T::DbWeight::get().reads(1 as u64))
+					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
 		}
 	}
 
-	pub(crate) mod runtime_parachains_paras {
-		use frame_support::{traits::Get, weights::Weight};
-		use sp_std::marker::PhantomData;
+	pub(crate) mod xcm {
+		use super::super::Runtime;
+		use frame_support::weights::Weight;
+		use sp_std::prelude::*;
+		use xcm::{
+			latest::{prelude::*, Weight as XCMWeight},
+			DoubleEncoded,
+		};
 
-		/// Weight functions for `runtime_parachains::paras`.
-		pub struct WeightInfo<T>(PhantomData<T>);
-		impl<T: frame_system::Config> super::super::paras::WeightInfo for WeightInfo<T> {
-			// Storage: Paras CurrentCodeHash (r:1 w:1)
-			// Storage: Paras CodeByHashRefs (r:1 w:1)
-			// Storage: Paras PastCodeMeta (r:1 w:1)
-			// Storage: Paras PastCodePruning (r:1 w:1)
-			// Storage: Paras PastCodeHash (r:0 w:1)
-			// Storage: Paras CodeByHash (r:0 w:1)
-			/// The range of component `c` is `[1, 3145728]`.
-			fn force_set_current_code(c: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(2_000 as u64).saturating_mul(c as u64))
-					.saturating_add(T::DbWeight::get().reads(4 as u64))
-					.saturating_add(T::DbWeight::get().writes(6 as u64))
+		use pallet_xcm_benchmarks_fungible::WeightInfo as XcmBalancesWeight;
+		use pallet_xcm_benchmarks_generic::WeightInfo as XcmGeneric;
+
+		/// Types of asset supported by the Rococo runtime.
+		pub enum AssetTypes {
+			/// An asset backed by `pallet-balances`.
+			Balances,
+			/// Unknown asset.
+			Unknown,
+		}
+
+		impl From<&MultiAsset> for AssetTypes {
+			fn from(asset: &MultiAsset) -> Self {
+				match asset {
+					MultiAsset {
+						id: Concrete(MultiLocation { parents: 0, interior: Here }),
+						..
+					} => AssetTypes::Balances,
+					_ => AssetTypes::Unknown,
+				}
 			}
-			// Storage: Paras Heads (r:0 w:1)
-			/// The range of component `s` is `[1, 1048576]`.
-			fn force_set_current_head(s: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(1_000 as u64).saturating_mul(s as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+		}
+
+		trait WeighMultiAssets {
+			fn weigh_multi_assets(&self, balances_weight: Weight) -> XCMWeight;
+		}
+
+		// Rococo only knows about one asset, the balances pallet.
+		const MAX_ASSETS: u32 = 1;
+
+		impl WeighMultiAssets for MultiAssetFilter {
+			fn weigh_multi_assets(&self, balances_weight: Weight) -> XCMWeight {
+				let weight = match self {
+					Self::Definite(assets) => assets
+						.inner()
+						.into_iter()
+						.map(From::from)
+						.map(|t| match t {
+							AssetTypes::Balances => balances_weight,
+							AssetTypes::Unknown => Weight::MAX,
+						})
+						.fold(Weight::zero(), |acc, x| acc.saturating_add(x)),
+					Self::Wild(_) => balances_weight.saturating_mul(MAX_ASSETS as u64),
+				};
+
+				weight.ref_time()
 			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: Paras FutureCodeHash (r:1 w:1)
-			// Storage: Paras CurrentCodeHash (r:1 w:0)
-			// Storage: Paras UpgradeCooldowns (r:1 w:1)
-			// Storage: Paras PvfActiveVoteMap (r:1 w:0)
-			// Storage: Paras CodeByHash (r:1 w:1)
-			// Storage: Paras UpcomingUpgrades (r:1 w:1)
-			// Storage: System Digest (r:1 w:1)
-			// Storage: Paras CodeByHashRefs (r:1 w:1)
-			// Storage: Paras FutureCodeUpgrades (r:0 w:1)
-			// Storage: Paras UpgradeRestrictionSignal (r:0 w:1)
-			/// The range of component `c` is `[1, 3145728]`.
-			fn force_schedule_code_upgrade(c: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(2_000 as u64).saturating_mul(c as u64))
-					.saturating_add(T::DbWeight::get().reads(9 as u64))
-					.saturating_add(T::DbWeight::get().writes(8 as u64))
+		}
+
+		impl WeighMultiAssets for MultiAssets {
+			fn weigh_multi_assets(&self, balances_weight: Weight) -> XCMWeight {
+				let weight = self
+					.inner()
+					.into_iter()
+					.map(|m| <AssetTypes as From<&MultiAsset>>::from(m))
+					.map(|t| match t {
+						AssetTypes::Balances => balances_weight,
+						AssetTypes::Unknown => Weight::MAX,
+					})
+					.fold(Weight::zero(), |acc, x| acc.saturating_add(x));
+
+				weight.ref_time()
 			}
-			// Storage: Paras FutureCodeUpgrades (r:1 w:0)
-			// Storage: Paras Heads (r:0 w:1)
-			// Storage: Paras UpgradeGoAheadSignal (r:0 w:1)
-			/// The range of component `s` is `[1, 1048576]`.
-			fn force_note_new_head(s: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(1_000 as u64).saturating_mul(s as u64))
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(2 as u64))
+		}
+
+		pub struct RococoXcmWeight<Call>(core::marker::PhantomData<Call>);
+		impl<Call> XcmWeightInfo<Call> for RococoXcmWeight<Call> {
+			fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::withdraw_asset())
 			}
-			// Storage: ParasShared CurrentSessionIndex (r:1 w:0)
-			// Storage: Paras ActionsQueue (r:1 w:1)
-			fn force_queue_action() -> Weight {
-				Weight::from_ref_time(24_187_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(2 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			fn reserve_asset_deposited(assets: &MultiAssets) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::reserve_asset_deposited())
 			}
-			// Storage: Paras PvfActiveVoteMap (r:1 w:0)
-			// Storage: Paras CodeByHash (r:1 w:1)
-			/// The range of component `c` is `[1, 3145728]`.
-			fn add_trusted_validation_code(c: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(2_000 as u64).saturating_mul(c as u64))
-					.saturating_add(T::DbWeight::get().reads(2 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			fn receive_teleported_asset(assets: &MultiAssets) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::receive_teleported_asset())
 			}
-			// Storage: Paras CodeByHashRefs (r:1 w:0)
-			// Storage: Paras CodeByHash (r:0 w:1)
-			fn poke_unused_validation_code() -> Weight {
-				Weight::from_ref_time(7_273_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			fn query_response(
+				_query_id: &u64,
+				_response: &Response,
+				_max_weight: &u64,
+			) -> XCMWeight {
+				XcmGeneric::<Runtime>::query_response().ref_time()
 			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: ParasShared ActiveValidatorKeys (r:1 w:0)
-			// Storage: ParasShared CurrentSessionIndex (r:1 w:0)
-			// Storage: Paras PvfActiveVoteMap (r:1 w:1)
-			fn include_pvf_check_statement() -> Weight {
-				Weight::from_ref_time(96_047_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(4 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+			fn transfer_asset(assets: &MultiAssets, _dest: &MultiLocation) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::transfer_asset())
 			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: ParasShared ActiveValidatorKeys (r:1 w:0)
-			// Storage: ParasShared CurrentSessionIndex (r:1 w:0)
-			// Storage: Paras PvfActiveVoteMap (r:1 w:1)
-			// Storage: Paras PvfActiveVoteList (r:1 w:1)
-			// Storage: Paras UpcomingUpgrades (r:1 w:1)
-			// Storage: System Digest (r:1 w:1)
-			// Storage: Paras FutureCodeUpgrades (r:0 w:100)
-			fn include_pvf_check_statement_finalize_upgrade_accept() -> Weight {
-				Weight::from_ref_time(630_640_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(7 as u64))
-					.saturating_add(T::DbWeight::get().writes(104 as u64))
+			fn transfer_reserve_asset(
+				assets: &MultiAssets,
+				_dest: &MultiLocation,
+				_xcm: &Xcm<()>,
+			) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::transfer_reserve_asset())
 			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: ParasShared ActiveValidatorKeys (r:1 w:0)
-			// Storage: ParasShared CurrentSessionIndex (r:1 w:0)
-			// Storage: Paras PvfActiveVoteMap (r:1 w:1)
-			// Storage: Paras PvfActiveVoteList (r:1 w:1)
-			// Storage: Paras CodeByHashRefs (r:1 w:1)
-			// Storage: Paras CodeByHash (r:0 w:1)
-			// Storage: Paras UpgradeGoAheadSignal (r:0 w:100)
-			// Storage: Paras FutureCodeHash (r:0 w:100)
-			fn include_pvf_check_statement_finalize_upgrade_reject() -> Weight {
-				Weight::from_ref_time(599_325_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(6 as u64))
-					.saturating_add(T::DbWeight::get().writes(204 as u64))
+			fn transact(
+				_origin_type: &OriginKind,
+				_require_weight_at_most: &u64,
+				_call: &DoubleEncoded<Call>,
+			) -> XCMWeight {
+				XcmGeneric::<Runtime>::transact().ref_time()
 			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: ParasShared ActiveValidatorKeys (r:1 w:0)
-			// Storage: ParasShared CurrentSessionIndex (r:1 w:0)
-			// Storage: Paras PvfActiveVoteMap (r:1 w:1)
-			// Storage: Paras PvfActiveVoteList (r:1 w:1)
-			// Storage: Paras ActionsQueue (r:1 w:1)
-			fn include_pvf_check_statement_finalize_onboarding_accept() -> Weight {
-				Weight::from_ref_time(505_499_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(6 as u64))
-					.saturating_add(T::DbWeight::get().writes(3 as u64))
+			fn hrmp_new_channel_open_request(
+				_sender: &u32,
+				_max_message_size: &u32,
+				_max_capacity: &u32,
+			) -> XCMWeight {
+				// XCM Executor does not currently support HRMP channel operations
+				Weight::MAX.ref_time()
 			}
-			// Storage: Configuration ActiveConfig (r:1 w:0)
-			// Storage: ParasShared ActiveValidatorKeys (r:1 w:0)
-			// Storage: ParasShared CurrentSessionIndex (r:1 w:0)
-			// Storage: Paras PvfActiveVoteMap (r:1 w:1)
-			// Storage: Paras PvfActiveVoteList (r:1 w:1)
-			// Storage: Paras CodeByHashRefs (r:1 w:1)
-			// Storage: Paras ParaLifecycles (r:0 w:100)
-			// Storage: Paras CodeByHash (r:0 w:1)
-			// Storage: Paras CurrentCodeHash (r:0 w:100)
-			// Storage: Paras UpcomingParasGenesis (r:0 w:100)
-			fn include_pvf_check_statement_finalize_onboarding_reject() -> Weight {
-				Weight::from_ref_time(668_669_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(6 as u64))
-					.saturating_add(T::DbWeight::get().writes(304 as u64))
+			fn hrmp_channel_accepted(_recipient: &u32) -> XCMWeight {
+				// XCM Executor does not currently support HRMP channel operations
+				Weight::MAX.ref_time()
+			}
+			fn hrmp_channel_closing(
+				_initiator: &u32,
+				_sender: &u32,
+				_recipient: &u32,
+			) -> XCMWeight {
+				// XCM Executor does not currently support HRMP channel operations
+				Weight::MAX.ref_time()
+			}
+			fn clear_origin() -> XCMWeight {
+				XcmGeneric::<Runtime>::clear_origin().ref_time()
+			}
+			fn descend_origin(_who: &InteriorMultiLocation) -> XCMWeight {
+				XcmGeneric::<Runtime>::descend_origin().ref_time()
+			}
+			fn report_error(
+				_query_id: &QueryId,
+				_dest: &MultiLocation,
+				_max_response_weight: &u64,
+			) -> XCMWeight {
+				XcmGeneric::<Runtime>::report_error().ref_time()
+			}
+
+			fn deposit_asset(
+				assets: &MultiAssetFilter,
+				_max_assets: &u32, // TODO use max assets?
+				_dest: &MultiLocation,
+			) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::deposit_asset())
+			}
+			fn deposit_reserve_asset(
+				assets: &MultiAssetFilter,
+				_max_assets: &u32, // TODO use max assets?
+				_dest: &MultiLocation,
+				_xcm: &Xcm<()>,
+			) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::deposit_reserve_asset())
+			}
+			fn exchange_asset(_give: &MultiAssetFilter, _receive: &MultiAssets) -> XCMWeight {
+				Weight::MAX.ref_time() // todo fix
+			}
+			fn initiate_reserve_withdraw(
+				assets: &MultiAssetFilter,
+				_reserve: &MultiLocation,
+				_xcm: &Xcm<()>,
+			) -> XCMWeight {
+				assets.weigh_multi_assets(XcmGeneric::<Runtime>::initiate_reserve_withdraw())
+			}
+			fn initiate_teleport(
+				assets: &MultiAssetFilter,
+				_dest: &MultiLocation,
+				_xcm: &Xcm<()>,
+			) -> XCMWeight {
+				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::initiate_teleport())
+			}
+			fn query_holding(
+				_query_id: &u64,
+				_dest: &MultiLocation,
+				_assets: &MultiAssetFilter,
+				_max_response_weight: &u64,
+			) -> XCMWeight {
+				XcmGeneric::<Runtime>::query_holding().ref_time()
+			}
+			fn buy_execution(_fees: &MultiAsset, _weight_limit: &WeightLimit) -> XCMWeight {
+				XcmGeneric::<Runtime>::buy_execution().ref_time()
+			}
+			fn refund_surplus() -> XCMWeight {
+				XcmGeneric::<Runtime>::refund_surplus().ref_time()
+			}
+			fn set_error_handler(_xcm: &Xcm<Call>) -> XCMWeight {
+				XcmGeneric::<Runtime>::set_error_handler().ref_time()
+			}
+			fn set_appendix(_xcm: &Xcm<Call>) -> XCMWeight {
+				XcmGeneric::<Runtime>::set_appendix().ref_time()
+			}
+			fn clear_error() -> XCMWeight {
+				XcmGeneric::<Runtime>::clear_error().ref_time()
+			}
+			fn claim_asset(_assets: &MultiAssets, _ticket: &MultiLocation) -> XCMWeight {
+				XcmGeneric::<Runtime>::claim_asset().ref_time()
+			}
+			fn trap(_code: &u64) -> XCMWeight {
+				XcmGeneric::<Runtime>::trap().ref_time()
+			}
+			fn subscribe_version(_query_id: &QueryId, _max_response_weight: &u64) -> XCMWeight {
+				XcmGeneric::<Runtime>::subscribe_version().ref_time()
+			}
+			fn unsubscribe_version() -> XCMWeight {
+				XcmGeneric::<Runtime>::unsubscribe_version().ref_time()
+			}
+		}
+
+		mod pallet_xcm_benchmarks_fungible {
+			use frame_support::{traits::Get, weights::Weight};
+			use sp_std::marker::PhantomData;
+
+			/// Weights for `pallet_xcm_benchmarks::fungible`.
+			pub struct WeightInfo<T>(PhantomData<T>);
+			impl<T: frame_system::Config> WeightInfo<T> {
+				// Storage: System Account (r:1 w:1)
+				pub(crate) fn withdraw_asset() -> Weight {
+					Weight::from_ref_time(20_385_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(1 as u64))
+						.saturating_add(T::DbWeight::get().writes(1 as u64))
+				}
+				// Storage: System Account (r:2 w:2)
+				pub(crate) fn transfer_asset() -> Weight {
+					Weight::from_ref_time(32_756_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(2 as u64))
+						.saturating_add(T::DbWeight::get().writes(2 as u64))
+				}
+				// Storage: System Account (r:2 w:2)
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn transfer_reserve_asset() -> Weight {
+					Weight::from_ref_time(50_645_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(8 as u64))
+						.saturating_add(T::DbWeight::get().writes(5 as u64))
+				}
+				// Storage: Benchmark Override (r:0 w:0)
+				pub(crate) fn reserve_asset_deposited() -> Weight {
+					Weight::from_ref_time(2_000_000_000_000 as u64)
+				}
+				// Storage: System Account (r:1 w:1)
+				pub(crate) fn receive_teleported_asset() -> Weight {
+					Weight::from_ref_time(19_595_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(1 as u64))
+						.saturating_add(T::DbWeight::get().writes(1 as u64))
+				}
+				// Storage: System Account (r:1 w:1)
+				pub(crate) fn deposit_asset() -> Weight {
+					Weight::from_ref_time(21_763_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(1 as u64))
+						.saturating_add(T::DbWeight::get().writes(1 as u64))
+				}
+				// Storage: System Account (r:1 w:1)
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn deposit_reserve_asset() -> Weight {
+					Weight::from_ref_time(40_930_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(7 as u64))
+						.saturating_add(T::DbWeight::get().writes(4 as u64))
+				}
+				// Storage: System Account (r:1 w:1)
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn initiate_teleport() -> Weight {
+					Weight::from_ref_time(40_788_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(7 as u64))
+						.saturating_add(T::DbWeight::get().writes(4 as u64))
+				}
+			}
+		}
+
+		mod pallet_xcm_benchmarks_generic {
+			use frame_support::{traits::Get, weights::Weight};
+			use sp_std::marker::PhantomData;
+
+			/// Weights for `pallet_xcm_benchmarks::generic`.
+			pub struct WeightInfo<T>(PhantomData<T>);
+			impl<T: frame_system::Config> WeightInfo<T> {
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn query_holding() -> Weight {
+					Weight::from_ref_time(21_822_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(6 as u64))
+						.saturating_add(T::DbWeight::get().writes(3 as u64))
+				}
+				pub(crate) fn buy_execution() -> Weight {
+					Weight::from_ref_time(3_109_000 as u64)
+				}
+				// Storage: XcmPallet Queries (r:1 w:0)
+				pub(crate) fn query_response() -> Weight {
+					Weight::from_ref_time(12_087_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(1 as u64))
+				}
+				pub(crate) fn transact() -> Weight {
+					Weight::from_ref_time(12_398_000 as u64)
+				}
+				pub(crate) fn refund_surplus() -> Weight {
+					Weight::from_ref_time(3_247_000 as u64)
+				}
+				pub(crate) fn set_error_handler() -> Weight {
+					Weight::from_ref_time(3_086_000 as u64)
+				}
+				pub(crate) fn set_appendix() -> Weight {
+					Weight::from_ref_time(3_112_000 as u64)
+				}
+				pub(crate) fn clear_error() -> Weight {
+					Weight::from_ref_time(3_118_000 as u64)
+				}
+				pub(crate) fn descend_origin() -> Weight {
+					Weight::from_ref_time(4_054_000 as u64)
+				}
+				pub(crate) fn clear_origin() -> Weight {
+					Weight::from_ref_time(3_111_000 as u64)
+				}
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn report_error() -> Weight {
+					Weight::from_ref_time(18_425_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(6 as u64))
+						.saturating_add(T::DbWeight::get().writes(3 as u64))
+				}
+				// Storage: XcmPallet AssetTraps (r:1 w:1)
+				pub(crate) fn claim_asset() -> Weight {
+					Weight::from_ref_time(7_144_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(1 as u64))
+						.saturating_add(T::DbWeight::get().writes(1 as u64))
+				}
+				pub(crate) fn trap() -> Weight {
+					Weight::from_ref_time(3_060_000 as u64)
+				}
+				// Storage: XcmPallet VersionNotifyTargets (r:1 w:1)
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn subscribe_version() -> Weight {
+					Weight::from_ref_time(21_642_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(7 as u64))
+						.saturating_add(T::DbWeight::get().writes(4 as u64))
+				}
+				// Storage: XcmPallet VersionNotifyTargets (r:0 w:1)
+				pub(crate) fn unsubscribe_version() -> Weight {
+					Weight::from_ref_time(4_873_000 as u64)
+						.saturating_add(T::DbWeight::get().writes(1 as u64))
+				}
+				// Storage: XcmPallet SupportedVersion (r:1 w:0)
+				// Storage: XcmPallet VersionDiscoveryQueue (r:1 w:1)
+				// Storage: XcmPallet SafeXcmVersion (r:1 w:0)
+				// Storage: Configuration ActiveConfig (r:1 w:0)
+				// Storage: Dmp DownwardMessageQueueHeads (r:1 w:1)
+				// Storage: Dmp DownwardMessageQueues (r:1 w:1)
+				pub(crate) fn initiate_reserve_withdraw() -> Weight {
+					Weight::from_ref_time(22_809_000 as u64)
+						.saturating_add(T::DbWeight::get().reads(6 as u64))
+						.saturating_add(T::DbWeight::get().writes(3 as u64))
+				}
 			}
 		}
 	}
