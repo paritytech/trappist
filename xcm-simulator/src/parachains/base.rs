@@ -14,20 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Trappist Parachain runtime mock.
+//! Base Parachain runtime mock.
 
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing},
-	weights::constants::RocksDbWeight,
-};
-use frame_system::EnsureRoot;
-use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use polkadot_runtime_common::BlockHashCount;
-use sp_core::{ConstU128, ConstU16, ConstU32};
-use sp_runtime::traits::{AccountIdLookup, BlakeTwo256};
-use sp_std::prelude::*;
-use trappist_runtime::{
+use base_runtime::{
 	constants::{
 		currency::{CENTS, EXISTENTIAL_DEPOSIT, UNITS},
 		fee::WeightToFee,
@@ -40,6 +29,17 @@ use trappist_runtime::{
 	BlockNumber, DealWithFees, Hash, Header, Index, Period, PotId, RuntimeBlockLength,
 	RuntimeBlockWeights, Session, UnitBody, Version,
 };
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{EitherOfDiverse, Everything, Nothing},
+	weights::constants::RocksDbWeight,
+};
+use frame_system::EnsureRoot;
+use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
+use polkadot_runtime_common::BlockHashCount;
+use sp_core::{ConstU128, ConstU16, ConstU32};
+use sp_runtime::traits::{AccountIdLookup, BlakeTwo256};
+use sp_std::prelude::*;
 pub use trappist_runtime::{AccountId, AssetId, Balance};
 use xcm::latest::prelude::*;
 use xcm_builder::{
@@ -99,13 +99,6 @@ impl pallet_assets::Config for Runtime {
 	type Freezer = ();
 	type Extra = ();
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type Assets = Assets;
-	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -217,6 +210,5 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 32,
 		Sudo: pallet_sudo = 40,
 		Assets: pallet_assets = 43,
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
 	}
 );
