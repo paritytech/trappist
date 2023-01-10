@@ -23,7 +23,7 @@ use xcm::{latest::prelude::*, VersionedXcm};
 
 pub(crate) mod asset_reserve;
 pub(crate) mod base;
-pub(crate) mod parachain;
+pub(crate) mod template;
 pub(crate) mod trappist;
 
 #[frame_support::pallet]

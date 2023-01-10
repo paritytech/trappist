@@ -20,7 +20,7 @@ mod parachains;
 mod relay_chain;
 
 use frame_support::{sp_tracing, traits::GenesisBuild};
-use parachains::{asset_reserve, base, parachain, trappist};
+use parachains::{asset_reserve, base, template, trappist};
 use polkadot_parachain::primitives::Id as ParaId;
 use sp_core::Get;
 use sp_runtime::traits::AccountIdConversion;
@@ -133,14 +133,31 @@ decl_test_parachain! {
 	}
 }
 
-const A_PARA_ID: u32 = 1;
+const TEMPLATE_PARA_ID: u32 = 4000;
 decl_test_parachain! {
-	// Some generic parachain
-	pub struct ParaA {
-		Runtime = parachains::parachain::Runtime,
-		XcmpMessageHandler = parachains::parachain::MsgQueue,
-		DmpMessageHandler = parachains::parachain::MsgQueue,
-		new_ext = para_ext(A_PARA_ID),
+	// A simple parachain configuration template, which can be copied and customised to add another mock
+	// parachain to the network
+	pub struct Template {
+		Runtime = template::Runtime,
+		XcmpMessageHandler = template::MsgQueue,
+		DmpMessageHandler = template::MsgQueue,
+		new_ext = {
+			use template::{MsgQueue, Runtime, System};
+
+			let mut t = frame_system::GenesisConfig::default().build_storage::<Runtime>().unwrap();
+
+			pallet_balances::GenesisConfig::<Runtime> { balances: vec![(ALICE, INITIAL_BALANCE)] }
+				.assimilate_storage(&mut t)
+				.unwrap();
+
+			let mut ext = sp_io::TestExternalities::new(t);
+			ext.execute_with(|| {
+				sp_tracing::try_init_simple();
+				System::set_block_number(1);
+				MsgQueue::set_para_id(ParaId::new(TEMPLATE_PARA_ID));
+			});
+			ext
+		},
 	}
 }
 
@@ -176,7 +193,6 @@ decl_test_network! {
 	pub struct MockNet {
 		relay_chain = Relay,
 		parachains = vec![
-			(A_PARA_ID, ParaA),
 			(ASSET_RESERVE_PARA_ID, AssetReserve),
 			(TRAPPIST_PARA_ID, Trappist),
 			(BASE_PARA_ID, Base),
@@ -186,24 +202,6 @@ decl_test_network! {
 
 pub fn para_account_id(id: u32) -> relay_chain::AccountId {
 	ParaId::from(id).into_account_truncating()
-}
-
-fn para_ext(para_id: u32) -> sp_io::TestExternalities {
-	use parachain::{MsgQueue, Runtime, System};
-
-	let mut t = frame_system::GenesisConfig::default().build_storage::<Runtime>().unwrap();
-
-	pallet_balances::GenesisConfig::<Runtime> { balances: vec![(ALICE, INITIAL_BALANCE)] }
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| {
-		sp_tracing::try_init_simple();
-		System::set_block_number(1);
-		MsgQueue::set_para_id(ParaId::new(para_id));
-	});
-	ext
 }
 
 #[cfg(test)]
