@@ -1,0 +1,82 @@
+name: XCM Simulator
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master, xcm-simulator ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simulate:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: xcm-simulator
+    env:
+      NIGHTLY: nightly-2022-11-02 # Fix version to prevent cache misses with nightly changes
+      SKIP_WASM_BUILD: '1' # Skip for all steps, so no wasm32-unknown-unknown target required
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Set-Up
+        run: sudo apt update && sudo apt install -y git clang curl libssl-dev llvm libudev-dev cmake protobuf-compiler
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Install Nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ env.NIGHTLY }}
+          override: true
+
+      - name: Cache Build artefacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-test
+
+      # Install cargo-nextest, 60% faster than cargo test and support for junit output format
+      - name: Install cargo-nextest
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-nextest
+          version: latest
+
+      # Create profile with JUnit output enabled
+      - name: Configure CI
+        run: mkdir .config && echo -e "[profile.ci.junit]\npath = \"junit.xml\"" > .config/nextest.toml
+
+      # Run all tests in solution using CI profile created above
+      - name: Run tests
+        run: cargo nextest run "tests::" --no-capture --release --profile ci
+
+      # Report test results
+      - name: Report test results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: tests
+          path: target/nextest/ci/junit.xml
+          reporter: jest-junit
+          working-directory: 'xcm-simulator'
