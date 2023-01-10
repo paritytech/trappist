@@ -91,7 +91,7 @@ All XCM-specific traces from the interactions are also collected in a single pla
 
 You can run all tests, including the tracing output, with:
 ```
-cd xcm-simulator && cargo nextest run tests:: --no-capture --release
+cd xcm-simulator && cargo test run tests:: --no-capture --release
 ```
 
 ## License
