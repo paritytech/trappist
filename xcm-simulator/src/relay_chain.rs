@@ -182,13 +182,6 @@ impl pallet_xcm::Config for Runtime {
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 }
 
-// impl paras::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type UnsignedPriority = ParasUnsignedPriority;
-// 	type NextSessionRotation = Babe;
-// 	type WeightInfo = weights::runtime_parachains_paras::WeightInfo<Runtime>;
-// }
-
 impl ump::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type UmpSink = ump::XcmSink<XcmExecutor<XcmConfig>, Runtime>;
@@ -199,13 +192,6 @@ impl ump::Config for Runtime {
 
 impl dmp::Config for Runtime {}
 
-// impl hrmp::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type RuntimeOrigin = RuntimeOrigin;
-// 	type Currency = Balances;
-// 	type WeightInfo = weights::runtime_parachains_hrmp::WeightInfo<Runtime>;
-// }
-
 impl origin::Config for Runtime {}
 
 impl pallet_sudo::Config for Runtime {
@@ -213,6 +199,7 @@ impl pallet_sudo::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 }
 
+// Mock of paras_sudo_wrapper::sudo_queue_downward_xcm, using local message queue
 #[frame_support::pallet]
 pub mod mock_paras_sudo_wrapper {
 	use super::*;

@@ -1,5 +1,5 @@
 [package]
-name = "trappist-xcm-simulator"
+name = "xcm-simulator-trappist"
 version = "0.1.0"
 authors = ["Parity Technologies <admin@parity.io>"]
 description = "Examples of xcm-simulator usage."
