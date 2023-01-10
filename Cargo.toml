@@ -3,7 +3,9 @@ members = [
     "node",
     "runtime",
     "primitives/xcm",
+	"pallets/playground"
 ]
+
 exclude = [
     "contracts"
 ]

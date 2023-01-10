@@ -101,6 +101,7 @@ pallet-contracts-xcm =  { version = "0.1.0", git = "https://github.com/paritytec
 
 # Trappist Pallets
 pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../pallets/asset-registry" }
+pallet-playground = { version = "0.0.1", default-features = false, path = "../pallets/playground"}
 
 [features]
 default = ["std"]
@@ -151,6 +152,7 @@ std = [
     "pallet-utility/std",
     "pallet-xcm/std",
 	"pallet-asset-registry/std",
+	"pallet-playground/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",

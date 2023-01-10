@@ -5553,6 +5553,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-playground"
+version = "0.0.1"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "xcm",
+]
+
+[[package]]
 name = "pallet-preimage"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.31#7a4e5163091384c4c10b6d76f5cb80dac0834f38"
@@ -11255,6 +11271,7 @@ dependencies = [
  "pallet-dex-rpc-runtime-api",
  "pallet-identity",
  "pallet-multisig",
+ "pallet-playground",
  "pallet-preimage",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
