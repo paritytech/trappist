@@ -85,7 +85,7 @@ Then, start the **Trappist** playground with:
 
 ### XCM Simulator
 The [XCM simulator](./xcm-simulator) can be used to further explore XCM message execution across the various runtimes used by Trappist. 
-Each Trappist use case is written as a test, allowing interactive debugging/exploration of message flows and instruction execution.
+Each Trappist use case is written as a Rust unit test, allowing interactive debugging/exploration of message flows and instruction execution.
 Each `execute_with` closure scope within a test can be considered as a block on the corresponding chain, with messages being dispatched to the destination chains via a mock message queue as the closure goes out of scope.
 All XCM-specific traces from the interactions are also collected in a single place for easier inspection. 
 
