@@ -69,14 +69,14 @@ jobs:
 
       # Run all tests in solution using CI profile created above
       - name: Run tests
-        run: cargo nextest run "tests::" --no-capture --release --profile ci
+        run: cargo nextest run "tests::" --release --profile ci
 
       # Report test results
       - name: Report test results
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
         with:
-          name: tests
+          name: simulate
           path: target/nextest/ci/junit.xml
           reporter: jest-junit
           working-directory: 'xcm-simulator'
