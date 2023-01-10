@@ -86,7 +86,7 @@ Then, start the **Trappist** playground with:
 ### Integration Tests
 [parachains-integration-tests](https://github.com/paritytech/parachains-integration-tests) is a tool meant for XCM message execution in a locally spawned network. Tests are written as YAML files and converted into [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
-The [`integration-tests`] directory has tests on Trappist use cases and instructions on how to run them.
+The [integration-tests](./integration-tests) directory has tests on Trappist use cases and instructions on how to run them.
 
 ### XCM Simulator
 The [XCM simulator](./xcm-simulator) can be used to further explore XCM message execution across the various runtimes used by Trappist. 
