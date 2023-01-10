@@ -62,6 +62,7 @@ jobs:
         with:
           crate: cargo-nextest
           version: latest
+          use-tool-cache: true
 
       # Create profile with JUnit output enabled
       - name: Configure CI
