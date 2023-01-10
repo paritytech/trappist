@@ -58,11 +58,7 @@ jobs:
 
       # Install cargo-nextest, 60% faster than cargo test and support for junit output format
       - name: Install cargo-nextest
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-nextest
-          version: latest
-          use-tool-cache: true
+        run: if ! which cargo-nextest &> /dev/null; then cargo install cargo-nextest; fi
 
       # Create profile with JUnit output enabled
       - name: Configure CI
