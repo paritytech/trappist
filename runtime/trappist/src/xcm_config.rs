@@ -32,7 +32,7 @@ use parachains_common::{
 	AssetId,
 };
 use xcm_executor::traits::{FilterAssetLocation, JustTry};
-use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
+use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
 
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
@@ -263,7 +263,7 @@ impl xcm_executor::Config for XcmConfig {
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
-	type AssetTrap = PolkadotXcm;
+	type AssetTrap = TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 }
