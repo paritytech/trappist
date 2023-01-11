@@ -1,5 +1,8 @@
 # Trappist
 
+[![Check Set-Up & Build](https://github.com/paritytech/trappist/actions/workflows/check.yml/badge.svg)](https://github.com/paritytech/trappist/actions/workflows/check.yml)
+[![XCM Simulator](https://github.com/paritytech/trappist/actions/workflows/simulate.yml/badge.svg)](https://github.com/paritytech/trappist/actions/workflows/simulate.yml)
+
 **Trappist** is a web3 developer playground for experimenting with [cross-chain applications and services](https://polkadot.network/cross-chain-communication/) built on the technologies spearheaded by the [Polkadot Network](https://polkadot.network/), namely:
 * [Substrate](https://substrate.io/), a Blockchain framework that enables developers to quickly and easily build future proof blockchains optimized for any use case.
 * [Cumulus](https://github.com/paritytech/cumulus), a set of tools for writing Substrate-based Polkadot parachains. 
@@ -94,7 +97,7 @@ Each Trappist use case is written as a Rust unit test, allowing interactive debu
 Each `execute_with` closure scope within a test can be considered as a block on the corresponding chain, with messages being dispatched to the destination chains via a mock message queue as the closure goes out of scope.
 All XCM-specific traces from the interactions are also collected in a single place for easier inspection. 
 
-You can run all tests, including the tracing output, with:
+You can run all tests with:
 ```
 cd xcm-simulator && cargo test --release tests::; cd ..
 ```
