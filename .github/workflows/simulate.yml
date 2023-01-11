@@ -53,6 +53,7 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
+            xcm-simulator/target/
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-test
 
@@ -73,7 +74,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
         with:
-          name: simulate
+          name: results
           path: target/nextest/ci/junit.xml
           reporter: jest-junit
           working-directory: 'xcm-simulator'
