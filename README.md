@@ -50,7 +50,7 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 #### Build
 
-Use the following command to build the Trappist collector binary:
+Use the following command to build the Trappist collator binary:
 
 When the base collator is built, rename the binary into `base-collator` and place it into the `./bin` folder.
 ```
@@ -81,6 +81,22 @@ $ chmod +x zombienet-macos
 Then, start the **Trappist** playground with:
 ```
 ./zombienet-linux -p native spawn xcm-playground.toml
+```
+
+### Integration Tests
+[parachains-integration-tests](https://github.com/paritytech/parachains-integration-tests) is a tool meant for XCM message execution in a locally spawned network. Tests are written as YAML files and converted into [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
+
+The [integration-tests](./integration-tests) directory has tests on Trappist use cases and instructions on how to run them.
+
+### XCM Simulator
+The [XCM simulator](./xcm-simulator) can be used to further explore XCM message execution across the various runtimes used by Trappist. 
+Each Trappist use case is written as a Rust unit test, allowing interactive debugging/exploration of message flows and instruction execution.
+Each `execute_with` closure scope within a test can be considered as a block on the corresponding chain, with messages being dispatched to the destination chains via a mock message queue as the closure goes out of scope.
+All XCM-specific traces from the interactions are also collected in a single place for easier inspection. 
+
+You can run all tests, including the tracing output, with:
+```
+cd xcm-simulator && cargo test --release tests::; cd ..
 ```
 
 ## License

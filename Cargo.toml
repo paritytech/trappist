@@ -6,7 +6,8 @@ members = [
     "primitives/xcm",
 ]
 exclude = [
-    "contracts"
+    "contracts",
+    "xcm-simulator"
 ]
 
 [profile.release]
