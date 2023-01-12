@@ -22,12 +22,14 @@ use base_runtime::{
 		fee::WeightToFee,
 	},
 	xcm_config::{
-		Barrier, CollatorSelectionUpdateOrigin, LocationToAccountId, MaxInstructions,
-		RelayLocation, RelayNetwork, Reserves, SelfReserve, UnitWeightCost, XUsdPerSecond,
+		Barrier, CollatorSelectionUpdateOrigin, FungiblesTransactor, LocationToAccountId,
+		MaxInstructions, RelayLocation, RelayNetwork, Reserves, SelfReserve, UnitWeightCost,
+		XUsdPerSecond,
 	},
 	BlockNumber, DealWithFees, Hash, Header, Index, Period, PotId, RuntimeBlockLength,
 	RuntimeBlockWeights, Session, UnitBody, Version,
 };
+pub use base_runtime::{AccountId, AssetId, Balance};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EitherOfDiverse, Everything, Nothing},
@@ -39,8 +41,6 @@ use polkadot_runtime_common::BlockHashCount;
 use sp_core::{ConstU128, ConstU16, ConstU32};
 use sp_runtime::traits::{AccountIdLookup, BlakeTwo256};
 use sp_std::prelude::*;
-use trappist_runtime::xcm_config::{LocalFungiblesTransactor, ReservedFungiblesTransactor};
-pub use trappist_runtime::{AccountId, AssetId, Balance};
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, IsConcrete,
@@ -162,10 +162,9 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
 }
 
-pub type LocalAssetTransactor =
-	CurrencyAdapter<Balances, IsConcrete<SelfReserve>, LocationToAccountId, AccountId, ()>;
-pub type AssetTransactors =
-	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
+pub type AssetTransactors = (CurrencyTransactor, FungiblesTransactor);
+pub type CurrencyTransactor =
+	CurrencyAdapter<Balances, IsConcrete<RelayLocation>, LocationToAccountId, AccountId, ()>;
 pub type XcmOriginToTransactDispatchOrigin = (
 	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
 	RelayChainAsNative<RelayChainOrigin, RuntimeOrigin>,

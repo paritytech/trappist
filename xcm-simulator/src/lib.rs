@@ -216,6 +216,7 @@ mod tests {
 	};
 	use std::sync::Once;
 	use thousands::Separable;
+	use tracing::trace;
 	use xcm::prelude::*;
 	use xcm_simulator::{TestExt, Weight};
 
@@ -225,7 +226,7 @@ mod tests {
 			// Add test tracing (from sp_tracing::init_for_tests()) but filtering for xcm logs only
 			let _ = tracing_subscriber::fmt()
 				.with_max_level(tracing::Level::TRACE)
-				.with_env_filter("xcm=trace") // Comment out this line to see all traces
+				.with_env_filter("xcm=trace,xcm_simulator_trappist=trace") // Comment out this line to see all traces
 				.with_test_writer()
 				.init();
 		});
@@ -643,6 +644,15 @@ mod tests {
 		)
 	}
 
+	// Helper for outputting events
+	fn output_events<Runtime: frame_system::Config>() {
+		let events = frame_system::Pallet::<Runtime>::events();
+		trace!("{} events", events.len());
+		for event in events {
+			trace!("{:?}", event)
+		}
+	}
+
 	fn paras_sudo_wrapper_sudo_queue_downward_xcm<RuntimeCall: Encode>(call: RuntimeCall) {
 		let sudo_queue_downward_xcm =
 			relay_chain::RuntimeCall::ParasSudoWrapper(mock_paras_sudo_wrapper::Call::<
@@ -700,6 +710,7 @@ mod tests {
 				Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
 				Weight::from_ref_time(MAX_WEIGHT as u64)
 			));
+			output_events::<trappist::Runtime>();
 			assert_eq!(3, trappist::System::events().len());
 		});
 
@@ -709,7 +720,8 @@ mod tests {
 				Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
 				Weight::from_ref_time(MAX_WEIGHT as u64)
 			));
-			assert_eq!(3, trappist::System::events().len());
+			output_events::<base::Runtime>();
+			assert_eq!(1, trappist::System::events().len());
 		});
 	}
 }
