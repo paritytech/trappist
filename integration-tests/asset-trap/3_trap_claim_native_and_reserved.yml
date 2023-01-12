@@ -1,0 +1,315 @@
+---
+settings:
+  chains:
+    reserve_parachain: &reserve_parachain
+      wsPort: 9910
+      paraId: &rp_id 1000
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: &tp_id 2000
+  variables:
+    common:
+      native_amount_to_trap: &native_amount_to_trap 1010101010101
+      reserved_amount_to_trap: &reserved_amount_to_trap 2020202020202
+      require_weight_at_most_as_array: &weight_at_most_as_array [ 2000000000 ]
+    chains:
+      reserve_parachain:
+        signer: &rp_signer //Alice
+        wallet: &rp_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        bob_signer: &rp_bob_signer //Bob
+        bob_wallet: &rp_bob_wallet FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+        asset_id: &reserve_asset_id 1
+        asset_min_balance: &reserve_assets_min_balance 1
+        asset_pallet_id: &reserve_asset_pallet_id 50
+        asset_multi_location: &reserve_asset_multi_location {
+          parents: 1,
+          interior: {
+            X3: [
+              {
+                Parachain: *rp_id
+              },
+              {
+                PalletInstance: *reserve_asset_pallet_id
+              },
+              {
+                GeneralIndex: *reserve_asset_id
+              }
+            ]
+          }
+        }
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_signer: &tp_bob_signer //Bob
+        bob_wallet: &tp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+        asset_pallet_id: &trappist_asset_pallet_id 43
+        asset_id: &trappist_asset_id 100
+        asset_min_balance: &trappist_assets_min_balance 1
+        sovereign_account: &tp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
+        bob_account: &tp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+  decodedCalls:
+    force_create_asset:
+      chain: *reserve_parachain
+      pallet: assets
+      call: forceCreate
+      args: [
+        *reserve_asset_id,
+        { id: *rp_wallet }, # owner
+        true, # isSufficient
+        *reserve_assets_min_balance # minBalance
+      ]
+
+tests:
+  - name: Simplest possible way to trap and claim a reserved asset
+    its:
+      - name: Trap reserved asset by doing WithdrawAsset and nothing else
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_bob_signer
+                pallet: polkadotXcm
+                call: execute
+                args: [
+                  {
+                    v2: [
+                      {
+                        WithdrawAsset: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: Here
+                              }
+                            },
+                            fun: {
+                              Fungible: *native_amount_to_trap
+                            }
+                          },
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 1,
+                                interior: {
+                                  X3: [
+                                    {
+                                      Parachain: *rp_id
+                                    },
+                                    {
+                                      PalletInstance: *reserve_asset_pallet_id
+                                    },
+                                    {
+                                      GeneralIndex: *reserve_asset_id
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            fun: {
+                              Fungible: *reserved_amount_to_trap
+                            }
+                          }
+                        ]
+                      },
+                    ]
+                  },
+                  *weight_at_most_as_array, # maxWeight
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 1,000,000,000
+
+                  - name: assetTrap.AssetsTrapped
+                    attributes:
+                      - type: XcmV1MultiLocation
+                        value: {
+                          parents: 0,
+                            interior: {
+                              X1: {
+                                AccountId32: {
+                                  network: Polkadot,
+                                  id: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"
+                                }
+                              }
+                            }
+                        }
+                      - type: XcmVersionedMultiAssets
+                        value: {
+                          V1: [
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 0,
+                                  interior: Here
+                                }
+                              },
+                              fun: {
+                                Fungible: *native_amount_to_trap
+                              }
+                            },
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 1,
+                                    interior: {
+                                      X3: [
+                                        {
+                                          Parachain: *rp_id
+                                        },
+                                        {
+                                          PalletInstance: *reserve_asset_pallet_id
+                                        },
+                                        {
+                                          GeneralIndex: *reserve_asset_id
+                                        }
+                                      ]
+                                    }
+                                }
+                              },
+                              fun: {
+                                Fungible: *reserved_amount_to_trap
+                              }
+                            }
+                          ]
+                        }
+
+      - name: Claim reserved asset
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_bob_signer
+                pallet: polkadotXcm
+                call: execute
+                args: [
+                  {
+                    v2: [
+                      {
+                        ClaimAsset: {
+                          assets: [
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 0,
+                                  interior: Here
+                                }
+                              },
+                              fun: {
+                                Fungible: *native_amount_to_trap
+                              }
+                            },
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 1,
+                                  interior: {
+                                    X3: [
+                                      {
+                                        Parachain: *rp_id
+                                      },
+                                      {
+                                        PalletInstance: *reserve_asset_pallet_id
+                                      },
+                                      {
+                                        GeneralIndex: *reserve_asset_id
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              fun: {
+                                Fungible: *reserved_amount_to_trap
+                              }
+                            }
+                          ],
+                          ticket: {
+                            parents: 0,
+                            interior: {
+                              Here
+                            }
+                          }
+                        }
+                      },
+                      {
+                        DepositAsset: {
+                          assets: {
+                            Wild: All
+                          },
+                          maxAssets: 2,
+                          beneficiary: {
+                            parents: 0,
+                            interior: {
+                              X1: {
+                                AccountId32: {
+                                  network: null,
+                                  id: *tp_bob_acc
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  *weight_at_most_as_array,
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 2,000,000,000
+                  - name: assetTrap.AssetsClaimed
+                    attributes:
+                      - type: XcmV1MultiLocation
+                        value: {
+                          parents: 0,
+                            interior: {
+                              X1: {
+                                AccountId32: {
+                                  network: Polkadot,
+                                  id: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"
+                                }
+                              }
+                            }
+                        }
+                      - type: XcmVersionedMultiAssets
+                        value: {
+                          V1: [
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 0,
+                                  interior: Here
+                                }
+                              },
+                              fun: {
+                                Fungible: *native_amount_to_trap
+                              }
+                            },
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 1,
+                                    interior: {
+                                      X3: [
+                                        {
+                                          Parachain: *rp_id
+                                        },
+                                        {
+                                          PalletInstance: *reserve_asset_pallet_id
+                                        },
+                                        {
+                                          GeneralIndex: *reserve_asset_id
+                                        }
+                                      ]
+                                    }
+                                }
+                              },
+                              fun: {
+                                Fungible: *reserved_amount_to_trap
+                              }
+                            }
+                          ]
+                        }
