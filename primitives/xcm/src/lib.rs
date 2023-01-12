@@ -111,11 +111,13 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 			}
 		}
 
+		// TODO: put real weight of execution up until this point here
+		let mut weight = 0;
+
 		if !trap.is_empty() {
-			XcmPallet::drop_assets(origin, trap.into());
+			weight += XcmPallet::drop_assets(origin, trap.into());
 		}
 
-		// TODO #3735: Put the real weight in there.
-		0
+		weight
 	}
 }
