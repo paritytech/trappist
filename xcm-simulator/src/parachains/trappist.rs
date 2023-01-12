@@ -27,25 +27,25 @@ use polkadot_runtime_common::BlockHashCount;
 use sp_core::{ConstU128, ConstU16, ConstU32};
 use sp_runtime::traits::{AccountIdLookup, BlakeTwo256};
 use sp_std::prelude::*;
+pub use trappist_runtime::{constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetId, Balance};
 use trappist_runtime::{
 	constants::{
-		currency::{CENTS, EXISTENTIAL_DEPOSIT, UNITS},
+		currency::{CENTS, UNITS},
 		fee::WeightToFee,
 	},
 	xcm_config::{
-		AssetTransactors, Barrier, CollatorSelectionUpdateOrigin, LocationToAccountId,
-		MaxInstructions, RelayLocation, RelayNetwork, Reserves, SelfReserve, UnitWeightCost,
-		XUsdPerSecond,
+		Barrier, CollatorSelectionUpdateOrigin, LocalFungiblesTransactor, LocationToAccountId,
+		MaxInstructions, RelayLocation, RelayNetwork, ReservedFungiblesTransactor, Reserves,
+		SelfReserve, UnitWeightCost, XUsdPerSecond,
 	},
 	BlockNumber, DealWithFees, Hash, Header, Index, Period, PotId, RuntimeBlockLength,
 	RuntimeBlockWeights, Session, UnitBody, Version,
 };
-pub use trappist_runtime::{AccountId, AssetId, Balance};
 use xcm::latest::prelude::*;
 use xcm_builder::{
-	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, LocationInverter, ParentAsSuperuser,
-	RelayChainAsNative, SiblingParachainAsNative, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, UsingComponents,
+	CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, IsConcrete,
+	LocationInverter, ParentAsSuperuser, RelayChainAsNative, SiblingParachainAsNative,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, UsingComponents,
 };
 use xcm_executor::{Config, XcmExecutor};
 
@@ -169,6 +169,10 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
 }
 
+pub type LocalAssetTransactor =
+	CurrencyAdapter<Balances, IsConcrete<SelfReserve>, LocationToAccountId, AccountId, ()>;
+pub type AssetTransactors =
+	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
 pub type XcmOriginToTransactDispatchOrigin = (
 	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
 	RelayChainAsNative<RelayChainOrigin, RuntimeOrigin>,
