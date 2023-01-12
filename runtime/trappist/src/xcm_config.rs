@@ -263,7 +263,8 @@ impl xcm_executor::Config for XcmConfig {
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
-	type AssetTrap = TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
+	type AssetTrap =
+		TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 }
