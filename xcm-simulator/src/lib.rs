@@ -21,6 +21,7 @@ mod relay_chain;
 
 #[cfg(test)]
 mod test_xcm_use_cases;
+#[cfg(test)]
 mod test_xcm_trap;
 
 use frame_support::{sp_tracing, traits::GenesisBuild};
@@ -32,6 +33,7 @@ use sp_runtime::traits::AccountIdConversion;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
 pub const ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([0u8; 32]);
+pub const BOB: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([1u8; 32]);
 pub const INITIAL_BALANCE: u128 = 2_000_000_000;
 
 const ASSET_RESERVE_PARA_ID: u32 = 1000;
