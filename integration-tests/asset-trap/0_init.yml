@@ -77,14 +77,14 @@ tests:
                           - type: Result<Null, SpRuntimeDispatchError>
                             value: Ok
               - queries:
-                forced_created_asset:
-                  chain: *reserve_parachain
-                  pallet: assets
-                  call: asset
-                  args: [*reserve_asset_id]
+                  forced_created_asset:
+                    chain: *reserve_parachain
+                    pallet: assets
+                    call: asset
+                    args: [*reserve_asset_id]
               - asserts:
-                isSome:
-                  args: [$forced_created_asset]
+                  isSome:
+                    args: [$forced_created_asset]
 
           - name: DEPENDENCY | Mint assets on Reserve Parachain
             actions:
@@ -122,15 +122,15 @@ tests:
                             value: Ok
                       - name: assets.ForceCreated
               - queries:
-                forced_created_asset:
-                  chain: *trappist_parachain
-                  pallet: assets
-                  call: asset
-                  args:
-                    - *trappist_asset_id
+                  forced_created_asset:
+                    chain: *trappist_parachain
+                    pallet: assets
+                    call: asset
+                    args:
+                      - *trappist_asset_id
               - asserts:
-                isSome:
-                args: [$forced_created_asset]
+                  isSome:
+                    args: [$forced_created_asset]
 
         its:
           - name: Trappist Parachain has AssetId registered to Reserve Asset
