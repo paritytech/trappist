@@ -210,7 +210,7 @@ mod tests {
 	use crate::relay_chain::mock_paras_sudo_wrapper;
 	use codec::Encode;
 	use frame_support::{
-		assert_ok,
+		assert_ok, log,
 		pallet_prelude::{DispatchResult, DispatchResultWithPostInfo},
 		traits::PalletInfoAccess,
 	};
@@ -225,7 +225,7 @@ mod tests {
 			// Add test tracing (from sp_tracing::init_for_tests()) but filtering for xcm logs only
 			let _ = tracing_subscriber::fmt()
 				.with_max_level(tracing::Level::TRACE)
-				.with_env_filter("xcm=trace") // Comment out this line to see all traces
+				.with_env_filter("xcm=trace,system::events=trace") // Comment out this line to see all traces
 				.with_test_writer()
 				.init();
 		});
@@ -589,6 +589,36 @@ mod tests {
 		});
 	}
 
+	#[test]
+	fn event_collection_works() {
+		init_tracing();
+
+		MockNet::reset();
+
+		const AMOUNT: u128 = trappist::EXISTENTIAL_DEPOSIT * 10;
+		const MAX_WEIGHT: u128 = 1_000_000_000;
+
+		Trappist::execute_with(|| {
+			assert_ok!(trappist::PolkadotXcm::execute(
+				trappist::RuntimeOrigin::signed(ALICE),
+				Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
+				Weight::from_ref_time(MAX_WEIGHT as u64)
+			));
+			output_events::<trappist::Runtime>();
+			assert_eq!(3, trappist::System::events().len());
+		});
+
+		Base::execute_with(|| {
+			assert_ok!(base::PolkadotXcm::execute(
+				base::RuntimeOrigin::signed(ALICE),
+				Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
+				Weight::from_ref_time(MAX_WEIGHT as u64)
+			));
+			output_events::<base::Runtime>();
+			assert_eq!(1, trappist::System::events().len());
+		});
+	}
+
 	fn assert_balance(actual: u128, expected: u128, fees: u128) {
 		assert!(
 			actual >= (expected - fees) && actual <= expected,
@@ -643,6 +673,16 @@ mod tests {
 		)
 	}
 
+	// Helper for outputting events
+	fn output_events<Runtime: frame_system::Config>() {
+		const TARGET: &str = "system::events";
+		let events = frame_system::Pallet::<Runtime>::events();
+		log::trace!(target: TARGET, "{} events", events.len());
+		for event in events {
+			log::trace!(target: TARGET, "{:?}", event)
+		}
+	}
+
 	fn paras_sudo_wrapper_sudo_queue_downward_xcm<RuntimeCall: Encode>(call: RuntimeCall) {
 		let sudo_queue_downward_xcm =
 			relay_chain::RuntimeCall::ParasSudoWrapper(mock_paras_sudo_wrapper::Call::<
@@ -683,33 +723,5 @@ mod tests {
 					.into(),
 			})),
 		)
-	}
-
-	#[test]
-	fn event_collection_works() {
-		init_tracing();
-
-		MockNet::reset();
-
-		const AMOUNT: u128 = trappist::EXISTENTIAL_DEPOSIT * 10;
-		const MAX_WEIGHT: u128 = 1_000_000_000;
-
-		Trappist::execute_with(|| {
-			assert_ok!(trappist::PolkadotXcm::execute(
-				trappist::RuntimeOrigin::signed(ALICE),
-				Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
-				Weight::from_ref_time(MAX_WEIGHT as u64)
-			));
-			assert_eq!(3, trappist::System::events().len());
-		});
-
-		Base::execute_with(|| {
-			assert_ok!(base::PolkadotXcm::execute(
-				base::RuntimeOrigin::signed(ALICE),
-				Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
-				Weight::from_ref_time(MAX_WEIGHT as u64)
-			));
-			assert_eq!(3, trappist::System::events().len());
-		});
 	}
 }
