@@ -99,7 +99,7 @@ All XCM-specific traces from the interactions are also collected in a single pla
 
 You can run all tests with:
 ```
-cd xcm-simulator && cargo test --release test_xcm_use_cases::; cd ..
+cd xcm-simulator && cargo test --release tests::; cd ..
 ```
 
 ## License

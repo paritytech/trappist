@@ -22,9 +22,9 @@ mod relay_chain;
 #[cfg(test)]
 mod tests_misc;
 #[cfg(test)]
-mod test_xcm_use_cases;
+mod tests_xcm_use_cases;
 #[cfg(test)]
-mod test_xcm_trap;
+mod tests_xcm_asset_trap;
 
 use frame_support::{sp_tracing, traits::GenesisBuild};
 use parachains::{asset_reserve, base, template, trappist};

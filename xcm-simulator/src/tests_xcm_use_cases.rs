@@ -1,7 +1,7 @@
 use super::*;
 
 #[cfg(test)]
-mod test_xcm_use_cases {
+mod tests {
 	use super::*;
 	use crate::relay_chain::mock_paras_sudo_wrapper;
 	use codec::Encode;
