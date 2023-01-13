@@ -18,7 +18,7 @@ fn init_tracing() {
 		// Add test tracing (from sp_tracing::init_for_tests()) but filtering for xcm logs only
 		let _ = tracing_subscriber::fmt()
 			.with_max_level(tracing::Level::TRACE)
-			.with_env_filter("xcm=trace") // Comment out this line to see all traces
+			.with_env_filter("xcm=trace,system::events=trace") // Comment out this line to see all traces
 			.with_test_writer()
 			.init();
 	});
