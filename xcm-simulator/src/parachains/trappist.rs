@@ -170,10 +170,10 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
 }
 
-pub type LocalAssetTransactor =
-	CurrencyAdapter<Balances, IsConcrete<SelfReserve>, LocationToAccountId, AccountId, ()>;
 pub type AssetTransactors =
 	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
+pub type LocalAssetTransactor =
+	CurrencyAdapter<Balances, IsConcrete<SelfReserve>, LocationToAccountId, AccountId, ()>;
 pub type XcmOriginToTransactDispatchOrigin = (
 	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
 	RelayChainAsNative<RelayChainOrigin, RuntimeOrigin>,
