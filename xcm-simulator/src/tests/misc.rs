@@ -1,0 +1,33 @@
+use crate::tests::*;
+use frame_support::assert_ok;
+use xcm_simulator::{TestExt, Weight};
+
+#[test]
+fn event_collection_works() {
+	init_tracing();
+
+	MockNet::reset();
+
+	const AMOUNT: u128 = trappist::EXISTENTIAL_DEPOSIT * 10;
+	const MAX_WEIGHT: u128 = 1_000_000_000;
+
+	Trappist::execute_with(|| {
+		assert_ok!(trappist::PolkadotXcm::execute(
+			trappist::RuntimeOrigin::signed(ALICE),
+			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
+			Weight::from_ref_time(MAX_WEIGHT as u64)
+		));
+		output_events::<trappist::Runtime>();
+		assert_eq!(3, trappist::System::events().len());
+	});
+
+	Base::execute_with(|| {
+		assert_ok!(base::PolkadotXcm::execute(
+			base::RuntimeOrigin::signed(ALICE),
+			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
+			Weight::from_ref_time(MAX_WEIGHT as u64)
+		));
+		output_events::<base::Runtime>();
+		assert_eq!(1, trappist::System::events().len());
+	});
+}
