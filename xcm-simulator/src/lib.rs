@@ -20,8 +20,7 @@ mod parachains;
 mod relay_chain;
 
 #[cfg(test)]
-mod test_misc;
-
+mod tests_misc;
 #[cfg(test)]
 mod test_xcm_use_cases;
 #[cfg(test)]
