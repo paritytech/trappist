@@ -20,11 +20,7 @@ mod parachains;
 mod relay_chain;
 
 #[cfg(test)]
-mod tests_misc;
-#[cfg(test)]
-mod tests_xcm_use_cases;
-#[cfg(test)]
-mod tests_xcm_asset_trap;
+mod tests;
 
 use frame_support::{sp_tracing, traits::GenesisBuild};
 use parachains::{asset_reserve, base, template, trappist};
