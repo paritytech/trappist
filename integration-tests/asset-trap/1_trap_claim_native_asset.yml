@@ -1,0 +1,166 @@
+---
+settings:
+  chains:
+    relay_chain:
+      wsPort: 9900
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+  variables:
+    common:
+      amount_to_trap: &amount_to_trap 10000000000000
+      require_weight_at_most: &weight_at_most [ 2000000000 ]
+    chains:
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        bob_account: &tp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+
+tests:
+  - name: Simplest possible way to trap and claim a native asset
+    its:
+      - name: Trap native asset
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: polkadotXcm
+                call: execute
+                args: [
+                  {
+                    v2: [
+                      {
+                        WithdrawAsset: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: Here
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_trap
+                            }
+                          }
+                        ]
+                      },
+                    ]
+                  },
+                  *weight_at_most, # maxWeight
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 1,000,000,000
+
+                  - name: polkadotXcm.AssetsTrapped
+                    attributes:
+                      - type: XcmV1MultiLocation
+                        value: {
+                          parents: 0,
+                          interior:
+                            {X1:
+                              {AccountId32:
+                                {
+                                  network: "Polkadot",
+                                  id: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+                                }
+                              }
+                            }
+                          }
+                      - type: XcmVersionedMultiAssets
+                        value: {
+                          V1: [
+                            {
+                              id: { Concrete: {parents: 0, interior: Here}},
+                              fun: { Fungible: *amount_to_trap}
+                            }
+                            ]
+                          }
+
+      - name: Claim native asset
+        actions:
+          - extrinsics:
+              - chain: *trappist_parachain
+                signer: *tp_signer
+                pallet: polkadotXcm
+                call: execute
+                args: [
+                  {
+                    v2: [
+                      {
+                        ClaimAsset: {
+                          assets: [
+                            {
+                              id: {
+                                Concrete: {
+                                  parents: 0,
+                                  interior: Here
+                                }
+                              },
+                              fun: {
+                                Fungible: *amount_to_trap
+                              }
+                            }
+                          ],
+                          ticket: {
+                            parents: 0,
+                            interior: {
+                              Here
+                            }
+                          }
+                        }
+                      },
+                      {
+                        DepositAsset: {
+                          assets: {
+                            Wild: All
+                          },
+                          maxAssets: 1,
+                          beneficiary: {
+                            parents: 0,
+                            interior: {
+                              X1: {
+                                AccountId32: {
+                                  network: null,
+                                  id: *tp_bob_acc
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  *weight_at_most,
+                ]
+                events:
+                  - name: polkadotXcm.Attempted
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        value: 2,000,000,000
+                  # ToDo: uncomment when trappist is above 0.9.31
+                  # - name: polkadotXcm.AssetsClaimed
+                  #   attributes:
+                  #     - type: XcmV1MultiLocation
+                  #       value: {
+                  #         parents: 0,
+                  #         interior:
+                  #           {X1:
+                  #             {AccountId32:
+                  #               {
+                  #                 network: Polkadot, id: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+                  #               }
+                  #             }
+                  #           }
+                  #         }
+                  #     - type: XcmVersionedMultiAssets
+                  #       value: {
+                  #         V1: [
+                  #           {
+                  #             id: {Concrete: {parents: 0, interior: Here}},
+                  #             fun:{Fungible: *amount_to_trap}
+                  #           }
+                  #           ]
+                  #         }

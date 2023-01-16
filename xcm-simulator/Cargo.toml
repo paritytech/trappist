@@ -47,3 +47,6 @@ rococo-runtime-constants = { git = "https://github.com/paritytech/polkadot", bra
 statemine-runtime = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.30" }
 base-runtime = { path = "../runtime/base" }
 trappist-runtime = { path = "../runtime/trappist" }
+
+# Trappist XCM Primitives
+xcm-primitives = { path = "../primitives/xcm", default-features = false }

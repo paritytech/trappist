@@ -1,8 +1,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::{borrow::Borrow, marker::PhantomData};
-use xcm::latest::{AssetId::Concrete, Fungibility::Fungible, MultiAsset, MultiLocation};
-use xcm_executor::traits::{Convert, Error as MatchError, MatchesFungibles};
+use frame_support::{
+	sp_runtime::SaturatedConversion,
+	traits::{fungibles::Inspect, Currency},
+};
+use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
+use xcm::latest::{
+	AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
+};
+use xcm_executor::{
+	traits::{Convert, DropAssets, Error as MatchError, MatchesFungibles},
+	Assets,
+};
 
 pub struct AsAssetMultiLocation<AssetId, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetIdInfoGetter)>,
@@ -47,5 +56,71 @@ impl<
 		let amount = ConvertBalance::convert_ref(amount)
 			.map_err(|_| MatchError::AmountToBalanceConversionFailed)?;
 		Ok((what, amount))
+	}
+}
+
+pub struct TrappistDropAssets<
+	AssetId,
+	AssetIdInfoGetter,
+	AssetsPallet,
+	BalancesPallet,
+	XcmPallet,
+	AccoundId,
+>(PhantomData<(AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, AccoundId)>);
+impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, AccountId> DropAssets
+	for TrappistDropAssets<
+		AssetId,
+		AssetIdInfoGetter,
+		AssetsPallet,
+		BalancesPallet,
+		XcmPallet,
+		AccountId,
+	> where
+	AssetId: Clone,
+	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
+	AssetsPallet: Inspect<AccountId, AssetId = AssetId>,
+	BalancesPallet: Currency<AccountId>,
+	XcmPallet: DropAssets,
+{
+	// assets are whatever the Holding Register had when XCVM halts
+	fn drop_assets(origin: &MultiLocation, assets: Assets) -> u64 {
+		let multi_assets: Vec<MultiAsset> = assets.into();
+		let mut trap: Vec<MultiAsset> = Vec::new();
+
+		for asset in multi_assets {
+			if let MultiAsset { id: Concrete(location), fun: Fungible(amount) } = asset.clone() {
+				// is location a fungible on AssetRegistry?
+				if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(location.clone()) {
+					let min_balance = AssetsPallet::minimum_balance(asset_id);
+
+					// only trap if amount ≥ min_balance
+					// do nothing otherwise (asset is lost)
+					if min_balance <= amount.saturated_into::<AssetsPallet::Balance>() {
+						trap.push(asset);
+					}
+
+				// is location the native token?
+				} else if location == (MultiLocation { parents: 0, interior: Here }) {
+					let min_balance = BalancesPallet::minimum_balance();
+
+					// only trap if amount ≥ min_balance
+					// do nothing otherwise (asset is lost)
+					if min_balance <= amount.saturated_into::<BalancesPallet::Balance>() {
+						trap.push(asset);
+					}
+				}
+			}
+		}
+
+		// TODO: put real weight of execution up until this point here
+		let mut weight = 0;
+
+		if !trap.is_empty() {
+			// we have filtered out non-compliant assets
+			// insert valid assets into the asset trap implemented by XcmPallet
+			weight += XcmPallet::drop_assets(origin, trap.into());
+		}
+
+		weight
 	}
 }

@@ -48,6 +48,7 @@ use xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, UsingComponents,
 };
 use xcm_executor::{Config, XcmExecutor};
+use xcm_primitives::TrappistDropAssets;
 
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
@@ -199,7 +200,8 @@ impl Config for XcmConfig {
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
-	type AssetTrap = PolkadotXcm;
+	type AssetTrap =
+		TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 }
