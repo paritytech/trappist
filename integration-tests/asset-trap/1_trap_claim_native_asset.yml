@@ -57,22 +57,23 @@ tests:
                     attributes:
                       - type: XcmV1MultiLocation
                         value: {
-                          "parents":0,
-                          "interior":
-                            {"X1":
-                              {"AccountId32":
+                          parents: 0,
+                          interior:
+                            {X1:
+                              {AccountId32:
                                 {
-                                  "network":"Polkadot","id":"0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+                                  network: "Polkadot",
+                                  id: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
                                 }
                               }
                             }
                           }
                       - type: XcmVersionedMultiAssets
                         value: {
-                          "V1":[
+                          V1: [
                             {
-                              "id": {"Concrete": {"parents":0,"interior":"Here"}},
-                              "fun":{"Fungible":*amount_to_trap}
+                              id: { Concrete: {parents: 0, interior: Here}},
+                              fun: { Fungible: *amount_to_trap}
                             }
                             ]
                           }
@@ -144,22 +145,22 @@ tests:
                   #   attributes:
                   #     - type: XcmV1MultiLocation
                   #       value: {
-                  #         "parents":0,
-                  #         "interior":
-                  #           {"X1":
-                  #             {"AccountId32":
+                  #         parents: 0,
+                  #         interior:
+                  #           {X1:
+                  #             {AccountId32:
                   #               {
-                  #                 "network":"Polkadot","id":"0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+                  #                 network: Polkadot, id: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
                   #               }
                   #             }
                   #           }
                   #         }
                   #     - type: XcmVersionedMultiAssets
                   #       value: {
-                  #         "V1":[
+                  #         V1: [
                   #           {
-                  #             "id": {"Concrete": {"parents":0,"interior":"Here"}},
-                  #             "fun":{"Fungible":*amount_to_trap}
+                  #             id: {Concrete: {parents: 0, interior: Here}},
+                  #             fun:{Fungible: *amount_to_trap}
                   #           }
                   #           ]
                   #         }
