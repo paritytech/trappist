@@ -121,7 +121,7 @@ tests:
                         xcmOutcome: Complete
                         value: 1,000,000,000
 
-                  - name: assetTrap.AssetsTrapped
+                  - name: polkadotXcm.AssetsTrapped
                     attributes:
                       - type: XcmV1MultiLocation
                         value: {
@@ -260,7 +260,7 @@ tests:
                       - type: XcmV2TraitsOutcome
                         xcmOutcome: Complete
                         value: 2,000,000,000
-                  - name: assetTrap.AssetsClaimed
+                  - name: polkadotXcm.AssetsClaimed
                     attributes:
                       - type: XcmV1MultiLocation
                         value: {
