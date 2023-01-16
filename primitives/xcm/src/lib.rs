@@ -82,6 +82,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 	BalancesPallet: Currency<AccountId>,
 	XcmPallet: DropAssets,
 {
+	// assets are whatever the Holding Register had when XCVM halts
 	fn drop_assets(origin: &MultiLocation, assets: Assets) -> u64 {
 		let multi_assets: Vec<MultiAsset> = assets.into();
 		let mut trap: Vec<MultiAsset> = Vec::new();
@@ -115,6 +116,8 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		let mut weight = 0;
 
 		if !trap.is_empty() {
+			// we have filtered out non-compliant assets
+			// insert valid assets into the asset trap implemented by XcmPallet
 			weight += XcmPallet::drop_assets(origin, trap.into());
 		}
 
