@@ -57,7 +57,7 @@ tests:
                     attributes:
                       - type: XcmV1MultiLocation
                         value: {
-                          "parents":"0",
+                          "parents":0,
                           "interior":
                             {"X1":
                               {"AccountId32":
@@ -71,7 +71,7 @@ tests:
                         value: {
                           "V1":[
                             {
-                              "id": {"Concrete": {"parents":"0","interior":"Here"}},
+                              "id": {"Concrete": {"parents":0,"interior":"Here"}},
                               "fun":{"Fungible":*amount_to_trap}
                             }
                             ]
