@@ -199,45 +199,46 @@ tests:
                       - type: XcmV2TraitsOutcome
                         xcmOutcome: Complete
                         value: 2,000,000,000
-                  - name: polkadotXcm.AssetsClaimed
-                    attributes:
-                      - type: XcmV1MultiLocation
-                        value: {
-                          parents: 0,
-                            interior: {
-                              X1: {
-                                AccountId32: {
-                                  network: Polkadot,
-                                  id: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"
-                                }
-                              }
-                            }
-                        }
-                      - type: XcmVersionedMultiAssets
-                        value: {
-                          V1: [
-                            {
-                              id: {
-                                Concrete: {
-                                  parents: 1,
-                                    interior: {
-                                      X3: [
-                                        {
-                                          Parachain: *rp_id
-                                        },
-                                        {
-                                          PalletInstance: *reserve_asset_pallet_id
-                                        },
-                                        {
-                                          GeneralIndex: *reserve_asset_id
-                                        }
-                                      ]
-                                    }
-                                }
-                              },
-                              fun: {
-                                Fungible: *amount_to_trap
-                              }
-                            }
-                          ]
-                        }
+                  # ToDo: uncomment when trappist is above 0.9.31
+                  # - name: polkadotXcm.AssetsClaimed
+                  #   attributes:
+                  #     - type: XcmV1MultiLocation
+                  #       value: {
+                  #         parents: 0,
+                  #           interior: {
+                  #             X1: {
+                  #               AccountId32: {
+                  #                 network: Polkadot,
+                  #                 id: "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"
+                  #               }
+                  #             }
+                  #           }
+                  #       }
+                  #     - type: XcmVersionedMultiAssets
+                  #       value: {
+                  #         V1: [
+                  #           {
+                  #             id: {
+                  #               Concrete: {
+                  #                 parents: 1,
+                  #                   interior: {
+                  #                     X3: [
+                  #                       {
+                  #                         Parachain: *rp_id
+                  #                       },
+                  #                       {
+                  #                         PalletInstance: *reserve_asset_pallet_id
+                  #                       },
+                  #                       {
+                  #                         GeneralIndex: *reserve_asset_id
+                  #                       }
+                  #                     ]
+                  #                   }
+                  #               }
+                  #             },
+                  #             fun: {
+                  #               Fungible: *amount_to_trap
+                  #             }
+                  #           }
+                  #         ]
+                  #       }
