@@ -176,7 +176,7 @@ fn fungible_trap_works() {
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(
-				(fungible_asset_multi_location, TRAP_AMOUNT).into()
+				(fungible_asset_multi_location.clone(), TRAP_AMOUNT).into()
 			)]))),
 			Weight::from_ref_time(MAX_WEIGHT as u64)
 		));
@@ -187,10 +187,8 @@ fn fungible_trap_works() {
 		)));
 
 		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
-		let fungible_asset = MultiAsset {
-			id: Concrete(fungible_asset_multi_location.clone()),
-			fun: Fungible(TRAP_AMOUNT),
-		};
+		let fungible_asset =
+			MultiAsset { id: Concrete(fungible_asset_multi_location), fun: Fungible(TRAP_AMOUNT) };
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
@@ -287,7 +285,7 @@ fn fungible_dust_trap_doesnt_work() {
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(
-				(fungible_asset_multi_location, TRAP_AMOUNT).into()
+				(fungible_asset_multi_location.clone(), TRAP_AMOUNT).into()
 			)]))),
 			Weight::from_ref_time(MAX_WEIGHT as u64)
 		));
@@ -298,10 +296,8 @@ fn fungible_dust_trap_doesnt_work() {
 		)));
 
 		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
-		let fungible_asset = MultiAsset {
-			id: Concrete(fungible_asset_multi_location.clone()),
-			fun: Fungible(TRAP_AMOUNT),
-		};
+		let fungible_asset =
+			MultiAsset { id: Concrete(fungible_asset_multi_location), fun: Fungible(TRAP_AMOUNT) };
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
@@ -396,7 +392,7 @@ fn fungible_non_registered_trap_doesnt_work() {
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(
-				(fungible_asset_multi_location, TRAP_AMOUNT).into()
+				(fungible_asset_multi_location.clone(), TRAP_AMOUNT).into()
 			)]))),
 			Weight::from_ref_time(MAX_WEIGHT as u64)
 		));
@@ -407,10 +403,8 @@ fn fungible_non_registered_trap_doesnt_work() {
 		)));
 
 		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
-		let fungible_asset = MultiAsset {
-			id: Concrete(fungible_asset_multi_location.clone()),
-			fun: Fungible(TRAP_AMOUNT),
-		};
+		let fungible_asset =
+			MultiAsset { id: Concrete(fungible_asset_multi_location), fun: Fungible(TRAP_AMOUNT) };
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
