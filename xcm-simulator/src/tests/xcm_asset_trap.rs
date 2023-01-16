@@ -23,15 +23,6 @@ fn native_trap_works() {
 	Trappist::execute_with(|| {
 		use trappist::{RuntimeEvent, System};
 
-		let origin: MultiLocation =
-			Junction::AccountId32 { network: NetworkId::Polkadot, id: ALICE.into() }.into();
-
-		let native_asset: Assets = MultiAsset {
-			id: AssetId::Concrete(MultiLocation { parents: 0, interior: Junctions::Here }),
-			fun: Fungible((AMOUNT) as u128),
-		}
-		.into();
-
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
@@ -43,6 +34,12 @@ fn native_trap_works() {
 			RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
 		)));
 
+		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
+		let native_asset: Assets = MultiAsset {
+			id: Concrete(MultiLocation { parents: 0, interior: Here }),
+			fun: Fungible((AMOUNT) as u128),
+		}
+		.into();
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(native_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
@@ -66,15 +63,6 @@ fn native_dust_trap_doesnt_work() {
 	Trappist::execute_with(|| {
 		use trappist::{RuntimeEvent, System};
 
-		let origin: MultiLocation =
-			Junction::AccountId32 { network: NetworkId::Polkadot, id: ALICE.into() }.into();
-
-		let native_asset: Assets = MultiAsset {
-			id: AssetId::Concrete(MultiLocation { parents: 0, interior: Junctions::Here }),
-			fun: Fungible((AMOUNT) as u128),
-		}
-		.into();
-
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
@@ -86,6 +74,12 @@ fn native_dust_trap_doesnt_work() {
 			RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
 		)));
 
+		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
+		let native_asset: Assets = MultiAsset {
+			id: Concrete(MultiLocation { parents: 0, interior: Here }),
+			fun: Fungible((AMOUNT) as u128),
+		}
+		.into();
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(native_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
@@ -170,9 +164,6 @@ fn fungible_trap_works() {
 		const TRAP_AMOUNT: u128 = ASSET_MIN_BALANCE * 10;
 		const MAX_WEIGHT: u128 = 1_000_000_000;
 
-		let origin: MultiLocation =
-			Junction::AccountId32 { network: NetworkId::Polkadot, id: ALICE.into() }.into();
-
 		let fungible_asset_multi_location = MultiLocation {
 			parents: 1,
 			interior: X3(
@@ -180,11 +171,6 @@ fn fungible_trap_works() {
 				PalletInstance(asset_reserve::Assets::index() as u8),
 				GeneralIndex(xUSD as u128),
 			),
-		};
-
-		let fungible_asset = MultiAsset {
-			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
-			fun: Fungible(TRAP_AMOUNT),
 		};
 
 		assert_ok!(trappist::PolkadotXcm::execute(
@@ -200,6 +186,11 @@ fn fungible_trap_works() {
 			RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
 		)));
 
+		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
+		let fungible_asset = MultiAsset {
+			id: Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(TRAP_AMOUNT),
+		};
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
@@ -284,9 +275,6 @@ fn fungible_dust_trap_doesnt_work() {
 		const TRAP_AMOUNT: u128 = ASSET_MIN_BALANCE / 10; // dust
 		const MAX_WEIGHT: u128 = 1_000_000_000;
 
-		let origin: MultiLocation =
-			Junction::AccountId32 { network: NetworkId::Polkadot, id: ALICE.into() }.into();
-
 		let fungible_asset_multi_location = MultiLocation {
 			parents: 1,
 			interior: X3(
@@ -294,11 +282,6 @@ fn fungible_dust_trap_doesnt_work() {
 				PalletInstance(asset_reserve::Assets::index() as u8),
 				GeneralIndex(xUSD as u128),
 			),
-		};
-
-		let fungible_asset = MultiAsset {
-			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
-			fun: Fungible(TRAP_AMOUNT),
 		};
 
 		assert_ok!(trappist::PolkadotXcm::execute(
@@ -314,6 +297,11 @@ fn fungible_dust_trap_doesnt_work() {
 			RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
 		)));
 
+		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
+		let fungible_asset = MultiAsset {
+			id: Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(TRAP_AMOUNT),
+		};
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
@@ -396,9 +384,6 @@ fn fungible_non_registered_trap_doesnt_work() {
 		const TRAP_AMOUNT: u128 = ASSET_MIN_BALANCE * 10;
 		const MAX_WEIGHT: u128 = 1_000_000_000;
 
-		let origin: MultiLocation =
-			Junction::AccountId32 { network: NetworkId::Polkadot, id: ALICE.into() }.into();
-
 		let fungible_asset_multi_location = MultiLocation {
 			parents: 1,
 			interior: X3(
@@ -406,11 +391,6 @@ fn fungible_non_registered_trap_doesnt_work() {
 				PalletInstance(asset_reserve::Assets::index() as u8),
 				GeneralIndex(xUSD as u128),
 			),
-		};
-
-		let fungible_asset = MultiAsset {
-			id: AssetId::Concrete(fungible_asset_multi_location.clone()),
-			fun: Fungible(TRAP_AMOUNT),
 		};
 
 		assert_ok!(trappist::PolkadotXcm::execute(
@@ -426,6 +406,11 @@ fn fungible_non_registered_trap_doesnt_work() {
 			RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
 		)));
 
+		let origin: MultiLocation = AccountId32 { network: Polkadot, id: ALICE.into() }.into();
+		let fungible_asset = MultiAsset {
+			id: Concrete(fungible_asset_multi_location.clone()),
+			fun: Fungible(TRAP_AMOUNT),
+		};
 		let expected_versioned =
 			VersionedMultiAssets::from(MultiAssets::from(fungible_asset.clone()));
 		let expected_hash = BlakeTwo256::hash_of(&(&origin, &expected_versioned));
