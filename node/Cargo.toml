@@ -21,7 +21,6 @@ path = "src/main.rs"
 [dependencies]
 async-trait = "0.1.57"
 clap = { version = "4.0.9", features = ["derive"] }
-derive_more = "0.99.2"
 log = "0.4.17"
 futures = { version = "0.3.1", features = ["compat"] }
 trappist-cli = { path = "cli" }
