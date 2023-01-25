@@ -26,7 +26,7 @@ fn native_trap_works() {
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 
 		assert!(System::events().iter().any(|r| matches!(
@@ -66,7 +66,7 @@ fn native_dust_trap_doesnt_work() {
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 
 		assert!(!System::events().iter().any(|r| matches!(
@@ -178,7 +178,7 @@ fn fungible_trap_works() {
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(
 				(fungible_asset_multi_location.clone(), TRAP_AMOUNT).into()
 			)]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 
 		assert!(System::events().iter().any(|r| matches!(
@@ -287,7 +287,7 @@ fn fungible_dust_trap_doesnt_work() {
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(
 				(fungible_asset_multi_location.clone(), TRAP_AMOUNT).into()
 			)]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 
 		assert!(!System::events().iter().any(|r| matches!(
@@ -394,7 +394,7 @@ fn fungible_non_registered_trap_doesnt_work() {
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(
 				(fungible_asset_multi_location.clone(), TRAP_AMOUNT).into()
 			)]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 
 		assert!(!System::events().iter().any(|r| matches!(

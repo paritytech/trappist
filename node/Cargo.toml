@@ -12,7 +12,7 @@ edition = "2021"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.30" }
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.32" }
 
 [[bin]]
 name = "trappist-collator"
@@ -20,8 +20,7 @@ path = "src/main.rs"
 
 [dependencies]
 async-trait = "0.1.57"
-clap = { version = "3.2.17", features = ["derive"] }
-derive_more = "0.99.2"
+clap = { version = "4.0.9", features = ["derive"] }
 log = "0.4.17"
 futures = { version = "0.3.1", features = ["compat"] }
 trappist-cli = { path = "cli" }

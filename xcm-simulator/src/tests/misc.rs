@@ -15,7 +15,7 @@ fn event_collection_works() {
 		assert_ok!(trappist::PolkadotXcm::execute(
 			trappist::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 		output_events::<trappist::Runtime>();
 		assert_eq!(3, trappist::System::events().len());
@@ -25,7 +25,7 @@ fn event_collection_works() {
 		assert_ok!(base::PolkadotXcm::execute(
 			base::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 		output_events::<base::Runtime>();
 		assert_eq!(1, trappist::System::events().len());
