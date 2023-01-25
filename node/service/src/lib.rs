@@ -4,9 +4,7 @@
 use std::{sync::Arc, time::Duration};
 
 // Common Runtime Types
-pub use parachains_common::{
-	Block, Hash,
-};
+pub use parachains_common::{Block, Hash};
 
 // Cumulus Imports
 use cumulus_client_cli::CollatorOptions;
@@ -48,7 +46,6 @@ mod trappist_executor {
 			trappist_runtime::native_version()
 		}
 	}
-
 }
 
 #[cfg(feature = "with-base-runtime")]
@@ -67,7 +64,6 @@ mod base_executor {
 			base_runtime::native_version()
 		}
 	}
-
 }
 
 type ParachainExecutor = NativeElseWasmExecutor<NativeExecutor>;
@@ -308,7 +304,7 @@ async fn start_node_impl(
 			network,
 			params.keystore_container.sync_keystore(),
 			force_authoring,
-			id
+			id,
 		)?;
 
 		let spawner = task_manager.spawn_handle();
@@ -471,7 +467,7 @@ async fn start_node_impl(
 			network,
 			params.keystore_container.sync_keystore(),
 			force_authoring,
-			id
+			id,
 		)?;
 
 		let spawner = task_manager.spawn_handle();
@@ -544,7 +540,7 @@ fn build_import_queue(
 		spawner: &task_manager.spawn_essential_handle(),
 		telemetry,
 	})
-		.map_err(Into::into)
+	.map_err(Into::into)
 }
 
 fn build_consensus(
@@ -581,7 +577,7 @@ fn build_consensus(
 						&validation_data,
 						id,
 					)
-						.await;
+					.await;
 				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 				let slot =
