@@ -334,7 +334,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 					])
 				},
 			]))),
-			Weight::from_ref_time(MAX_WEIGHT as u64)
+			MAX_WEIGHT as u64
 		));
 
 		// // Check send amount moved to sovereign account
