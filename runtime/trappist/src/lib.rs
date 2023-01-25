@@ -450,11 +450,10 @@ impl pallet_scheduler::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = frame_system::EnsureRoot<AccountId>;
-	type MaxScheduledPerBlock = ConstU32<50>;
+	type MaxScheduledPerBlock = ConstU32<512>;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type PreimageProvider = Preimage;
-	type NoPreimagePostponement = NoPreimagePostponement;
+	type Preimages = Preimage;
 }
 
 parameter_types! {
@@ -467,7 +466,6 @@ impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type MaxSize = ConstU32<{ 4096 * 1024 }>;
 	type BaseDeposit = PreimageBaseDeposit;
 	type ByteDeposit = PreimageByteDeposit;
 }
@@ -682,32 +680,32 @@ impl_runtime_apis! {
 	}
 
 	impl pallet_dex_rpc_runtime_api::DexApi<Block, AssetId, Balance, AssetBalance> for Runtime {
-		fn get_currency_to_asset_input_price(
+		fn get_currency_to_asset_output_amount(
 			asset_id: AssetId,
 			currency_amount: Balance
 		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-			Dex::get_currency_to_asset_input_price(asset_id, currency_amount)
+			Dex::get_currency_to_asset_output_amount(asset_id, currency_amount)
 		}
 
-		fn get_currency_to_asset_output_price(
+		fn get_currency_to_asset_input_amount(
 			asset_id: AssetId,
 			token_amount: AssetBalance
 		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-			Dex::get_currency_to_asset_output_price(asset_id, token_amount)
+			Dex::get_currency_to_asset_input_amount(asset_id, token_amount)
 		}
 
-		fn get_asset_to_currency_input_price(
+		fn get_asset_to_currency_output_amount(
 			asset_id: AssetId,
 			token_amount: AssetBalance
 		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-			Dex::get_asset_to_currency_input_price(asset_id, token_amount)
+			Dex::get_asset_to_currency_output_amount(asset_id, token_amount)
 		}
 
-		fn get_asset_to_currency_output_price(
+		fn get_asset_to_currency_input_amount(
 			asset_id: AssetId,
 			currency_amount: Balance
 		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-			Dex::get_asset_to_currency_output_price(asset_id, currency_amount)
+			Dex::get_asset_to_currency_input_amount(asset_id, currency_amount)
 		}
 	}
 
@@ -718,20 +716,21 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_contracts_rpc_runtime_api::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash> for Runtime {
+	impl pallet_contracts::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash> for Runtime {
 		fn call(
 			origin: AccountId,
 			dest: AccountId,
 			value: Balance,
-			gas_limit: u64,
+			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
 			input_data: Vec<u8>,
 		) -> pallet_contracts_primitives::ContractExecResult<Balance> {
+			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_call(
 				origin,
 				dest,
 				value,
-				Weight::from_ref_time(gas_limit),
+				gas_limit,
 				storage_deposit_limit,
 				input_data,
 				contracts::CONTRACTS_DEBUG_OUTPUT,
@@ -741,16 +740,17 @@ impl_runtime_apis! {
 		fn instantiate(
 			origin: AccountId,
 			value: Balance,
-			gas_limit: u64,
+			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
 			code: pallet_contracts_primitives::Code<Hash>,
 			data: Vec<u8>,
 			salt: Vec<u8>,
 		) -> pallet_contracts_primitives::ContractInstantiateResult<AccountId, Balance> {
+			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_instantiate(
 				origin,
 				value,
-				Weight::from_ref_time(gas_limit),
+				gas_limit,
 				storage_deposit_limit,
 				code,
 				data,
