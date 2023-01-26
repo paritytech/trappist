@@ -140,27 +140,26 @@ tests:
                       - type: XcmV2TraitsOutcome
                         xcmOutcome: Complete
                         value: 2,000,000,000
-                  # ToDo: uncomment when trappist is above 0.9.31
-                  # - name: polkadotXcm.AssetsClaimed
-                  #   attributes:
-                  #     - type: XcmV1MultiLocation
-                  #       value: {
-                  #         parents: 0,
-                  #         interior:
-                  #           {X1:
-                  #             {AccountId32:
-                  #               {
-                  #                 network: Polkadot, id: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
-                  #               }
-                  #             }
-                  #           }
-                  #         }
-                  #     - type: XcmVersionedMultiAssets
-                  #       value: {
-                  #         V1: [
-                  #           {
-                  #             id: {Concrete: {parents: 0, interior: Here}},
-                  #             fun:{Fungible: *amount_to_trap}
-                  #           }
-                  #           ]
-                  #         }
+                  - name: polkadotXcm.AssetsClaimed
+                    attributes:
+                      - type: XcmV1MultiLocation
+                        value: {
+                          parents: 0,
+                          interior:
+                            {X1:
+                              {AccountId32:
+                                {
+                                  network: Polkadot, id: "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
+                                }
+                              }
+                            }
+                          }
+                      - type: XcmVersionedMultiAssets
+                        value: {
+                          V1: [
+                            {
+                              id: {Concrete: {parents: 0, interior: Here}},
+                              fun:{Fungible: *amount_to_trap}
+                            }
+                            ]
+                          }

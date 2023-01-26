@@ -11493,7 +11493,6 @@ dependencies = [
  "assert_cmd",
  "async-trait",
  "clap",
- "derive_more",
  "futures 0.3.25",
  "log",
  "nix 0.23.2",
