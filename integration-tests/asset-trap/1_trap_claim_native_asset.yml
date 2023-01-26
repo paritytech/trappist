@@ -159,7 +159,7 @@ tests:
                           V1: [
                             {
                               id: {Concrete: {parents: 0, interior: Here}},
-                              fun:{Fungible: *amount_to_trap}
+                              fun: {Fungible: *amount_to_trap}
                             }
                             ]
                           }
