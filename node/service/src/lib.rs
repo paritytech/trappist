@@ -366,7 +366,7 @@ async fn start_node_impl(
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
-	let (mut telemetry, telemetry_worker_handle) = params.other;
+	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -467,6 +467,7 @@ async fn start_node_impl(
 	if validator {
 		let parachain_consensus = build_consensus(
 			client.clone(),
+			block_import,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
