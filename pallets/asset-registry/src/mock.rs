@@ -1,5 +1,5 @@
 use crate as pallet_asset_registry;
-use frame_support::traits::{ConstU16, ConstU64, GenesisBuild};
+use frame_support::traits::{AsEnsureOriginWithArg, ConstU16, ConstU64, GenesisBuild};
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
@@ -81,6 +81,7 @@ impl pallet_assets::Config for Test {
 	type Balance = u64;
 	type AssetId = u32;
 	type Currency = Balances;
+	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<u64>>;
 	type ForceOrigin = frame_system::EnsureRoot<u64>;
 	type AssetDeposit = ConstU64<1>;
 	type AssetAccountDeposit = ConstU64<10>;
