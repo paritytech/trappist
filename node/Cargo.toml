@@ -40,7 +40,7 @@ with-trappist-runtime = [
 	"trappist-service/with-trappist-runtime",
 	"trappist-cli/with-trappist-runtime",
 ]
-with-base-runtime = [
-	"trappist-service/with-base-runtime",
-	"trappist-cli/with-base-runtime",
+with-stout-runtime = [
+	"trappist-service/with-stout-runtime",
+	"trappist-cli/with-stout-runtime",
 ]

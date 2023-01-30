@@ -15,7 +15,7 @@
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
 use service::chain_spec;
-#[cfg(feature = "with-base-runtime")]
+#[cfg(feature = "with-stout-runtime")]
 use service::chain_spec::base::Extensions;
 #[cfg(feature = "with-trappist-runtime")]
 use service::chain_spec::trappist::Extensions;
@@ -96,7 +96,7 @@ pub struct RelayChainCli {
 	/// Optional chain id that should be passed to the relay chain.
 	pub chain_id: Option<String>,
 
-	/// The base path that should be used by the relay chain.
+	/// The stout path that should be used by the relay chain.
 	pub base_path: Option<PathBuf>,
 }
 

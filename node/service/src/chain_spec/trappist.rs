@@ -66,7 +66,7 @@ fn session_keys(aura: AuraId) -> SessionKeys {
 }
 
 pub fn development_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
+	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "HOP".into());
 	properties.insert("tokenDecimals".into(), 12.into());
@@ -120,7 +120,7 @@ pub fn development_config() -> ChainSpec {
 }
 
 pub fn local_testnet_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
+	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "HOP".into());
 	properties.insert("tokenDecimals".into(), 12.into());

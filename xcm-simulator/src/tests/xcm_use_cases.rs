@@ -8,7 +8,7 @@ const xUSD: u32 = 1;
 #[allow(non_upper_case_globals)]
 const txUSD: u32 = 10;
 #[allow(non_upper_case_globals)]
-const pxUSD: u32 = xUSD; // Must match asset reserve identifier as no asset registry available in base runtime
+const pxUSD: u32 = xUSD; // Must match asset reserve identifier as no asset registry available in stout runtime
 
 // Teleports some amount of the native asset of the relay chain to the asset reserve parachain
 // (DMP)
@@ -219,7 +219,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 }
 
 // Initiates a send of a XCM message from trappist to the asset reserve parachain, instructing
-// it to transfer some amount of a fungible asset to some tertiary (base) parachain (HRMP)
+// it to transfer some amount of a fungible asset to some tertiary (stout) parachain (HRMP)
 #[test]
 fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	init_tracing();

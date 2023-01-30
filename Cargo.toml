@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "node",
-    "runtime/base",
+    "runtime/stout",
     "runtime/trappist",
     "primitives/xcm",
 ]

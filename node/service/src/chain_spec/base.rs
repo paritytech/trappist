@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
-const DEFAULT_PROTOCOL_ID: &str = "base";
+const DEFAULT_PROTOCOL_ID: &str = "stout";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec = sc_service::GenericChainSpec<base_runtime::GenesisConfig, Extensions>;
@@ -66,7 +66,7 @@ fn session_keys(aura: AuraId) -> SessionKeys {
 }
 
 pub fn development_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
+	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "BASE".into());
 	properties.insert("tokenDecimals".into(), 12.into());
@@ -120,7 +120,7 @@ pub fn development_config() -> ChainSpec {
 }
 
 pub fn local_testnet_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
+	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "BASE".into());
 	properties.insert("tokenDecimals".into(), 12.into());

@@ -27,7 +27,7 @@ jsonrpsee = { version = "0.15.1", features = ["server"] }
 
 # Local Dependencies
 trappist-runtime = { path = "../../runtime/trappist", optional = true }
-base-runtime = { path = "../../runtime/base", optional = true }
+stout-runtime = { path = "../../runtime/stout", optional = true }
 trappist-rpc = { path = "../../rpc" }
 
 # Substrate Dependencies
@@ -109,7 +109,7 @@ default = [ "std" ]
 std = []
 runtime-benchmarks = [
     "trappist-runtime/runtime-benchmarks",
-	"base-runtime/runtime-benchmarks"
+	"stout-runtime/runtime-benchmarks"
 ]
 try-runtime = [
 	"trappist-runtime/try-runtime"
@@ -117,6 +117,6 @@ try-runtime = [
 with-trappist-runtime = [
 	"trappist-runtime",
 ]
-with-base-runtime = [
-	"base-runtime",
+with-stout-runtime = [
+	"stout-runtime",
 ]

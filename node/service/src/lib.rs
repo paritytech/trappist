@@ -48,7 +48,7 @@ mod trappist_executor {
 	}
 }
 
-#[cfg(feature = "with-base-runtime")]
+#[cfg(feature = "with-stout-runtime")]
 mod base_executor {
 	pub use base_runtime;
 
@@ -72,14 +72,14 @@ type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
 
 type ParachainBackend = TFullBackend<Block>;
 
-#[cfg(feature = "with-base-runtime")]
+#[cfg(feature = "with-stout-runtime")]
 pub use base_executor::*;
 #[cfg(feature = "with-trappist-runtime")]
 pub use trappist_executor::*;
 
 #[cfg(feature = "with-trappist-runtime")]
 pub type RuntimeApi = trappist_runtime::RuntimeApi;
-#[cfg(feature = "with-base-runtime")]
+#[cfg(feature = "with-stout-runtime")]
 pub type RuntimeApi = base_runtime::RuntimeApi;
 
 /// Starts a `ServiceBuilder` for a full service.
@@ -346,7 +346,7 @@ async fn start_node_impl(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[cfg(feature = "with-base-runtime")]
+#[cfg(feature = "with-stout-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl(
 	parachain_config: Configuration,

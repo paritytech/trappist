@@ -28,7 +28,7 @@ jsonrpsee = { version = "0.15.1", features = ["server"] }
 
 # Local Dependencies
 trappist-runtime = { path = "../../runtime/trappist" }
-base-runtime = { path = "../../runtime/base" }
+stout-runtime = { path = "../../runtime/stout" }
 
 # Substrate Dependencies
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.32", optional = true }
@@ -86,7 +86,7 @@ cli = [
 runtime-benchmarks = [
 	"polkadot-cli/runtime-benchmarks",
     "trappist-runtime/runtime-benchmarks",
-	"base-runtime/runtime-benchmarks"
+	"stout-runtime/runtime-benchmarks"
 ]
 try-runtime = [
 	"service/try-runtime"
@@ -94,6 +94,6 @@ try-runtime = [
 with-trappist-runtime = [
 	"service/with-trappist-runtime",
 ]
-with-base-runtime = [
-	"service/with-base-runtime",
+with-stout-runtime = [
+	"service/with-stout-runtime",
 ]

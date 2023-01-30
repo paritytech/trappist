@@ -23,7 +23,7 @@ mod relay_chain;
 mod tests;
 
 use frame_support::{sp_tracing, traits::GenesisBuild};
-use parachains::{asset_reserve, base, template, trappist};
+use parachains::{asset_reserve, stout, template, trappist};
 use polkadot_parachain::primitives::Id as ParaId;
 use sp_core::Get;
 use sp_runtime::traits::AccountIdConversion;
@@ -104,11 +104,11 @@ decl_test_parachain! {
 
 const BASE_PARA_ID: u32 = 3000;
 decl_test_parachain! {
-	// A parachain using the trappist 'base' runtime
-	pub struct Base {
-		Runtime = base::Runtime,
-		XcmpMessageHandler = base::MsgQueue,
-		DmpMessageHandler = base::MsgQueue,
+	// A parachain using the trappist 'stout' runtime
+	pub struct stout {
+		Runtime = stout::Runtime,
+		XcmpMessageHandler = stout::MsgQueue,
+		DmpMessageHandler = stout::MsgQueue,
 		new_ext = {
 			// Initialise parachain-specific genesis state
 			use trappist::{MsgQueue, Runtime, System};
@@ -199,7 +199,7 @@ decl_test_network! {
 		parachains = vec![
 			(ASSET_RESERVE_PARA_ID, AssetReserve),
 			(TRAPPIST_PARA_ID, Trappist),
-			(BASE_PARA_ID, Base),
+			(BASE_PARA_ID, stout),
 		],
 	}
 }
