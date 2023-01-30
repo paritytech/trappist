@@ -32,7 +32,7 @@ use base_runtime::{
 pub use base_runtime::{AccountId, AssetId, Balance};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, EitherOfDiverse, Everything, Nothing},
 	weights::constants::RocksDbWeight,
 };
 use frame_system::EnsureRoot;
@@ -89,6 +89,7 @@ impl pallet_assets::Config for Runtime {
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
+	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
 	type AssetDeposit = ConstU128<UNITS>;
 	type AssetAccountDeposit = ConstU128<{ UNITS }>;
