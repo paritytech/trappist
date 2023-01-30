@@ -17,7 +17,7 @@ use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as BlockT};
 
 #[cfg(feature = "with-stout-runtime")]
-use base_runtime::Block;
+use stout_runtime::Block;
 #[cfg(feature = "with-trappist-runtime")]
 use trappist_runtime::Block;
 
@@ -25,7 +25,7 @@ use crate::cli::{Cli, RelayChainCli, Subcommand};
 use service::{chain_spec, new_partial, NativeExecutor};
 
 #[cfg(feature = "with-stout-runtime")]
-use service::chain_spec::base::{
+use service::chain_spec::stout::{
 	development_config, local_testnet_config, ChainSpec as ServiceChainSpec, Extensions,
 };
 #[cfg(feature = "with-trappist-runtime")]

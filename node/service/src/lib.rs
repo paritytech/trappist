@@ -50,18 +50,18 @@ mod trappist_executor {
 
 #[cfg(feature = "with-stout-runtime")]
 mod base_executor {
-	pub use base_runtime;
+	pub use stout_runtime;
 
 	pub struct NativeExecutor;
 	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
 		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-			base_runtime::api::dispatch(method, data)
+			stout_runtime::api::dispatch(method, data)
 		}
 
 		fn native_version() -> sc_executor::NativeVersion {
-			base_runtime::native_version()
+			stout_runtime::native_version()
 		}
 	}
 }
@@ -80,7 +80,7 @@ pub use trappist_executor::*;
 #[cfg(feature = "with-trappist-runtime")]
 pub type RuntimeApi = trappist_runtime::RuntimeApi;
 #[cfg(feature = "with-stout-runtime")]
-pub type RuntimeApi = base_runtime::RuntimeApi;
+pub type RuntimeApi = stout_runtime::RuntimeApi;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///

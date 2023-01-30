@@ -66,16 +66,16 @@ jobs:
         run: |
           SKIP_WASM_BUILD=1 cargo check --release --features with-trappist-runtime
 
-      - name: Check Build Base Runtime
+      - name: Check Build Stout Runtime
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release --no-default-features --features with-base-runtime
+          SKIP_WASM_BUILD=1 cargo check --release --no-default-features --features with-stout-runtime
 
       - name: Check Build for Benchmarking Trappist Runtime
         run: >
           pushd node &&
           cargo check --features=runtime-benchmarks,with-trappist-runtime --release
 
-      - name: Check Build for Benchmarking Base Runtime
+      - name: Check Build for Benchmarking stout Runtime
         run: >
           pushd node &&
-          cargo check --no-default-features --features=runtime-benchmarks,with-base-runtime --release
+          cargo check --no-default-features --features=runtime-benchmarks,with-stout-runtime --release

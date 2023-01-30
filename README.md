@@ -5,7 +5,7 @@
 
 **Trappist** is a web3 developer playground for experimenting with [cross-chain applications and services](https://polkadot.network/cross-chain-communication/) built on the technologies spearheaded by the [Polkadot Network](https://polkadot.network/), namely:
 * [Substrate](https://substrate.io/), a Blockchain framework that enables developers to quickly and easily build future proof blockchains optimized for any use case.
-* [Cumulus](https://github.com/paritytech/cumulus), a set of tools for writing Substrate-based Polkadot parachains. 
+* [Cumulus](https://github.com/paritytech/cumulus), a set of tools for writing Substrate-based Polkadot parachains.
 * [XCM](https://polkadot.network/cross-chain-communication/), a common language for secure messaging across Polkadot  parachains, and with external networks via bridges.
 * [Rococo](https://polkadot.network/blog/statemint-becomes-first-common-good-parachain-on-polkadot/), Polkadot’s Parachain Testnet.
 * [Statemint](https://polkadot.network/blog/statemint-becomes-first-common-good-parachain-on-polkadot/), Polkadot's common good parachain which provides functionality for deploying and transferring assets — both Fungible and Non-Fungible Tokens (NFTs).
@@ -55,13 +55,13 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 Use the following command to build the Trappist collator binary:
 
-When the base collator is built, rename the binary into `base-collator` and place it into the `./bin` folder.
+When the stout collator is built, rename the binary into `stout-collator` and place it into the `./bin` folder.
 ```
-cargo b -r --features with-base-runtime
+cargo b -r --features with-stout-runtime
 cargo b -r --features with-trappist-runtime
 ```
 
-Alternatively, run 
+Alternatively, run
 `bash build_runtimes.sh` .
 
 
@@ -70,8 +70,8 @@ Alternatively, run
 Create a `bin` directory into the root of this repository and place the following binaries inside of it:
 - `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
 - `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
-- `trappist-collator` (which you will build from this repository) 
-- `base-collator` (which you will build from this repository) 
+- `trappist-collator` (which you will build from this repository)
+- `stout-collator` (which you will build from this repository)
 
 
 
@@ -92,10 +92,10 @@ Then, start the **Trappist** playground with:
 The [integration-tests](./integration-tests) directory has tests on Trappist use cases and instructions on how to run them.
 
 ### XCM Simulator
-The [XCM simulator](./xcm-simulator) can be used to further explore XCM message execution across the various runtimes used by Trappist. 
+The [XCM simulator](./xcm-simulator) can be used to further explore XCM message execution across the various runtimes used by Trappist.
 Each Trappist use case is written as a Rust unit test, allowing interactive debugging/exploration of message flows and instruction execution.
 Each `execute_with` closure scope within a test can be considered as a block on the corresponding chain, with messages being dispatched to the destination chains via a mock message queue as the closure goes out of scope.
-All XCM-specific traces from the interactions are also collected in a single place for easier inspection. 
+All XCM-specific traces from the interactions are also collected in a single place for easier inspection.
 
 You can run all tests with:
 ```

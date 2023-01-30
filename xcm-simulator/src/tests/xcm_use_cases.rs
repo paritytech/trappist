@@ -260,10 +260,10 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	});
 
 	let mut beneficiary_balance = 0;
-	Base::execute_with(|| {
+	Stout::execute_with(|| {
 		// Create fungible asset on tertiary parachain
 		assert_ok!(create_derivative_asset_on_tertiary_parachain(pxUSD, ALICE, ASSET_MIN_BALANCE));
-		beneficiary_balance = base::Assets::balance(pxUSD, &ALICE);
+		beneficiary_balance = stout::Assets::balance(pxUSD, &ALICE);
 	});
 
 	const MAX_WEIGHT: u128 = 1_000_000_000 * 2; // 1,000,000,000 per instruction
@@ -342,9 +342,9 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), AMOUNT);
 	});
 
-	Base::execute_with(|| {
+	Stout::execute_with(|| {
 		// Ensure beneficiary received amount, less fees
-		let current_balance = base::Assets::balance(pxUSD, &ALICE);
+		let current_balance = stout::Assets::balance(pxUSD, &ALICE);
 		assert_balance(current_balance, beneficiary_balance + AMOUNT, EXECUTION_COST);
 		println!(
 			"Two-hop Reserve-transfer: initial balance {} transfer amount {} current balance {} estimated fees {} actual fees {}",
@@ -358,9 +358,9 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 }
 
 fn create_derivative_asset_on_tertiary_parachain(
-	id: base::AssetId,
-	admin: base::AccountId,
-	min_balance: base::Balance,
+	id: stout::AssetId,
+	admin: stout::AccountId,
+	min_balance: stout::Balance,
 ) -> DispatchResult {
-	base::Assets::create(base::RuntimeOrigin::signed(ALICE), id, admin.into(), min_balance)
+	stout::Assets::create(stout::RuntimeOrigin::signed(ALICE), id, admin.into(), min_balance)
 }

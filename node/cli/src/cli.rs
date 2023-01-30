@@ -16,7 +16,7 @@
 
 use service::chain_spec;
 #[cfg(feature = "with-stout-runtime")]
-use service::chain_spec::base::Extensions;
+use service::chain_spec::stout::Extensions;
 #[cfg(feature = "with-trappist-runtime")]
 use service::chain_spec::trappist::Extensions;
 use std::path::PathBuf;

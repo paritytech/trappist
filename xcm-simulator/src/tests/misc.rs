@@ -21,13 +21,13 @@ fn event_collection_works() {
 		assert_eq!(3, trappist::System::events().len());
 	});
 
-	Base::execute_with(|| {
-		assert_ok!(base::PolkadotXcm::execute(
-			base::RuntimeOrigin::signed(ALICE),
+	Stout::execute_with(|| {
+		assert_ok!(stout::PolkadotXcm::execute(
+			stout::RuntimeOrigin::signed(ALICE),
 			Box::new(VersionedXcm::from(Xcm(vec![WithdrawAsset(((0, Here), AMOUNT).into())]))),
 			MAX_WEIGHT as u64
 		));
-		output_events::<base::Runtime>();
+		output_events::<stout::Runtime>();
 		assert_eq!(1, trappist::System::events().len());
 	});
 }
