@@ -9,7 +9,9 @@ pub use parachains_common::{Block, Hash};
 // Cumulus Imports
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_aura::{AuraConsensus, BuildAuraConsensusParams, SlotProportion};
-use cumulus_client_consensus_common::ParachainConsensus;
+use cumulus_client_consensus_common::{
+	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
+};
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
@@ -49,7 +51,7 @@ mod trappist_executor {
 }
 
 #[cfg(feature = "with-stout-runtime")]
-mod base_executor {
+mod stout_executor {
 	pub use stout_runtime;
 
 	pub struct NativeExecutor;
@@ -72,8 +74,10 @@ type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
 
 type ParachainBackend = TFullBackend<Block>;
 
+type ParachainBlockImport = TParachainBlockImport<Arc<ParachainClient>>;
+
 #[cfg(feature = "with-stout-runtime")]
-pub use base_executor::*;
+pub use stout_executor::*;
 #[cfg(feature = "with-trappist-runtime")]
 pub use trappist_executor::*;
 
@@ -95,7 +99,7 @@ pub fn new_partial(
 		(),
 		sc_consensus::DefaultImportQueue<Block, ParachainClient>,
 		sc_transaction_pool::FullPool<Block, ParachainClient>,
-		(Option<Telemetry>, Option<TelemetryWorkerHandle>),
+		(ParachainBlockImport, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
 	sc_service::Error,
 > {
@@ -140,8 +144,11 @@ pub fn new_partial(
 		client.clone(),
 	);
 
+	let block_import = ParachainBlockImport::new(client.clone());
+
 	let import_queue = build_import_queue(
 		client.clone(),
+		block_import.clone(),
 		config,
 		telemetry.as_ref().map(|telemetry| telemetry.handle()),
 		&task_manager,
@@ -155,7 +162,7 @@ pub fn new_partial(
 		task_manager,
 		transaction_pool,
 		select_chain: (),
-		other: (telemetry, telemetry_worker_handle),
+		other: (block_import, telemetry, telemetry_worker_handle),
 	})
 }
 
@@ -195,7 +202,7 @@ async fn start_node_impl(
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
-	let (mut telemetry, telemetry_worker_handle) = params.other;
+	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -296,6 +303,7 @@ async fn start_node_impl(
 	if validator {
 		let parachain_consensus = build_consensus(
 			client.clone(),
+			block_import,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
@@ -358,7 +366,7 @@ async fn start_node_impl(
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
-	let (mut telemetry, telemetry_worker_handle) = params.other;
+	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -459,6 +467,7 @@ async fn start_node_impl(
 	if validator {
 		let parachain_consensus = build_consensus(
 			client.clone(),
+			block_import,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
@@ -509,6 +518,7 @@ async fn start_node_impl(
 /// Build the import queue for the rococo parachain runtime.
 fn build_import_queue(
 	client: Arc<ParachainClient>,
+	block_import: ParachainBlockImport,
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -523,8 +533,8 @@ fn build_import_queue(
 		_,
 		_,
 	>(cumulus_client_consensus_aura::ImportQueueParams {
-		block_import: client.clone(),
-		client: client.clone(),
+		block_import,
+		client,
 		create_inherent_data_providers: move |_, _| async move {
 			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -545,6 +555,7 @@ fn build_import_queue(
 
 fn build_consensus(
 	client: Arc<ParachainClient>,
+	block_import: ParachainBlockImport,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -594,7 +605,7 @@ fn build_consensus(
 				Ok((slot, timestamp, parachain_inherent))
 			}
 		},
-		block_import: client.clone(),
+		block_import,
 		para_client: client,
 		backoff_authoring_blocks: Option::<()>::None,
 		sync_oracle,
