@@ -46,7 +46,6 @@ jobs:
       - name: Check formatting
         uses: actions-rs/cargo@v1
         with:
-          toolchain: ${{ env.NIGHTLY }}
           command: fmt
           args: --all --check
 
