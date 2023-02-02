@@ -87,7 +87,7 @@ where
 }
 
 /// Instantiate all RPCs we want at the canvas-kusama chain.
-pub fn base_create_full<C, P>(
+pub fn stout_create_full<C, P>(
 	deps: FullDeps<C, P>,
 ) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
 where

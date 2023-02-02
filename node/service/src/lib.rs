@@ -417,7 +417,7 @@ async fn start_node_impl(
 				deny_unsafe,
 			};
 
-			trappist_rpc::base_create_full(deps).map_err(Into::into)
+			trappist_rpc::stout_create_full(deps).map_err(Into::into)
 		})
 	};
 
