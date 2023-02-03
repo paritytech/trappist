@@ -323,7 +323,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 						DepositReserveAsset {
 							assets: Wild(All),
 							max_assets: 1,
-							dest: (Parent, Parachain(BASE_PARA_ID)).into(),
+							dest: (Parent, Parachain(STOUT_PARA_ID)).into(),
 							xcm: Xcm(vec![DepositAsset {
 								assets: Wild(All),
 								max_assets: 1,
