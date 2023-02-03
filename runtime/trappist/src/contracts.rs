@@ -13,6 +13,7 @@ use pallet_contracts::{
 };
 use pallet_contracts_xcm::Extension as XCMContractExtension;
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
+use sp_core::ConstBool;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
@@ -58,6 +59,8 @@ impl Config for Runtime {
 	type AddressGenerator = DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
+	type UnsafeUnstableInterface = ConstBool<false>;
+	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 }
 
 impl pallet_contracts_xcm::Config for Runtime {}
