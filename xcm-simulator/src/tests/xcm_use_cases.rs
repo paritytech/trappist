@@ -149,7 +149,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD,
+				id: xUSD.into(),
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),
@@ -237,7 +237,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Touch parachain account
 		assert_ok!(asset_reserve::Assets::transfer(
 			asset_reserve::RuntimeOrigin::signed(ALICE),
-			xUSD,
+			xUSD.into(),
 			asset_reserve::sovereign_account(TRAPPIST_PARA_ID).into(),
 			AMOUNT
 		));
@@ -247,7 +247,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD,
+				id: xUSD.into(),
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),
@@ -276,7 +276,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Mint derivative asset on Trappist Parachain
 		assert_ok!(trappist::Assets::mint(
 			trappist::RuntimeOrigin::signed(ALICE),
-			txUSD,
+			txUSD.into(),
 			ALICE.into(),
 			AMOUNT * 2
 		));
@@ -362,5 +362,5 @@ fn create_derivative_asset_on_tertiary_parachain(
 	admin: base::AccountId,
 	min_balance: base::Balance,
 ) -> DispatchResult {
-	base::Assets::create(base::RuntimeOrigin::signed(ALICE), id, admin.into(), min_balance)
+	base::Assets::create(base::RuntimeOrigin::signed(ALICE), id.into(), admin.into(), min_balance)
 }

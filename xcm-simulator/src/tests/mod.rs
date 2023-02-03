@@ -38,7 +38,7 @@ fn create_asset_on_asset_reserve(
 ) -> DispatchResult {
 	asset_reserve::Assets::create(
 		asset_reserve::RuntimeOrigin::signed(ALICE),
-		id,
+		id.into(),
 		admin.into(),
 		min_balance,
 	)
@@ -49,7 +49,7 @@ fn create_derivative_asset_on_trappist(
 	admin: trappist::AccountId,
 	min_balance: trappist::Balance,
 ) -> DispatchResult {
-	trappist::Assets::create(trappist::RuntimeOrigin::signed(ALICE), id, admin.into(), min_balance)
+	trappist::Assets::create(trappist::RuntimeOrigin::signed(ALICE), id.into(), admin.into(), min_balance)
 }
 
 fn mint_asset_on_asset_reserve(
@@ -59,7 +59,7 @@ fn mint_asset_on_asset_reserve(
 ) -> DispatchResult {
 	asset_reserve::Assets::mint(
 		asset_reserve::RuntimeOrigin::signed(origin),
-		asset_id,
+		asset_id.into(),
 		ALICE.into(),
 		mint_amount,
 	)

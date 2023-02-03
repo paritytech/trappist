@@ -113,7 +113,7 @@ fn fungible_trap_works() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD,
+				id: xUSD.into(),
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),
@@ -222,7 +222,7 @@ fn fungible_dust_trap_doesnt_work() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD,
+				id: xUSD.into(),
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),
@@ -331,7 +331,7 @@ fn fungible_non_registered_trap_doesnt_work() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD,
+				id: xUSD.into(),
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),

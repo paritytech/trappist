@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{AsEnsureOriginWithArg, Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, ConstU32, Everything, Nothing},
 	weights::constants::RocksDbWeight,
 };
 use pallet_xcm::XcmPassthrough;
@@ -39,8 +39,8 @@ use statemine_runtime::{
 		MaxInstructions, RelayNetwork, XcmAssetFeesReceiver,
 	},
 	ApprovalDeposit, AssetAccountDeposit, AssetDeposit, AssetsForceOrigin, AssetsStringLimit,
-	CollatorSelectionUpdateOrigin, ExistentialDeposit, MaxCandidates, MaxInvulnerables, MaxLocks,
-	MaxReserves, MetadataDepositBase, MetadataDepositPerByte, MinCandidates, Period, PotId,
+	CollatorSelectionUpdateOrigin, ExistentialDeposit, MaxCandidates, MaxInvulnerables,
+	MetadataDepositBase, MetadataDepositPerByte, MinCandidates, Period, PotId,
 	RuntimeBlockLength, RuntimeBlockWeights, SS58Prefix, Session, Version,
 };
 use xcm::latest::prelude::*;
@@ -116,8 +116,8 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
-	type MaxLocks = MaxLocks;
-	type MaxReserves = MaxReserves;
+	type MaxLocks = ConstU32<50>;
+	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
 }
 
