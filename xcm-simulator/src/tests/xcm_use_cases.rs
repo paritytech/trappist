@@ -149,7 +149,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD.into(),
+				id: xUSD,
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),
@@ -247,7 +247,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
 		paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
 			pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-				id: xUSD.into(),
+				id: xUSD,
 				owner: ALICE.into(),
 				issuer: ALICE.into(),
 				admin: ALICE.into(),
