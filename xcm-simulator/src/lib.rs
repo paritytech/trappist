@@ -105,7 +105,7 @@ decl_test_parachain! {
 const STOUT_PARA_ID: u32 = 3000;
 decl_test_parachain! {
 	// A parachain using the trappist 'stout' runtime
-	pub struct stout {
+	pub struct Stout {
 		Runtime = stout::Runtime,
 		XcmpMessageHandler = stout::MsgQueue,
 		DmpMessageHandler = stout::MsgQueue,
@@ -199,7 +199,7 @@ decl_test_network! {
 		parachains = vec![
 			(ASSET_RESERVE_PARA_ID, AssetReserve),
 			(TRAPPIST_PARA_ID, Trappist),
-			(STOUT_PARA_ID, stout),
+			(STOUT_PARA_ID, Stout),
 		],
 	}
 }

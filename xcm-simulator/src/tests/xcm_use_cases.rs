@@ -362,5 +362,5 @@ fn create_derivative_asset_on_tertiary_parachain(
 	admin: stout::AccountId,
 	min_balance: stout::Balance,
 ) -> DispatchResult {
-	stout::Assets::create(stout::RuntimeOrigin::signed(ALICE), id, admin.into(), min_balance)
+	stout::Assets::create(stout::RuntimeOrigin::signed(ALICE), id.into(), admin.into(), min_balance)
 }
