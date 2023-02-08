@@ -47,7 +47,7 @@ fn teleport_native_asset_from_relay_chain_to_asset_reserve_parachain() {
 		assert_eq!(relay_chain::Balances::free_balance(&ALICE), INITIAL_BALANCE - AMOUNT);
 	});
 
-	const EST_FEES: u128 = 4_000_000;
+	const EST_FEES: u128 = 4_000_000 * 10;
 	AssetReserve::execute_with(|| {
 		// Ensure receiver balance and total issuance increased by teleport amount
 		let current_balance = asset_reserve::Balances::free_balance(&ALICE);
@@ -175,7 +175,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		beneficiary_balance = trappist::Assets::balance(txUSD, &ALICE);
 	});
 
-	const AMOUNT: u128 = 10_000_000_000;
+	const AMOUNT: u128 = 20_000_000_000;
 
 	AssetReserve::execute_with(|| {
 		// Reserve parachain should be able to reserve-transfer an asset to Trappist Parachain
@@ -202,7 +202,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), AMOUNT);
 	});
 
-	const EST_FEES: u128 = 1_600_000_000;
+	const EST_FEES: u128 = 1_600_000_000 * 10;
 	Trappist::execute_with(|| {
 		// Ensure beneficiary account balance increased
 		let current_balance = trappist::Assets::balance(txUSD, &ALICE);
