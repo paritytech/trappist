@@ -135,7 +135,7 @@ fn fungible_trap_works() {
 		assert!(trappist::AssetRegistry::asset_id_multilocation(txUSD).is_some());
 	});
 
-	const AMOUNT: u128 = ASSET_MIN_BALANCE * 20;
+	const AMOUNT: u128 = ASSET_MIN_BALANCE * 25;
 
 	AssetReserve::execute_with(|| {
 		assert_ok!(asset_reserve::PolkadotXcm::limited_reserve_transfer_assets(
