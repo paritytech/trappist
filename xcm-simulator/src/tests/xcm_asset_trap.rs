@@ -3,7 +3,7 @@ use frame_support::{assert_ok, traits::PalletInfoAccess};
 use sp_runtime::traits::{BlakeTwo256, Hash};
 use trappist_runtime::constants::currency::EXISTENTIAL_DEPOSIT;
 use xcm_executor::Assets;
-use xcm_simulator::{TestExt, Weight};
+use xcm_simulator::TestExt;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1;

@@ -1,7 +1,7 @@
 use crate::tests::*;
 use frame_support::{assert_ok, pallet_prelude::DispatchResult, traits::PalletInfoAccess};
 use thousands::Separable;
-use xcm_simulator::{TestExt, Weight};
+use xcm_simulator::TestExt;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1;

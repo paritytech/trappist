@@ -221,6 +221,7 @@ pub mod mock_paras_sudo_wrapper {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::call_index(4)]
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_queue_downward_xcm(
 			origin: OriginFor<T>,
@@ -284,43 +285,50 @@ mod weights {
 		impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
 			// Storage: System Account (r:1 w:1)
 			fn transfer() -> Weight {
-				Weight::from_ref_time(40_460_000 as u64)
+				// Minimum execution time: 40_106 nanoseconds.
+				Weight::from_ref_time(40_750_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn transfer_keep_alive() -> Weight {
-				Weight::from_ref_time(29_508_000 as u64)
+				// Minimum execution time: 30_737 nanoseconds.
+				Weight::from_ref_time(31_295_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn set_balance_creating() -> Weight {
-				Weight::from_ref_time(22_142_000 as u64)
+				// Minimum execution time: 23_902 nanoseconds.
+				Weight::from_ref_time(24_338_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn set_balance_killing() -> Weight {
-				Weight::from_ref_time(25_653_000 as u64)
+				// Minimum execution time: 26_492 nanoseconds.
+				Weight::from_ref_time(26_866_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
 			// Storage: System Account (r:2 w:2)
 			fn force_transfer() -> Weight {
-				Weight::from_ref_time(39_913_000 as u64)
+				// Minimum execution time: 40_384 nanoseconds.
+				Weight::from_ref_time(41_000_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(2 as u64))
 					.saturating_add(T::DbWeight::get().writes(2 as u64))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn transfer_all() -> Weight {
-				Weight::from_ref_time(34_497_000 as u64)
+				// Minimum execution time: 35_115 nanoseconds.
+				Weight::from_ref_time(35_696_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn force_unreserve() -> Weight {
-				Weight::from_ref_time(19_749_000 as u64)
+				// Minimum execution time: 20_274 nanoseconds.
+				Weight::from_ref_time(20_885_000 as u64)
 					.saturating_add(T::DbWeight::get().reads(1 as u64))
 					.saturating_add(T::DbWeight::get().writes(1 as u64))
 			}
