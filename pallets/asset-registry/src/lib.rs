@@ -74,6 +74,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::call_index(0)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::register_reserve_asset())]
 		pub fn register_reserve_asset(
 			origin: OriginFor<T>,
@@ -112,6 +113,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[pallet::call_index(1)]
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::unregister_reserve_asset())]
 		pub fn unregister_reserve_asset(
 			origin: OriginFor<T>,

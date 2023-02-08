@@ -80,6 +80,7 @@ impl pallet_assets::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
 	type AssetId = u32;
+	type AssetIdParameter = u32;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<u64>>;
 	type ForceOrigin = frame_system::EnsureRoot<u64>;
@@ -92,6 +93,9 @@ impl pallet_assets::Config for Test {
 	type Freezer = ();
 	type WeightInfo = ();
 	type Extra = ();
+	type RemoveItemsLimit = ConstU32<5>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 pub const LOCAL_ASSET_ID: u32 = 10;
