@@ -1,6 +1,6 @@
 use crate::tests::*;
 use frame_support::assert_ok;
-use xcm_simulator::{TestExt, Weight};
+use xcm_simulator::TestExt;
 
 #[test]
 fn event_collection_works() {
