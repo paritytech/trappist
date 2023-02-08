@@ -19,7 +19,6 @@
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
@@ -86,11 +85,6 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-}
-
-parameter_types! {
-	pub const ReservedXcmpWeight: Weight = WEIGHT_PER_SECOND.saturating_div(4);
-	pub const ReservedDmpWeight: Weight = WEIGHT_PER_SECOND.saturating_div(4);
 }
 
 parameter_types! {

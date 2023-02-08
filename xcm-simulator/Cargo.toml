@@ -12,39 +12,39 @@ thousands = "0.2.0"
 tracing = { version = "0.1.37" }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter", "tracing-log"] }
 
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-pallet-assets = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+pallet-assets = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
 pallet-asset-registry = { version = "0.0.1", path = "../pallets/asset-registry" }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.33" }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.36" }
 
-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-xcm-simulator = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
+xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+xcm-simulator = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
 
 # Polkadot
-polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
+polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
 
 # Cumulus
-cumulus-pallet-xcm = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.33" }
-cumulus-primitives-utility = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.33" }
-pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.33" }
-parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.33" }
+cumulus-pallet-xcm = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.36" }
+cumulus-primitives-utility = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.36" }
+pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.36" }
+parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.36" }
 
 # Runtimes
-rococo-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-rococo-runtime-constants = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.33" }
-statemine-runtime = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.33" }
+rococo-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+rococo-runtime-constants = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.36" }
+statemine-runtime = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.36" }
 stout-runtime = { path = "../runtime/stout" }
 trappist-runtime = { path = "../runtime/trappist" }
 

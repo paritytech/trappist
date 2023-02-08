@@ -3,7 +3,7 @@ use frame_support::{assert_ok, traits::PalletInfoAccess};
 use sp_runtime::traits::{BlakeTwo256, Hash};
 use trappist_runtime::constants::currency::EXISTENTIAL_DEPOSIT;
 use xcm_executor::Assets;
-use xcm_simulator::{TestExt, Weight};
+use xcm_simulator::TestExt;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1;
@@ -135,7 +135,7 @@ fn fungible_trap_works() {
 		assert!(trappist::AssetRegistry::asset_id_multilocation(txUSD).is_some());
 	});
 
-	const AMOUNT: u128 = ASSET_MIN_BALANCE * 20;
+	const AMOUNT: u128 = ASSET_MIN_BALANCE * 25;
 
 	AssetReserve::execute_with(|| {
 		assert_ok!(asset_reserve::PolkadotXcm::limited_reserve_transfer_assets(

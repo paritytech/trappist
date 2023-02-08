@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{AsEnsureOriginWithArg, Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, ConstU32, Everything, Nothing},
 	weights::constants::RocksDbWeight,
 };
 use pallet_xcm::XcmPassthrough;
@@ -39,9 +39,9 @@ use statemine_runtime::{
 		MaxInstructions, RelayNetwork, XcmAssetFeesReceiver,
 	},
 	ApprovalDeposit, AssetAccountDeposit, AssetDeposit, AssetsForceOrigin, AssetsStringLimit,
-	CollatorSelectionUpdateOrigin, ExistentialDeposit, MaxCandidates, MaxInvulnerables, MaxLocks,
-	MaxReserves, MetadataDepositBase, MetadataDepositPerByte, MinCandidates, Period, PotId,
-	RuntimeBlockLength, RuntimeBlockWeights, SS58Prefix, Session, Version,
+	CollatorSelectionUpdateOrigin, ExistentialDeposit, MaxCandidates, MaxInvulnerables,
+	MetadataDepositBase, MetadataDepositPerByte, MinCandidates, Period, PotId, RuntimeBlockLength,
+	RuntimeBlockWeights, SS58Prefix, Session, Version,
 };
 use xcm::latest::prelude::*;
 use xcm_builder::{
@@ -91,6 +91,7 @@ impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
+	type AssetIdParameter = u32;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<frame_system::EnsureSigned<AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
@@ -103,6 +104,9 @@ impl pallet_assets::Config for Runtime {
 	type Freezer = ();
 	type Extra = ();
 	type WeightInfo = ();
+	type RemoveItemsLimit = ConstU32<1000>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 impl pallet_balances::Config for Runtime {
@@ -112,8 +116,8 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
-	type MaxLocks = MaxLocks;
-	type MaxReserves = MaxReserves;
+	type MaxLocks = ConstU32<50>;
+	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
 }
 
@@ -263,47 +267,53 @@ mod weights {
 		pub struct WeightInfo<T>(PhantomData<T>);
 		impl<T: frame_system::Config> frame_system::WeightInfo for WeightInfo<T> {
 			/// The range of component `b` is `[0, 3932160]`.
-			fn remark(_b: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
+			fn remark(b: u32) -> Weight {
+				// Minimum execution time: 3_919 nanoseconds.
+				Weight::from_ref_time(3_976_000)
+					// Standard Error: 0
+					.saturating_add(Weight::from_ref_time(411).saturating_mul(b.into()))
 			}
 			/// The range of component `b` is `[0, 3932160]`.
 			fn remark_with_event(b: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
+				// Minimum execution time: 13_679 nanoseconds.
+				Weight::from_ref_time(13_807_000)
 					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(1_000 as u64).saturating_mul(b as u64))
+					.saturating_add(Weight::from_ref_time(1_770).saturating_mul(b.into()))
 			}
 			// Storage: System Digest (r:1 w:1)
 			// Storage: unknown [0x3a686561707061676573] (r:0 w:1)
 			fn set_heap_pages() -> Weight {
-				Weight::from_ref_time(8_677_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(2 as u64))
+				// Minimum execution time: 8_917 nanoseconds.
+				Weight::from_ref_time(9_108_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(2))
 			}
 			// Storage: Skipped Metadata (r:0 w:0)
-			/// The range of component `i` is `[1, 1000]`.
+			/// The range of component `i` is `[0, 1000]`.
 			fn set_storage(i: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 1_000
-					.saturating_add(Weight::from_ref_time(625_000 as u64).saturating_mul(i as u64))
-					.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(i as u64)))
+				// Minimum execution time: 4_078 nanoseconds.
+				Weight::from_ref_time(4_134_000)
+					// Standard Error: 2_191
+					.saturating_add(Weight::from_ref_time(624_841).saturating_mul(i.into()))
+					.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(i.into())))
 			}
 			// Storage: Skipped Metadata (r:0 w:0)
-			/// The range of component `i` is `[1, 1000]`.
+			/// The range of component `i` is `[0, 1000]`.
 			fn kill_storage(i: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 2_000
-					.saturating_add(Weight::from_ref_time(554_000 as u64).saturating_mul(i as u64))
-					.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(i as u64)))
+				// Minimum execution time: 4_078 nanoseconds.
+				Weight::from_ref_time(4_149_000)
+					// Standard Error: 965
+					.saturating_add(Weight::from_ref_time(446_865).saturating_mul(i.into()))
+					.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(i.into())))
 			}
 			// Storage: Skipped Metadata (r:0 w:0)
-			/// The range of component `p` is `[1, 1000]`.
+			/// The range of component `p` is `[0, 1000]`.
 			fn kill_prefix(p: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 2_000
-					.saturating_add(
-						Weight::from_ref_time(1_128_000 as u64).saturating_mul(p as u64),
-					)
-					.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(p as u64)))
+				// Minimum execution time: 5_538 nanoseconds.
+				Weight::from_ref_time(5_728_000)
+					// Standard Error: 1_272
+					.saturating_add(Weight::from_ref_time(972_809).saturating_mul(p.into()))
+					.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(p.into())))
 			}
 		}
 	}
@@ -317,45 +327,52 @@ mod weights {
 		impl<T: frame_system::Config> pallet_balances::WeightInfo for WeightInfo<T> {
 			// Storage: System Account (r:1 w:1)
 			fn transfer() -> Weight {
-				Weight::from_ref_time(46_411_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 41_318 nanoseconds.
+				Weight::from_ref_time(41_955_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn transfer_keep_alive() -> Weight {
-				Weight::from_ref_time(34_589_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 31_411 nanoseconds.
+				Weight::from_ref_time(32_017_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn set_balance_creating() -> Weight {
-				Weight::from_ref_time(25_591_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 22_832 nanoseconds.
+				Weight::from_ref_time(23_419_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn set_balance_killing() -> Weight {
-				Weight::from_ref_time(29_471_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 26_415 nanoseconds.
+				Weight::from_ref_time(26_818_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: System Account (r:2 w:2)
 			fn force_transfer() -> Weight {
-				Weight::from_ref_time(46_550_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(2 as u64))
-					.saturating_add(T::DbWeight::get().writes(2 as u64))
+				// Minimum execution time: 41_662 nanoseconds.
+				Weight::from_ref_time(42_609_000)
+					.saturating_add(T::DbWeight::get().reads(2))
+					.saturating_add(T::DbWeight::get().writes(2))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn transfer_all() -> Weight {
-				Weight::from_ref_time(40_804_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 37_061 nanoseconds.
+				Weight::from_ref_time(37_705_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: System Account (r:1 w:1)
 			fn force_unreserve() -> Weight {
-				Weight::from_ref_time(22_516_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 20_666 nanoseconds.
+				Weight::from_ref_time(20_929_000)
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 		}
 	}
@@ -371,23 +388,22 @@ mod weights {
 			// Storage: CollatorSelection Invulnerables (r:0 w:1)
 			/// The range of component `b` is `[1, 100]`.
 			fn set_invulnerables(b: u32) -> Weight {
-				Weight::from_ref_time(23_858_000 as u64)
-					// Standard Error: 3_000
-					.saturating_add(
-						Weight::from_ref_time(2_412_000 as u64).saturating_mul(b as u64),
-					)
-					.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(b as u64)))
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 21_009 nanoseconds.
+				Weight::from_ref_time(22_782_519)
+					// Standard Error: 3_817
+					.saturating_add(Weight::from_ref_time(2_244_637).saturating_mul(b.into()))
+					.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(b.into())))
+					.saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: CollatorSelection DesiredCandidates (r:0 w:1)
 			fn set_desired_candidates() -> Weight {
-				Weight::from_ref_time(14_642_000 as u64)
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 13_625 nanoseconds.
+				Weight::from_ref_time(14_070_000).saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: CollatorSelection CandidacyBond (r:0 w:1)
 			fn set_candidacy_bond() -> Weight {
-				Weight::from_ref_time(14_842_000 as u64)
-					.saturating_add(T::DbWeight::get().writes(1 as u64))
+				// Minimum execution time: 13_691 nanoseconds.
+				Weight::from_ref_time(14_032_000).saturating_add(T::DbWeight::get().writes(1))
 			}
 			// Storage: CollatorSelection Candidates (r:1 w:1)
 			// Storage: CollatorSelection DesiredCandidates (r:1 w:0)
@@ -395,31 +411,34 @@ mod weights {
 			// Storage: Session NextKeys (r:1 w:0)
 			// Storage: CollatorSelection CandidacyBond (r:1 w:0)
 			// Storage: CollatorSelection LastAuthoredBlock (r:0 w:1)
-			/// The range of component `c` is `[1, 1000]`.
+			/// The range of component `c` is `[1, 999]`.
 			fn register_as_candidate(c: u32) -> Weight {
-				Weight::from_ref_time(61_940_000 as u64)
-					// Standard Error: 0
-					.saturating_add(Weight::from_ref_time(170_000 as u64).saturating_mul(c as u64))
-					.saturating_add(T::DbWeight::get().reads(5 as u64))
-					.saturating_add(T::DbWeight::get().writes(2 as u64))
+				// Minimum execution time: 44_294 nanoseconds.
+				Weight::from_ref_time(41_574_350)
+					// Standard Error: 1_029
+					.saturating_add(Weight::from_ref_time(132_223).saturating_mul(c.into()))
+					.saturating_add(T::DbWeight::get().reads(5))
+					.saturating_add(T::DbWeight::get().writes(2))
 			}
 			// Storage: CollatorSelection Candidates (r:1 w:1)
 			// Storage: CollatorSelection LastAuthoredBlock (r:0 w:1)
 			/// The range of component `c` is `[6, 1000]`.
 			fn leave_intent(c: u32) -> Weight {
-				Weight::from_ref_time(60_018_000 as u64)
-					// Standard Error: 1_000
-					.saturating_add(Weight::from_ref_time(162_000 as u64).saturating_mul(c as u64))
-					.saturating_add(T::DbWeight::get().reads(1 as u64))
-					.saturating_add(T::DbWeight::get().writes(2 as u64))
+				// Minimum execution time: 34_163 nanoseconds.
+				Weight::from_ref_time(28_470_095)
+					// Standard Error: 1_039
+					.saturating_add(Weight::from_ref_time(126_663).saturating_mul(c.into()))
+					.saturating_add(T::DbWeight::get().reads(1))
+					.saturating_add(T::DbWeight::get().writes(2))
 			}
 			// Storage: System Account (r:2 w:2)
 			// Storage: System BlockWeight (r:1 w:1)
 			// Storage: CollatorSelection LastAuthoredBlock (r:0 w:1)
 			fn note_author() -> Weight {
-				Weight::from_ref_time(35_100_000 as u64)
-					.saturating_add(T::DbWeight::get().reads(3 as u64))
-					.saturating_add(T::DbWeight::get().writes(4 as u64))
+				// Minimum execution time: 30_143 nanoseconds.
+				Weight::from_ref_time(30_631_000)
+					.saturating_add(T::DbWeight::get().reads(3))
+					.saturating_add(T::DbWeight::get().writes(4))
 			}
 			// Storage: CollatorSelection Candidates (r:1 w:1)
 			// Storage: CollatorSelection LastAuthoredBlock (r:1000 w:1)
@@ -428,19 +447,15 @@ mod weights {
 			// Storage: System BlockWeight (r:1 w:1)
 			/// The range of component `r` is `[1, 1000]`.
 			/// The range of component `c` is `[1, 1000]`.
-			fn new_session(r: u32, c: u32) -> Weight {
-				Weight::from_ref_time(0 as u64)
-					// Standard Error: 1_237_000
-					.saturating_add(
-						Weight::from_ref_time(6_686_000 as u64).saturating_mul(r as u64),
-					)
-					// Standard Error: 1_237_000
-					.saturating_add(
-						Weight::from_ref_time(32_537_000 as u64).saturating_mul(c as u64),
-					)
-					.saturating_add(T::DbWeight::get().reads((2 as u64).saturating_mul(c as u64)))
-					.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(r as u64)))
-					.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(c as u64)))
+			fn new_session(_r: u32, c: u32) -> Weight {
+				// Minimum execution time: 19_764 nanoseconds.
+				Weight::from_ref_time(20_011_000)
+					// Standard Error: 764_093
+					.saturating_add(Weight::from_ref_time(27_541_884).saturating_mul(c.into()))
+					.saturating_add(T::DbWeight::get().reads(4))
+					.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(c.into())))
+					.saturating_add(T::DbWeight::get().writes(1))
+					.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(c.into())))
 			}
 		}
 	}
@@ -466,9 +481,9 @@ mod weights {
 		impl WeighMultiAssets for MultiAssetFilter {
 			fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
 				let weight = match self {
-					Definite(assets) =>
+					Self::Definite(assets) =>
 						weight.saturating_mul(assets.inner().into_iter().count() as u64),
-					Wild(_) => weight.saturating_mul(MAX_ASSETS as u64),
+					Self::Wild(_) => weight.saturating_mul(MAX_ASSETS as u64),
 				};
 				weight.ref_time()
 			}
@@ -636,13 +651,13 @@ mod weights {
 			impl<T: frame_system::Config> WeightInfo<T> {
 				// Storage: System Account (r:1 w:1)
 				pub(crate) fn withdraw_asset() -> Weight {
-					Weight::from_ref_time(35_315_000 as u64)
+					Weight::from_ref_time(32_154_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(1 as u64))
 						.saturating_add(T::DbWeight::get().writes(1 as u64))
 				}
 				// Storage: System Account (r:2 w:2)
 				pub(crate) fn transfer_asset() -> Weight {
-					Weight::from_ref_time(40_541_000 as u64)
+					Weight::from_ref_time(37_328_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(2 as u64))
 						.saturating_add(T::DbWeight::get().writes(2 as u64))
 				}
@@ -654,16 +669,16 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn transfer_reserve_asset() -> Weight {
-					Weight::from_ref_time(54_608_000 as u64)
+					Weight::from_ref_time(53_253_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(8 as u64))
 						.saturating_add(T::DbWeight::get().writes(4 as u64))
 				}
 				pub(crate) fn receive_teleported_asset() -> Weight {
-					Weight::from_ref_time(6_927_000 as u64)
+					Weight::from_ref_time(6_378_000 as u64)
 				}
 				// Storage: System Account (r:1 w:1)
 				pub(crate) fn deposit_asset() -> Weight {
-					Weight::from_ref_time(35_353_000 as u64)
+					Weight::from_ref_time(33_783_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(1 as u64))
 						.saturating_add(T::DbWeight::get().writes(1 as u64))
 				}
@@ -675,7 +690,7 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn deposit_reserve_asset() -> Weight {
-					Weight::from_ref_time(51_366_000 as u64)
+					Weight::from_ref_time(51_293_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(7 as u64))
 						.saturating_add(T::DbWeight::get().writes(3 as u64))
 				}
@@ -686,7 +701,7 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn initiate_teleport() -> Weight {
-					Weight::from_ref_time(27_592_000 as u64)
+					Weight::from_ref_time(28_390_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(6 as u64))
 						.saturating_add(T::DbWeight::get().writes(2 as u64))
 				}
@@ -707,38 +722,38 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn query_holding() -> Weight {
-					Weight::from_ref_time(679_129_000 as u64)
+					Weight::from_ref_time(892_211_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(6 as u64))
 						.saturating_add(T::DbWeight::get().writes(2 as u64))
 				}
 				pub(crate) fn buy_execution() -> Weight {
-					Weight::from_ref_time(9_337_000 as u64)
+					Weight::from_ref_time(8_728_000 as u64)
 				}
 				// Storage: PolkadotXcm Queries (r:1 w:0)
 				pub(crate) fn query_response() -> Weight {
-					Weight::from_ref_time(17_924_000 as u64)
+					Weight::from_ref_time(16_766_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(1 as u64))
 				}
 				pub(crate) fn transact() -> Weight {
-					Weight::from_ref_time(21_258_000 as u64)
+					Weight::from_ref_time(19_546_000 as u64)
 				}
 				pub(crate) fn refund_surplus() -> Weight {
-					Weight::from_ref_time(9_634_000 as u64)
+					Weight::from_ref_time(8_907_000 as u64)
 				}
 				pub(crate) fn set_error_handler() -> Weight {
-					Weight::from_ref_time(5_616_000 as u64)
+					Weight::from_ref_time(5_393_000 as u64)
 				}
 				pub(crate) fn set_appendix() -> Weight {
-					Weight::from_ref_time(5_627_000 as u64)
+					Weight::from_ref_time(5_453_000 as u64)
 				}
 				pub(crate) fn clear_error() -> Weight {
-					Weight::from_ref_time(5_793_000 as u64)
+					Weight::from_ref_time(5_417_000 as u64)
 				}
 				pub(crate) fn descend_origin() -> Weight {
-					Weight::from_ref_time(6_477_000 as u64)
+					Weight::from_ref_time(6_700_000 as u64)
 				}
 				pub(crate) fn clear_origin() -> Weight {
-					Weight::from_ref_time(5_709_000 as u64)
+					Weight::from_ref_time(5_365_000 as u64)
 				}
 				// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 				// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -746,18 +761,18 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn report_error() -> Weight {
-					Weight::from_ref_time(16_302_000 as u64)
+					Weight::from_ref_time(15_258_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(5 as u64))
 						.saturating_add(T::DbWeight::get().writes(2 as u64))
 				}
 				// Storage: PolkadotXcm AssetTraps (r:1 w:1)
 				pub(crate) fn claim_asset() -> Weight {
-					Weight::from_ref_time(12_324_000 as u64)
+					Weight::from_ref_time(21_485_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(1 as u64))
 						.saturating_add(T::DbWeight::get().writes(1 as u64))
 				}
 				pub(crate) fn trap() -> Weight {
-					Weight::from_ref_time(5_724_000 as u64)
+					Weight::from_ref_time(5_334_000 as u64)
 				}
 				// Storage: PolkadotXcm VersionNotifyTargets (r:1 w:1)
 				// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
@@ -766,13 +781,13 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn subscribe_version() -> Weight {
-					Weight::from_ref_time(19_809_000 as u64)
+					Weight::from_ref_time(18_035_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(6 as u64))
 						.saturating_add(T::DbWeight::get().writes(3 as u64))
 				}
 				// Storage: PolkadotXcm VersionNotifyTargets (r:0 w:1)
 				pub(crate) fn unsubscribe_version() -> Weight {
-					Weight::from_ref_time(9_008_000 as u64)
+					Weight::from_ref_time(7_661_000 as u64)
 						.saturating_add(T::DbWeight::get().writes(1 as u64))
 				}
 				// Storage: ParachainInfo ParachainId (r:1 w:0)
@@ -782,7 +797,7 @@ mod weights {
 				// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 				// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 				pub(crate) fn initiate_reserve_withdraw() -> Weight {
-					Weight::from_ref_time(867_880_000 as u64)
+					Weight::from_ref_time(1_090_619_000 as u64)
 						.saturating_add(T::DbWeight::get().reads(6 as u64))
 						.saturating_add(T::DbWeight::get().writes(2 as u64))
 				}

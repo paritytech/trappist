@@ -61,7 +61,7 @@ Add `pallet-assets`, `pallet-asset-registry` and `xcm-primitives` to the depende
 version = "4.0.0-dev"
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.36"
 
 [dependencies.pallet-asset-registry]
 version = "0.0.1"
@@ -96,6 +96,7 @@ impl pallet_assets::Config for Runtime {
     type Event = Event;
     type Balance = AssetBalance;
     type AssetId = AssetId;
+    type AssetIdParameter = u32;
     type Currency = Balances;
     type ForceOrigin = EnsureRoot<AccountId>;
     type AssetDeposit = ConstU128<1>;
@@ -107,6 +108,9 @@ impl pallet_assets::Config for Runtime {
     type Freezer = ();
     type Extra = ();
     type WeightInfo = ();
+    type RemoveItemsLimit = ConstU32<5>;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
 }
 ```
 
