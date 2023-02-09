@@ -22,7 +22,7 @@ use sp_runtime::traits::Hash;
 use xcm::{latest::prelude::*, VersionedXcm};
 
 pub(crate) mod asset_reserve;
-pub(crate) mod base;
+pub(crate) mod stout;
 pub(crate) mod template;
 pub(crate) mod trappist;
 

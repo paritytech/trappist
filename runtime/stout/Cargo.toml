@@ -1,5 +1,5 @@
 [package]
-name = "base-runtime"
+name = "stout-runtime"
 version = "1.0.0"
 authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
 license = "Unlicense"

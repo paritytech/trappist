@@ -1,18 +1,18 @@
-use base_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
-};
 use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use stout_runtime::{
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
+	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
+};
 
-const DEFAULT_PROTOCOL_ID: &str = "base";
+const DEFAULT_PROTOCOL_ID: &str = "stout";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec = sc_service::GenericChainSpec<base_runtime::GenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<stout_runtime::GenesisConfig, Extensions>;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
@@ -66,17 +66,17 @@ fn session_keys(aura: AuraId) -> SessionKeys {
 }
 
 pub fn development_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
+	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "BASE".into());
+	properties.insert("tokenSymbol".into(), "STOUT".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::from_genesis(
 		// Name
-		"Base Development",
+		"Stout Development",
 		// ID
-		"base_dev",
+		"stout_dev",
 		ChainType::Development,
 		move || {
 			testnet_genesis(
@@ -120,17 +120,17 @@ pub fn development_config() -> ChainSpec {
 }
 
 pub fn local_testnet_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
+	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "BASE".into());
+	properties.insert("tokenSymbol".into(), "STOUT".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::from_genesis(
 		// Name
-		"Base Local",
+		"Stout Local",
 		// ID
-		"base_local",
+		"stout_local",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
@@ -185,7 +185,7 @@ fn testnet_genesis(
 ) -> GenesisConfig {
 	GenesisConfig {
 		system: SystemConfig {
-			code: base_runtime::WASM_BINARY
+			code: stout_runtime::WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
 		},
@@ -193,8 +193,8 @@ fn testnet_genesis(
 			// Configure endowed accounts with initial balance of 1 << 60.
 			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
 		},
-		parachain_info: base_runtime::ParachainInfoConfig { parachain_id: id },
-		collator_selection: base_runtime::CollatorSelectionConfig {
+		parachain_info: stout_runtime::ParachainInfoConfig { parachain_id: id },
+		collator_selection: stout_runtime::CollatorSelectionConfig {
 			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
@@ -216,7 +216,7 @@ fn testnet_genesis(
 		aura: Default::default(),
 		aura_ext: Default::default(),
 		parachain_system: Default::default(),
-		polkadot_xcm: base_runtime::PolkadotXcmConfig { safe_xcm_version: Some(SAFE_XCM_VERSION) },
+		polkadot_xcm: stout_runtime::PolkadotXcmConfig { safe_xcm_version: Some(SAFE_XCM_VERSION) },
 		sudo: SudoConfig {
 			// Assign network admin rights.
 			key: Some(root_key),

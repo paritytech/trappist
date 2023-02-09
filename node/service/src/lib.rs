@@ -48,20 +48,20 @@ mod trappist_executor {
 	}
 }
 
-#[cfg(feature = "with-base-runtime")]
-mod base_executor {
-	pub use base_runtime;
+#[cfg(feature = "with-stout-runtime")]
+mod stout_executor {
+	pub use stout_runtime;
 
 	pub struct NativeExecutor;
 	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
 		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-			base_runtime::api::dispatch(method, data)
+			stout_runtime::api::dispatch(method, data)
 		}
 
 		fn native_version() -> sc_executor::NativeVersion {
-			base_runtime::native_version()
+			stout_runtime::native_version()
 		}
 	}
 }
@@ -74,15 +74,15 @@ type ParachainBackend = TFullBackend<Block>;
 
 type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
 
-#[cfg(feature = "with-base-runtime")]
-pub use base_executor::*;
+#[cfg(feature = "with-stout-runtime")]
+pub use stout_executor::*;
 #[cfg(feature = "with-trappist-runtime")]
 pub use trappist_executor::*;
 
 #[cfg(feature = "with-trappist-runtime")]
 pub type RuntimeApi = trappist_runtime::RuntimeApi;
-#[cfg(feature = "with-base-runtime")]
-pub type RuntimeApi = base_runtime::RuntimeApi;
+#[cfg(feature = "with-stout-runtime")]
+pub type RuntimeApi = stout_runtime::RuntimeApi;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -341,7 +341,7 @@ async fn start_node_impl(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[cfg(feature = "with-base-runtime")]
+#[cfg(feature = "with-stout-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl(
 	parachain_config: Configuration,
@@ -414,7 +414,7 @@ async fn start_node_impl(
 				deny_unsafe,
 			};
 
-			trappist_rpc::base_create_full(deps).map_err(Into::into)
+			trappist_rpc::stout_create_full(deps).map_err(Into::into)
 		})
 	};
 

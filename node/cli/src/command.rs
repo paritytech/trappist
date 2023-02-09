@@ -13,16 +13,16 @@ use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as BlockT};
 
-#[cfg(feature = "with-base-runtime")]
-use base_runtime::Block;
+#[cfg(feature = "with-stout-runtime")]
+use stout_runtime::Block;
 #[cfg(feature = "with-trappist-runtime")]
 use trappist_runtime::Block;
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
 use service::{chain_spec, new_partial, NativeExecutor};
 
-#[cfg(feature = "with-base-runtime")]
-use service::chain_spec::base::{
+#[cfg(feature = "with-stout-runtime")]
+use service::chain_spec::stout::{
 	development_config, local_testnet_config, ChainSpec as ServiceChainSpec, Extensions,
 };
 #[cfg(feature = "with-trappist-runtime")]

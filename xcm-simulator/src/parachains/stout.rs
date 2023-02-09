@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Base Parachain runtime mock.
+//! Stout Parachain runtime mock.
 
-use base_runtime::{
+use stout_runtime::{
 	constants::{
 		currency::{CENTS, EXISTENTIAL_DEPOSIT, UNITS},
 		fee::WeightToFee,
@@ -29,7 +29,7 @@ use base_runtime::{
 	BlockNumber, DealWithFees, Hash, Header, Index, Period, PotId, RuntimeBlockLength,
 	RuntimeBlockWeights, Session, UnitBody, Version,
 };
-pub use base_runtime::{AccountId, AssetId, Balance};
+pub use stout_runtime::{AccountId, AssetId, Balance};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{AsEnsureOriginWithArg, EitherOfDiverse, Everything, Nothing},
