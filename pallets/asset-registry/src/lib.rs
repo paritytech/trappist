@@ -19,7 +19,7 @@ pub use weights::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::{
-		pallet_prelude::*, sp_runtime::traits::Zero, traits::tokens::fungibles::Inspect,
+		pallet_prelude::*, traits::tokens::fungibles::Inspect,
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -145,11 +145,9 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		// pallet-assets implements the fungibles::Inspect trait
-		// where minimum_balance(asset_id) always returns non-zero
-		// for existing assets, and zero for non-existing assets
+		// check if the asset exists
 		fn asset_exists(asset_id: AssetIdOf<T>) -> bool {
-			!T::Assets::minimum_balance(asset_id).is_zero()
+			T::Assets::asset_exists(asset_id)
 		}
 	}
 }
