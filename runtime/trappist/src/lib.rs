@@ -501,6 +501,21 @@ impl pallet_asset_registry::Config for Runtime {
 	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const ChessPalletId: PalletId = PalletId(*b"subchess");
+}
+
+impl pallet_chess::Config for Runtime {
+	type PalletId = ChessPalletId;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_chess::weights::SubstrateWeight<Runtime>;
+	type Assets = Assets;
+	type AssetBalance = u128;
+	type BulletPeriod = ConstU32<10>;
+	type BlitzPeriod = ConstU32<50>;
+	type RapidPeriod = ConstU32<150>;
+	type DailyPeriod = ConstU32<14400>;
+}
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -553,6 +568,7 @@ construct_runtime!(
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
+		Chess: pallet_chess::{Pallet, Call, Storage, Event<T>} = 102,
 	}
 );
 
