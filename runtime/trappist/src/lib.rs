@@ -370,6 +370,7 @@ impl pallet_assets::Config for Runtime {
 	type RemoveItemsLimit = ConstU32<1000>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+	type CallbackHandle = ();
 }
 
 type CouncilCollective = pallet_collective::Instance1;
