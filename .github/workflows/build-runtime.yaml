@@ -21,11 +21,11 @@ jobs:
           echo Summary:
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
           cat ${{ matrix.chain }}-srtool-digest.json
-          echo "Runtime location: ${{ steps.srtool_build.outputs.wasm }}"
+          cp `dirname ${{ steps.srtool_build.outputs.wasm }}`/*.wasm ./
       - name: Archive Runtime
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.chain }}-runtime-${{ github.sha }}
           path: |
-            ${{ steps.srtool_build.outputs.wasm }}
+            ${{ matrix.chain }}*.wasm
             ${{ matrix.chain }}-srtool-digest.json
