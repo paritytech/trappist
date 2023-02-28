@@ -96,6 +96,7 @@ impl pallet_assets::Config for Test {
 	type RemoveItemsLimit = ConstU32<5>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+	type CallbackHandle = ();
 }
 
 pub const LOCAL_ASSET_ID: u32 = 10;
