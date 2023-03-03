@@ -142,6 +142,12 @@ pub mod pallet {
 		}
 	}
 
+	impl<T: Config> xcm_primitives::AssetMultiLocationSetter<AssetIdOf<T>> for Pallet<T> {
+		fn set_asset_id(asset_multi_location: &MultiLocation, asset_id: AssetIdOf<T>) {
+			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
+		}
+	}
+
 	impl<T: Config> Pallet<T> {
 		// check if the asset exists
 		fn asset_exists(asset_id: AssetIdOf<T>) -> bool {

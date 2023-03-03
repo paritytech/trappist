@@ -13591,7 +13591,10 @@ dependencies = [
 name = "xcm-primitives"
 version = "0.0.1"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
+ "frame-system",
+ "sp-io",
  "sp-std",
  "xcm",
  "xcm-executor",

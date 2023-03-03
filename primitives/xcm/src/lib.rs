@@ -4,14 +4,21 @@ use frame_support::{
 	sp_runtime::SaturatedConversion,
 	traits::{fungibles::Inspect, Currency},
 };
+use frame_support::dispatch::WeighData;
+use frame_support::sp_runtime::offchain::DbExternalities;
 use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
+use xcm::GetWeight;
 use xcm::latest::{
 	AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
 };
-use xcm_executor::{
-	traits::{Convert, DropAssets, Error as MatchError, MatchesFungibles},
-	Assets,
-};
+use xcm::v2::Weight;
+use xcm_executor::{traits::{Convert, DropAssets, Error as MatchError, MatchesFungibles}, Assets, Config};
+
+#[cfg(test)]
+mod mock;
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+pub mod weights;
 
 pub struct AsAssetMultiLocation<AssetId, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetIdInfoGetter)>,
@@ -34,6 +41,10 @@ where
 pub trait AssetMultiLocationGetter<AssetId> {
 	fn get_asset_multi_location(asset_id: AssetId) -> Option<MultiLocation>;
 	fn get_asset_id(asset_multi_location: MultiLocation) -> Option<AssetId>;
+}
+
+pub trait AssetMultiLocationSetter<AssetId> {
+	fn set_asset_id(asset_multi_location: &MultiLocation, assetId: AssetId);
 }
 
 pub struct ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertBalance>(
