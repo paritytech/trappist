@@ -1,8 +1,9 @@
 use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
@@ -178,6 +179,109 @@ pub fn local_testnet_config() -> ChainSpec {
 
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
+	invulnerables: Vec<(AccountId, AuraId)>,
+	root_key: AccountId,
+	endowed_accounts: Vec<AccountId>,
+	id: ParaId,
+) -> GenesisConfig {
+	GenesisConfig {
+		system: SystemConfig {
+			code: trappist_runtime::WASM_BINARY
+				.expect("WASM binary was not build, please build it!")
+				.to_vec(),
+		},
+		balances: BalancesConfig {
+			// Configure endowed accounts with initial balance of 1 << 60.
+			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+		},
+		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
+		collator_selection: trappist_runtime::CollatorSelectionConfig {
+			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
+			..Default::default()
+		},
+		session: SessionConfig {
+			keys: invulnerables
+				.iter()
+				.map(|(acc, aura)| {
+					(
+						acc.clone(),                // account id
+						acc.clone(),                // validator id
+						session_keys(aura.clone()), // session keys
+					)
+				})
+				.collect(),
+		},
+		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
+		// of this.
+		aura: Default::default(),
+		aura_ext: Default::default(),
+		parachain_system: Default::default(),
+		polkadot_xcm: trappist_runtime::PolkadotXcmConfig {
+			safe_xcm_version: Some(SAFE_XCM_VERSION),
+		},
+		sudo: SudoConfig {
+			// Assign network admin rights.
+			key: Some(root_key),
+		},
+		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
+		council: CouncilConfig {
+			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			phantom: Default::default(),
+		},
+	}
+}
+
+pub fn trappist_config() -> ChainSpec {
+	let mut properties = sc_chain_spec::Properties::new();
+	properties.insert("ss58Format".into(), 0.into());
+	properties.insert("tokenSymbol".into(), "DOT".into());
+	properties.insert("tokenDecimals".into(), 10.into());
+
+	ChainSpec::from_genesis(
+		// Name
+		"Trappist",
+		// ID
+		"trappist",
+		ChainType::Live,
+		move || {
+			trappist_genesis(
+				// initial collators.
+				vec![
+					(
+						hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c")
+							.into(),
+						hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c")
+							.unchecked_into(),
+					),
+					(
+						hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
+							.into(),
+						hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
+							.unchecked_into(),
+					)
+				],
+				hex!("c66f4a5871bd5faa18fb71c6d094cae45b6a2610a4271de0ca20bb824ca3bb2e")
+				.into(),
+				vec![],
+				2525u32.into(),
+			)
+		},
+		vec![
+			"/ip4/34.65.251.121/tcp/30334/p2p/12D3KooWG3GrM6XKMM4gp3cvemdwUvu96ziYoJmqmetLZBXE8bSa".parse().unwrap(),
+			"/ip4/34.65.35.228/tcp/30334/p2p/12D3KooWMRyTLrCEPcAQD6c4EnudL3vVzg9zji3whvsMYPUYevpq".parse().unwrap(),
+			"/ip4/34.83.247.146/tcp/30334/p2p/12D3KooWE4jFh5FpJDkWVZhnWtFnbSqRhdjvC7Dp9b8b3FTuubQC".parse().unwrap(),
+			"/ip4/104.199.117.230/tcp/30334/p2p/12D3KooWG9R8pVXKumVo2rdkeVD4j5PVhRTqmYgLHY3a4yPYgLqM".parse().unwrap(),
+		],
+		None,
+		None,
+		None,
+		Some(properties),
+		Extensions { relay_chain: "polkadot".into(), para_id: 1000 },
+	)
+}
+
+fn trappist_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
