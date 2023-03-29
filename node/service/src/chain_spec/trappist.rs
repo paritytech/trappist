@@ -18,6 +18,8 @@ pub type ChainSpec = sc_service::GenericChainSpec<trappist_runtime::GenesisConfi
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
+const TRAPPIST_PARA_ID: u32 = 2525;
+
 /// Helper function to generate a crypto pair from seed
 pub fn get_public_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
 	TPublic::Pair::from_string(&format!("//{}", seed), None)
@@ -234,9 +236,9 @@ fn testnet_genesis(
 
 pub fn trappist_config() -> ChainSpec {
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("ss58Format".into(), 0.into());
-	properties.insert("tokenSymbol".into(), "DOT".into());
-	properties.insert("tokenDecimals".into(), 10.into());
+	properties.insert("tokenSymbol".into(), "HOP".into());
+	properties.insert("tokenDecimals".into(), 12.into());
+	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::from_genesis(
 		// Name
@@ -259,25 +261,27 @@ pub fn trappist_config() -> ChainSpec {
 							.into(),
 						hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
 							.unchecked_into(),
-					)
+					),
 				],
-				hex!("c66f4a5871bd5faa18fb71c6d094cae45b6a2610a4271de0ca20bb824ca3bb2e")
-				.into(),
-				vec![],
-				2525u32.into(),
+				hex!("6a3db76f636ce43faaf58dde5a71a8e03b9d4ae3b331cff85c092f5bf98d971b").into(),
+				vec![
+					// This account will have root origin
+					hex!("6a3db76f636ce43faaf58dde5a71a8e03b9d4ae3b331cff85c092f5bf98d971b").into(),
+					hex!("3e79b5cb39533bd4a20f1a4b8ca5e62d264164cdf1389d568f73bc3932b5144a").into(),
+					hex!("d00c901e43ab81cd9f26dc1b0c109a243134c47fee89d897f3fbf03e860c6d45").into(),
+					hex!("30a12eef517fb62d993a605bc98183fa9b2336197da9f34414bcbf67839d0b14").into(),
+					hex!("c0612ba544f0c34b5b0e102bfa7139e14cc7dc106ba7d34f317adca7fa30bb27").into(),
+					hex!("1a2477ef6ea36d70bc6058a97d9bbbdfea103710cf2fbb9586269db72ab98f1a").into(),
+				],
+				TRAPPIST_PARA_ID.into(),
 			)
 		},
-		vec![
-			"/ip4/34.65.251.121/tcp/30334/p2p/12D3KooWG3GrM6XKMM4gp3cvemdwUvu96ziYoJmqmetLZBXE8bSa".parse().unwrap(),
-			"/ip4/34.65.35.228/tcp/30334/p2p/12D3KooWMRyTLrCEPcAQD6c4EnudL3vVzg9zji3whvsMYPUYevpq".parse().unwrap(),
-			"/ip4/34.83.247.146/tcp/30334/p2p/12D3KooWE4jFh5FpJDkWVZhnWtFnbSqRhdjvC7Dp9b8b3FTuubQC".parse().unwrap(),
-			"/ip4/104.199.117.230/tcp/30334/p2p/12D3KooWG9R8pVXKumVo2rdkeVD4j5PVhRTqmYgLHY3a4yPYgLqM".parse().unwrap(),
-		],
+		vec![],
 		None,
 		None,
 		None,
 		Some(properties),
-		Extensions { relay_chain: "polkadot".into(), para_id: 1000 },
+		Extensions { relay_chain: "rococo".into(), para_id: TRAPPIST_PARA_ID },
 	)
 }
 
@@ -315,8 +319,6 @@ fn trappist_genesis(
 				})
 				.collect(),
 		},
-		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
-		// of this.
 		aura: Default::default(),
 		aura_ext: Default::default(),
 		parachain_system: Default::default(),
@@ -329,7 +331,8 @@ fn trappist_genesis(
 		},
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
-			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			// We set the endowed accounts with balance as members of the council.
+			members: endowed_accounts.iter().map(|x| x.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 	}

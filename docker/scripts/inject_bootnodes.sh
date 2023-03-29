@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+<<<<<<< HEAD
 # this script runs the trappist-collator after fetching
+=======
+# this script runs the polkadot-parachain after fetching
+>>>>>>> b5dbc5e (Pushing some updates for proposal)
 # appropriate bootnode IDs
 #
 # this is _not_ a general-purpose script; it is closely tied to the
