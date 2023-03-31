@@ -1,10 +1,10 @@
 # This file is sourced from https://github.com/paritytech/polkadot/blob/master/scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile
 FROM docker.io/paritytech/ci-linux:production as builder
 
-WORKDIR /cumulus
-COPY . /cumulus
+WORKDIR /trappist
+COPY . /trappist
 
-RUN cargo build --release --locked -p polkadot-parachain
+RUN cargo build --release --locked -p trappist-collator
 
 # the collator stage is normally built once, cached, and then ignored, but can
 # be specified with the --target build flag. This adds some extra tooling to the
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install jq curl bash -y && \
     npm install --global yarn && \
     yarn global add @polkadot/api-cli@0.10.0-beta.14
 COPY --from=builder \
-    /paritytech/cumulus/target/release/polkadot-parachain /usr/bin
+    /paritytech/cumulus/target/release/trappist-collator /usr/bin
 COPY ./docker/scripts/inject_bootnodes.sh /usr/bin
 CMD ["/usr/bin/inject_bootnodes.sh"]
 COPY ./docker/scripts/healthcheck.sh /usr/bin/
@@ -35,12 +35,12 @@ HEALTHCHECK --interval=300s --timeout=75s --start-period=30s --retries=3 \
 # outputs, which can then be moved into a volume at runtime
 FROM debian:buster-slim as runtime
 COPY --from=builder \
-    /paritytech/cumulus/target/release/wbuild/cumulus-test-parachain-runtime/cumulus_test_parachain_runtime.compact.wasm \
+    /paritytech/trappist/target/release/wbuild/trappist-runtime/trappist_runtime.wasm \
     /var/opt/
-CMD ["cp", "-v", "/var/opt/cumulus_test_parachain_runtime.compact.wasm", "/runtime/"]
+CMD ["cp", "-v", "/var/opt/trappist_runtime.wasm", "/runtime/"]
 
 FROM debian:buster-slim
 COPY --from=builder \
-    /paritytech/cumulus/target/release/polkadot-parachain /usr/bin
+    /paritytech/trappist/target/release/trappist-collator /usr/bin
 
-CMD ["/usr/bin/polkadot-parachain"]
+CMD ["/usr/bin/trappist-collator"]
