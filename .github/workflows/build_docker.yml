@@ -1,7 +1,8 @@
 name: Build Docker image
 
 on:
-  pull:
+  pull_request:
+    branches: [master]
 
 jobs:
   build_docker:
