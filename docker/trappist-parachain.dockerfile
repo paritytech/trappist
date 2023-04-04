@@ -4,7 +4,7 @@ FROM docker.io/paritytech/ci-linux:production as builder
 WORKDIR /trappist
 COPY . /trappist
 
-RUN cargo build --release --locked -p trappist-collator
+RUN cargo build --release
 
 # the collator stage is normally built once, cached, and then ignored, but can
 # be specified with the --target build flag. This adds some extra tooling to the
