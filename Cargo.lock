@@ -12093,6 +12093,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures 0.3.26",
+ "hex-literal",
  "jsonrpsee",
  "log",
  "nix 0.23.2",
