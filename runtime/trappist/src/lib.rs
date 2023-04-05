@@ -378,7 +378,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type Proposal = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
-	type MotionDuration = ConstU32<{ 48 * HOURS }>;
+	type MotionDuration = ConstU32<{ 3 * MINUTES }>;
 	type MaxProposals = ConstU32<100>;
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
