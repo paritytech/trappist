@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install jq curl bash -y && \
     npm install --global yarn && \
     yarn global add @polkadot/api-cli@0.10.0-beta.14
 COPY --from=builder \
-    /paritytech/trappist/target/release/trappist-collator /usr/bin
+    /trappist/target/release/trappist-collator /usr/bin
 COPY ./docker/scripts/inject_bootnodes.sh /usr/bin
 CMD ["/usr/bin/inject_bootnodes.sh"]
 COPY ./docker/scripts/healthcheck.sh /usr/bin/
@@ -35,12 +35,12 @@ HEALTHCHECK --interval=300s --timeout=75s --start-period=30s --retries=3 \
 # outputs, which can then be moved into a volume at runtime
 FROM debian:buster-slim as runtime
 COPY --from=builder \
-    /paritytech/trappist/target/release/wbuild/trappist-runtime/trappist_runtime.wasm \
+    /trappist/target/release/wbuild/trappist-runtime/trappist_runtime.wasm \
     /var/opt/
 CMD ["cp", "-v", "/var/opt/trappist_runtime.wasm", "/runtime/"]
 
 FROM debian:buster-slim
 COPY --from=builder \
-    /paritytech/trappist/target/release/trappist-collator /usr/bin
+    /trappist/target/release/trappist-collator /usr/bin
 
 CMD ["/usr/bin/trappist-collator"]
