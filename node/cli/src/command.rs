@@ -27,8 +27,7 @@ use service::chain_spec::stout::{
 };
 #[cfg(feature = "with-trappist-runtime")]
 use service::chain_spec::trappist::{
-	development_config, local_testnet_config, trappist_config, ChainSpec as ServiceChainSpec,
-	Extensions,
+	development_config, local_testnet_config, ChainSpec as ServiceChainSpec, Extensions,
 };
 
 impl SubstrateCli for Cli {
@@ -66,9 +65,7 @@ impl SubstrateCli for Cli {
 		Ok(match id {
 			// -- Trappist
 			"dev" | "trappist_dev" => Box::new(development_config()),
-			"" | "local" | "trappist-local" => Box::new(local_testnet_config()),
-			// Live chain spec for Rococo - Trappist
-			"trappist-rococo" => Box::new(trappist_config()),
+			"" | "local" | "trappist-local" | "trappist-rococo" => Box::new(local_testnet_config()),
 			// -- Loading a specific spec from disk
 			path => Box::new(ServiceChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
@@ -107,7 +104,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn copyright_start_year() -> i32 {
-		2023
+		2021
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
