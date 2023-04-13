@@ -263,7 +263,7 @@ pub fn trappist_config() -> ChainSpec {
 							.unchecked_into(),
 					),
 				],
-				hex!("6a3db76f636ce43faaf58dde5a71a8e03b9d4ae3b331cff85c092f5bf98d971b").into(),
+				hex!("e40839fde680c01344c20d47b7f08d2926b8a7537697356d416987a04a4453d0").into(),
 				vec![
 					// This account will have root origin
 					hex!("6a3db76f636ce43faaf58dde5a71a8e03b9d4ae3b331cff85c092f5bf98d971b").into(),
@@ -299,7 +299,11 @@ fn trappist_genesis(
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts
+				.iter()
+				.cloned()
+				.map(|k| if k == root_key { (k, 1 << 60) } else { (k, 1 << 61) })
+				.collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
