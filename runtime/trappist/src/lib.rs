@@ -547,7 +547,6 @@ construct_runtime!(
 		Utility: pallet_utility = 47,
 		Preimage: pallet_preimage = 48,
 		Multisig: pallet_multisig = 49,
-		ContractsXCM: pallet_contracts_xcm = 50,
 
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 

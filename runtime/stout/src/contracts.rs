@@ -11,7 +11,6 @@ use pallet_contracts::{
 	weights::{SubstrateWeight, WeightInfo},
 	Config, DefaultAddressGenerator, Frame, Schedule,
 };
-use pallet_contracts_xcm::Extension as XCMContractExtension;
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_core::ConstBool;
 
@@ -51,7 +50,7 @@ impl Config for Runtime {
 	type DepositPerByte = DepositPerByte;
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = SubstrateWeight<Self>;
-	type ChainExtension = XCMContractExtension<Self>;
+	type ChainExtension = ();
 	type DeletionQueueDepth = DeletionQueueDepth;
 	type DeletionWeightLimit = DeletionWeightLimit;
 	type Schedule = MySchedule;
@@ -62,5 +61,3 @@ impl Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<false>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 }
-
-impl pallet_contracts_xcm::Config for Runtime {}
