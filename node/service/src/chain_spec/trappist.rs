@@ -117,7 +117,7 @@ pub fn development_config() -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 2000,
+			para_id: TRAPPIST_PARA_ID,
 		},
 	)
 }
@@ -159,7 +159,7 @@ pub fn local_testnet_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
 				],
-				2000.into(),
+				TRAPPIST_PARA_ID.into(),
 			)
 		},
 		// Bootnodes
@@ -174,7 +174,7 @@ pub fn local_testnet_config() -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 2000,
+			para_id: TRAPPIST_PARA_ID,
 		},
 	)
 }
@@ -305,9 +305,9 @@ fn trappist_genesis(
 				.chain(std::iter::once(root_key.clone()))
 				.map(|k| {
 					if k == root_key {
-						(k, 1_000_00_000_000_000_000)
+						(k, 1_000_000_000_000_000_000)
 					} else {
-						(k, 1_500_00_000_000_000_000)
+						(k, 1_500_000_000_000_000_000)
 					}
 				})
 				.collect(),
