@@ -18,7 +18,7 @@ pub type ChainSpec = sc_service::GenericChainSpec<trappist_runtime::GenesisConfi
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
-const TRAPPIST_PARA_ID: u32 = 2525;
+const TRAPPIST_PARA_ID: u32 = 1836;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_public_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -302,7 +302,14 @@ fn trappist_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| if k == root_key { (k, 1 << 60) } else { (k, 1 << 61) })
+				.chain(std::iter::once(root_key.clone()))
+				.map(|k| {
+					if k == root_key {
+						(k, 1_000_00_000_000_000_000)
+					} else {
+						(k, 1_500_00_000_000_000_000)
+					}
+				})
 				.collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
