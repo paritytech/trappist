@@ -5136,26 +5136,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num_enum"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d829733185c1ca374f17e52b762f24f535ec625d2cc1f070e34c8a9068f341b"
-dependencies = [
- "num_enum_derive",
-]
-
-[[package]]
-name = "num_enum_derive"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2be1598bf1c313dcdd12092e3f1920f463462525a21b7b4e11b4168353d0123e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "object"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5648,26 +5628,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "pallet-contracts-xcm"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/pallet-contracts-xcm?branch=trappist/polkadot-v0.9.37#ca9a51bf6a447e6721b187ac9303c1f308ab2fa7"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "pallet-contracts",
- "pallet-xcm",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-executor",
 ]
 
 [[package]]
@@ -11250,7 +11210,6 @@ dependencies = [
  "pallet-collective",
  "pallet-contracts",
  "pallet-contracts-primitives",
- "pallet-contracts-xcm",
  "pallet-dex",
  "pallet-dex-rpc-runtime-api",
  "pallet-identity",
@@ -12067,7 +12026,6 @@ dependencies = [
  "pallet-collective",
  "pallet-contracts",
  "pallet-contracts-primitives",
- "pallet-contracts-xcm",
  "pallet-dex",
  "pallet-dex-rpc-runtime-api",
  "pallet-identity",
