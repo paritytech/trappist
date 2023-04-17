@@ -513,10 +513,10 @@ impl pallet_chess::Config for Runtime {
 	type WeightInfo = pallet_chess::weights::SubstrateWeight<Runtime>;
 	type Assets = Assets;
 	type AssetBalance = u128;
-	type BulletPeriod = ConstU32<{1 * MINUTES}>;	// ~1 minute
-	type BlitzPeriod = ConstU32<{5 * MINUTES}>;		// ~5 minutes
-	type RapidPeriod = ConstU32<{15 * MINUTES}>;	// ~15 minutes
-	type DailyPeriod = ConstU32<{25 * HOURS}>;		// ~24 hours
+	type BulletPeriod = ConstU32<{ 1 * MINUTES }>; // ~1 minute
+	type BlitzPeriod = ConstU32<{ 5 * MINUTES }>; // ~5 minutes
+	type RapidPeriod = ConstU32<{ 15 * MINUTES }>; // ~15 minutes
+	type DailyPeriod = ConstU32<{ 25 * HOURS }>; // ~24 hours
 	type IncentiveShare = IncentiveShare;
 }
 
@@ -573,7 +573,7 @@ construct_runtime!(
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
 
 		// Chess
-        Chess: pallet_chess::{Pallet, Call, Storage, Event<T>} = 120,
+		Chess: pallet_chess::{Pallet, Call, Storage, Event<T>} = 120,
 	}
 );
 
