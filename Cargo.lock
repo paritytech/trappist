@@ -5507,7 +5507,7 @@ dependencies = [
 [[package]]
 name = "pallet-chess"
 version = "4.0.0-dev"
-source = "git+https://github.com/SubstrateChess/pallet-chess.git?branch=master#97b2375c84b48e72e6ad36587ec75db9629e75c9"
+source = "git+https://github.com/SubstrateChess/pallet-chess.git?branch=polkadot-v0.9.37#ebd727358e5ec87747d7b02adea0ea78b2c5e77f"
 dependencies = [
  "cozy-chess",
  "frame-benchmarking",
@@ -12089,6 +12089,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures 0.3.26",
+ "hex-literal",
  "jsonrpsee",
  "log",
  "nix 0.23.2",
