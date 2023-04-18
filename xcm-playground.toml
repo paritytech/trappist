@@ -40,7 +40,7 @@ chain = "statemine-local"
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
-id = 2000
+id = 1836
 add_to_genesis = true
 cumulus_based = true
 

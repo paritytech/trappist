@@ -21,6 +21,7 @@ log = "0.4.17"
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 serde = { version = "1.0.152", features = ["derive"] }
 futures = { version = "0.3.1", features = ["compat"] }
+hex-literal = "0.3.4"
 
 # RPC related Dependencies
 jsonrpsee = { version = "0.16.2", features = ["server"] }
