@@ -4,7 +4,7 @@ use crate::{
 };
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Nothing},
+	traits::{ConstBool, ConstU32, Nothing},
 	weights::Weight,
 };
 use pallet_contracts::{
@@ -12,7 +12,6 @@ use pallet_contracts::{
 	Config, DefaultAddressGenerator, Frame, Schedule,
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
-use sp_core::ConstBool;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
@@ -26,10 +25,10 @@ parameter_types! {
 		RuntimeBlockWeights::get().max_block;
 	// The weight needed for decoding the queue should be less or equal than a fifth
 	// of the overall weight dedicated to the lazy deletion.
-	pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get() / (
-			<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(1) -
-			<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(0)
-		).ref_time()) / 5).ref_time() as u32;
+	pub DeletionQueueDepth: u32 = ((DeletionWeightLimit::get().ref_time() / (
+		<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(1).ref_time() -
+		<Runtime as Config>::WeightInfo::on_initialize_per_queue_item(0).ref_time()
+	)) / 5) as u32;
 	pub MySchedule: Schedule<Runtime> = Default::default();
 }
 
@@ -58,6 +57,6 @@ impl Config for Runtime {
 	type AddressGenerator = DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
-	type UnsafeUnstableInterface = ConstBool<false>;
+	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 }
