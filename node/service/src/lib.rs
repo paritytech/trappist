@@ -30,7 +30,8 @@ use substrate_prometheus_endpoint::Registry;
 
 pub mod chain_spec;
 
-mod stout_executor {
+#[cfg(feature = "with-stout-runtime")]
+pub mod stout_executor {
 	pub use stout_runtime;
 	pub struct NativeExecutor;
 	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
@@ -45,7 +46,8 @@ mod stout_executor {
 		}
 	}
 }
-mod trappist_executor {
+#[cfg(feature = "with-trappist-runtime")]
+pub mod trappist_executor {
 	pub use trappist_runtime;
 
 	pub struct NativeExecutor;
@@ -62,6 +64,18 @@ mod trappist_executor {
 	}
 }
 
+#[cfg(feature = "with-stout-runtime")]
+pub use stout_executor::*;
+
+#[cfg(feature = "with-trappist-runtime")]
+pub use trappist_executor::*;
+
+#[cfg(feature = "with-trappist-runtime")]
+pub type RuntimeApi = trappist_runtime::RuntimeApi;
+
+#[cfg(feature = "with-stout-runtime")]
+pub type RuntimeApi = stout_runtime::RuntimeApi;
+
 type ParachainExecutor = NativeElseWasmExecutor<NativeExecutor>;
 
 type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
@@ -69,22 +83,6 @@ type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
 type ParachainBackend = TFullBackend<Block>;
 
 type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
-
-#[cfg(not(feature = "with-trappist-runtime"))]
-#[cfg(feature = "with-stout-runtime")]
-pub use stout_executor::*;
-
-#[cfg(not(feature = "with-stout-runtime"))]
-#[cfg(feature = "with-trappist-runtime")]
-pub use trappist_executor::*;
-
-#[cfg(not(feature = "with-stout-runtime"))]
-#[cfg(feature = "with-trappist-runtime")]
-pub type RuntimeApi = trappist_runtime::RuntimeApi;
-
-#[cfg(not(feature = "with-trappist-runtime"))]
-#[cfg(feature = "with-stout-runtime")]
-pub type RuntimeApi = stout_runtime::RuntimeApi;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
