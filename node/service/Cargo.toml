@@ -28,8 +28,8 @@ jsonrpsee = { version = "0.16.2", features = ["server"] }
 
 # Local Dependencies
 trappist-runtime = { path = "../../runtime/trappist", optional = true }
-stout-runtime = { path = "../../runtime/stout", optional = true }
 trappist-rpc = { path = "../../rpc" }
+stout-runtime = { path = "../../runtime/stout", optional = true }
 
 # Substrate Dependencies
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
@@ -112,9 +112,10 @@ runtime-benchmarks = [
 try-runtime = [
 	"trappist-runtime/try-runtime"
 ]
-with-trappist-runtime = [
-	"trappist-runtime",
-]
 with-stout-runtime = [
 	"stout-runtime",
 ]
+with-trappist-runtime = [
+	"trappist-runtime",
+]
+

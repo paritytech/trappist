@@ -30,7 +30,21 @@ use substrate_prometheus_endpoint::Registry;
 
 pub mod chain_spec;
 
-#[cfg(feature = "with-trappist-runtime")]
+mod stout_executor {
+	pub use stout_runtime;
+	pub struct NativeExecutor;
+	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
+		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+			stout_runtime::api::dispatch(method, data)
+		}
+
+		fn native_version() -> sc_executor::NativeVersion {
+			stout_runtime::native_version()
+		}
+	}
+}
 mod trappist_executor {
 	pub use trappist_runtime;
 
@@ -48,24 +62,6 @@ mod trappist_executor {
 	}
 }
 
-#[cfg(feature = "with-stout-runtime")]
-mod stout_executor {
-	pub use stout_runtime;
-
-	pub struct NativeExecutor;
-	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
-		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
-
-		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-			stout_runtime::api::dispatch(method, data)
-		}
-
-		fn native_version() -> sc_executor::NativeVersion {
-			stout_runtime::native_version()
-		}
-	}
-}
-
 type ParachainExecutor = NativeElseWasmExecutor<NativeExecutor>;
 
 type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
@@ -74,13 +70,19 @@ type ParachainBackend = TFullBackend<Block>;
 
 type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
 
+#[cfg(not(feature = "with-trappist-runtime"))]
 #[cfg(feature = "with-stout-runtime")]
 pub use stout_executor::*;
+
+#[cfg(not(feature = "with-stout-runtime"))]
 #[cfg(feature = "with-trappist-runtime")]
 pub use trappist_executor::*;
 
+#[cfg(not(feature = "with-stout-runtime"))]
 #[cfg(feature = "with-trappist-runtime")]
 pub type RuntimeApi = trappist_runtime::RuntimeApi;
+
+#[cfg(not(feature = "with-trappist-runtime"))]
 #[cfg(feature = "with-stout-runtime")]
 pub type RuntimeApi = stout_runtime::RuntimeApi;
 
@@ -167,6 +169,7 @@ pub fn new_partial(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
+#[cfg(not(feature = "with-stout-runtime"))]
 #[cfg(feature = "with-trappist-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl(
@@ -341,6 +344,7 @@ async fn start_node_impl(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
+#[cfg(not(feature = "with-trappist-runtime"))]
 #[cfg(feature = "with-stout-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl(

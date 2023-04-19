@@ -19,15 +19,16 @@ use stout_runtime::Block;
 use trappist_runtime::Block;
 
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use service::{chain_spec, new_partial, NativeExecutor};
+use service::{new_partial, NativeExecutor};
 
 #[cfg(feature = "with-stout-runtime")]
 use service::chain_spec::stout::{
-	development_config, local_testnet_config, ChainSpec as ServiceChainSpec, Extensions,
+	development_config, live_config, local_testnet_config, ChainSpec as ServiceChainSpec,
+	Extensions,
 };
 #[cfg(feature = "with-trappist-runtime")]
 use service::chain_spec::trappist::{
-	development_config, local_testnet_config, trappist_config, ChainSpec as ServiceChainSpec,
+	development_config, live_config, local_testnet_config, ChainSpec as ServiceChainSpec,
 	Extensions,
 };
 
@@ -68,7 +69,7 @@ impl SubstrateCli for Cli {
 			"dev" | "trappist_dev" => Box::new(development_config()),
 			"" | "local" | "trappist-local" => Box::new(local_testnet_config()),
 			// Live chain spec for Rococo - Trappist
-			"trappist-rococo" => Box::new(trappist_config()),
+			"trappist-rococo" => Box::new(live_config()),
 			// -- Loading a specific spec from disk
 			path => Box::new(ServiceChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
