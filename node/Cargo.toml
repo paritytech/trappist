@@ -38,7 +38,7 @@ nix = "0.23"
 tempfile = "3.2.0"
 
 [features]
-default = []
+default = ["with-trappist-runtime"]
 runtime-benchmarks = [
     "trappist-cli/runtime-benchmarks"
 ]
