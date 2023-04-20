@@ -167,7 +167,6 @@ pub fn new_partial(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[cfg(not(feature = "with-stout-runtime"))]
 #[cfg(feature = "with-trappist-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl(
@@ -342,7 +341,6 @@ async fn start_node_impl(
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
-#[cfg(not(feature = "with-trappist-runtime"))]
 #[cfg(feature = "with-stout-runtime")]
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
 async fn start_node_impl(
