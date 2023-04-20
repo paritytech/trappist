@@ -85,12 +85,12 @@ post_state = "Hash"
 
 [[hrmp_channels]]
 sender = 1000
-recipient = 2000
+recipient = 1836
 max_capacity = 8
 max_message_size = 512
 
 [[hrmp_channels]]
-sender = 2000
+sender = 1836
 recipient = 1000
 max_capacity = 8
 max_message_size = 512
@@ -108,13 +108,13 @@ max_capacity = 8
 max_message_size = 512
 
 [[hrmp_channels]]
-sender = 2000
+sender = 1836
 recipient = 3000
 max_capacity = 8
 max_message_size = 512
 
 [[hrmp_channels]]
 sender = 3000
-recipient = 2000
+recipient = 1836
 max_capacity = 8
 max_message_size = 512
