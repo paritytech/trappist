@@ -55,10 +55,10 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 Use the following command to build the Trappist collator binary:
 
-When the stout collator is built, rename the binary into `stout-collator` and place it into the `./bin` folder.
 ```
 cargo b -r --features with-stout-runtime
-cargo b -r --features with-trappist-runtime
+cargo b -r --features with-stout-runtime --target-dir target_stout
+
 ```
 
 Alternatively, run
@@ -72,8 +72,6 @@ Create a `bin` directory into the root of this repository and place the followin
 - `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
 - `trappist-collator` (which you will build from this repository)
 - `stout-collator` (which you will build from this repository)
-
-
 
 Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
 ```
