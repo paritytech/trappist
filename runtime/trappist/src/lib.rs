@@ -25,6 +25,7 @@ pub mod constants;
 mod contracts;
 pub mod xcm_config;
 
+use common::DAYS;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
@@ -73,7 +74,7 @@ pub use sp_runtime::BuildStorage;
 
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
-use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
+use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate, prod_or_fast};
 use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
@@ -103,7 +104,7 @@ pub type UncheckedExtrinsic =
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
-pub type Migrations = (pallet_contracts::Migration<Runtime>);
+pub type Migrations = pallet_contracts::Migration<Runtime>;
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -479,8 +480,12 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-	pub LaunchPeriod: BlockNumber = ();
-	pub VotingPeriod: BlockNumber = ();
+	//TODO: Discuss period durations before merging to main
+	pub LaunchPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_LAUNCH_PERIOD");
+	pub VotingPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_VOTING_PERIOD");
+	pub EnactmentPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_ENACTMENT_PERIOD");
+	pub FastTrackVotingPeriod: BlockNumber = prod_or_fast!(3 * HOURS, 1 * MINUTES, "TRP_FAST_TRACK_VOTING_PERIOD");
+	pub CooloffPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_VOTING_PERIOD");
 	pub const MinimumDeposit: Balance = 100 * CENTS;
 	pub const MaxVotes: u32 = 100;
 	pub const MaxProposals: u32 = 100;
@@ -497,29 +502,37 @@ impl pallet_democracy::Config for Runtime {
 	type InstantAllowed = InstantAllowed;
 	type MaxVotes = MaxVotes;
 	type MaxProposals = MaxProposals;
-	type MaxDeposits = ();
-	type MaxBlacklisted = ();
-	type Slash = ();
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
+	type Slash = ();  //Define
 	//Periods
-	type EnactmentPeriod = ();
-	type LaunchPeriod = ();
-	type VotingPeriod = ();
-	type VoteLockingPeriod = ();
-	type FastTrackVotingPeriod = ();
-	type CooloffPeriod = ();
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = EnactmentPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type CooloffPeriod = CooloffPeriod;
 	//Origins
 	//Council mayority can make proposal into referendum
 	type ExternalOrigin = 
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
-	type ExternalMajorityOrigin = ();
-	type ExternalDefaultOrigin = ();
+	type ExternalMajorityOrigin = 
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type ExternalDefaultOrigin = 
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
 	type FastTrackOrigin = ();
 	type InstantOrigin = ();
-	type CancellationOrigin = ();
-	type BlacklistOrigin = ();
-	type CancelProposalOrigin = ();
+	type CancellationOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>
+	>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>
+	>;
 	type VetoOrigin = ();
-	type PalletsOrigin = ();
+	type PalletsOrigin = OriginCaller;
 }
 
 parameter_types! {
