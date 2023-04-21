@@ -102,6 +102,9 @@ pub type UncheckedExtrinsic =
 	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
+
+pub type Migrations = (pallet_contracts::Migration<Runtime>);
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -109,7 +112,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	pallet_contracts::Migration<Runtime>,
+	Migrations,
 >;
 
 impl_opaque_keys! {
@@ -290,7 +293,7 @@ impl parachain_info::Config for Runtime {}
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 parameter_types! {
-	pub const Period: u32 = 6 * HOURS;
+	pub const Period: u32 = 10 * MINUTES;
 	pub const Offset: u32 = 0;
 }
 
@@ -324,7 +327,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type UpdateOrigin = CollatorSelectionUpdateOrigin;
 	type PotId = PotId;
 	type MaxCandidates = ConstU32<1000>;
-	type MinCandidates = ConstU32<5>;
+	type MinCandidates = ConstU32<0>;
 	type MaxInvulnerables = ConstU32<100>;
 	// should be a multiple of session or things will get inconsistent
 	type KickThreshold = Period;
@@ -555,22 +558,24 @@ construct_runtime!(
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 33,
 
 		// Runtime features
-		Sudo: pallet_sudo = 40,
-		Contracts: pallet_contracts = 41,
-		Council: pallet_collective::<Instance1> = 42,
-		Assets: pallet_assets = 43,
-		Identity: pallet_identity = 44,
-		Uniques: pallet_uniques = 45,
-		Scheduler: pallet_scheduler = 46,
-		Utility: pallet_utility = 47,
-		Preimage: pallet_preimage = 48,
-		Multisig: pallet_multisig = 49,
+		Contracts: pallet_contracts = 40,
+		Council: pallet_collective::<Instance1> = 41,
+		Assets: pallet_assets = 42,
+		Identity: pallet_identity = 43,
+		Uniques: pallet_uniques = 44,
+		Scheduler: pallet_scheduler = 45,
+		Preimage: pallet_preimage = 46,
 
-		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
+		// Handy utilities.
+		Utility: pallet_utility::{Pallet, Call, Event} = 50,
+		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 51,
+
+		// Sudo
+		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Event<T>, Storage} = 100,
 
 		// Additional pallets
-		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 100,
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 101,
+		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
+		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
 
 		// Chess
 		Chess: pallet_chess::{Pallet, Call, Storage, Event<T>} = 120,
