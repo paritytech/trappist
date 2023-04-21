@@ -479,6 +479,50 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
+	pub LaunchPeriod: BlockNumber = ();
+	pub VotingPeriod: BlockNumber = ();
+	pub const MinimumDeposit: Balance = 100 * CENTS;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+	pub const InstantAllowed: bool = true;
+}
+
+impl pallet_democracy::Config for Runtime {
+	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
+	type RuntimeEvent = RuntimeEvent;
+	type Scheduler = Scheduler; //<<check
+	type Preimages = Preimage;
+	type Currency = Balances;
+	type MinimumDeposit = MinimumDeposit;
+	type InstantAllowed = InstantAllowed;
+	type MaxVotes = MaxVotes;
+	type MaxProposals = MaxProposals;
+	type MaxDeposits = ();
+	type MaxBlacklisted = ();
+	type Slash = ();
+	//Periods
+	type EnactmentPeriod = ();
+	type LaunchPeriod = ();
+	type VotingPeriod = ();
+	type VoteLockingPeriod = ();
+	type FastTrackVotingPeriod = ();
+	type CooloffPeriod = ();
+	//Origins
+	//Council mayority can make proposal into referendum
+	type ExternalOrigin = 
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type ExternalMajorityOrigin = ();
+	type ExternalDefaultOrigin = ();
+	type FastTrackOrigin = ();
+	type InstantOrigin = ();
+	type CancellationOrigin = ();
+	type BlacklistOrigin = ();
+	type CancelProposalOrigin = ();
+	type VetoOrigin = ();
+	type PalletsOrigin = ();
+}
+
+parameter_types! {
 	pub const DexPalletId: PalletId = PalletId(*b"trap/dex");
 }
 
@@ -565,6 +609,7 @@ construct_runtime!(
 		Uniques: pallet_uniques = 44,
 		Scheduler: pallet_scheduler = 45,
 		Preimage: pallet_preimage = 46,
+		Democracy: pallet_democracy = 47,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 50,
@@ -597,6 +642,7 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
+		[pallet_democracy, Democracy]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]
 		[pallet_identity, Identity]
