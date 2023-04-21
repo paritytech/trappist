@@ -12140,6 +12140,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "trappist-common"
+version = "1.0.0"
+dependencies = [
+ "cumulus-primitives-utility",
+ "frame-support",
+ "frame-system",
+ "pallet-asset-tx-payment",
+ "pallet-assets",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-treasury",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "scale-info",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "trappist-rpc"
 version = "1.0.0"
 dependencies = [
@@ -12209,6 +12235,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
  "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
@@ -12234,6 +12261,7 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder",
+ "trappist-common",
  "xcm",
  "xcm-builder",
  "xcm-executor",
