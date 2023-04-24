@@ -202,6 +202,7 @@ fn testnet_genesis(
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
+		democracy: Default::default(),
 		session: SessionConfig {
 			keys: invulnerables
 				.iter()
@@ -317,6 +318,7 @@ fn trappist_genesis(
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
+		democracy: Default::default(),
 		session: SessionConfig {
 			keys: invulnerables
 				.iter()
