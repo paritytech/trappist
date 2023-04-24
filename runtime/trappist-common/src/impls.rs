@@ -21,7 +21,7 @@ use frame_support::traits::{
 	Contains, Currency, Get, Imbalance, OnUnbalanced,
 };
 use pallet_asset_tx_payment::HandleCredit;
-use sp_runtime::traits::Zero;
+use sp_runtime::{traits::Zero, Permill};
 use sp_std::marker::PhantomData;
 use xcm::latest::{AssetId, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_executor::traits::FilterAssetLocation;
@@ -145,6 +145,7 @@ mod tests {
 			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 			CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>},
+			Treasury: pallet_treasury::{Pallet, Call, Storage, Event<T>},
 		}
 	);
 
@@ -238,6 +239,45 @@ mod tests {
 		type UncleGenerations = ();
 		type FilterUncle = ();
 		type EventHandler = ();
+	}
+
+	parameter_types! {
+		pub const ProposalBond: Permill = Permill::from_percent(5);
+		pub const Burn: Permill = Permill::from_percent(50);
+		pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	}
+	pub struct TestSpendOrigin;
+	impl frame_support::traits::EnsureOrigin<RuntimeOrigin> for TestSpendOrigin {
+		type Success = u64;
+		fn try_origin(o: RuntimeOrigin) -> Result<Self::Success, RuntimeOrigin> {
+			Result::<frame_system::RawOrigin<_>, RuntimeOrigin>::from(o).and_then(|o| match o {
+				frame_system::RawOrigin::Root => Ok(u64::max_value()),
+				r => Err(RuntimeOrigin::from(r)),
+			})
+		}
+		#[cfg(feature = "runtime-benchmarks")]
+		fn try_successful_origin() -> Result<RuntimeOrigin, ()> {
+			Ok(RuntimeOrigin::root())
+		}
+	}
+
+	impl pallet_treasury::Config for Test {
+		type PalletId = TreasuryPalletId;
+		type Currency = pallet_balances::Pallet<Test>;
+		type ApproveOrigin = EnsureRoot<AccountId>;
+		type RejectOrigin = EnsureRoot<AccountId>;
+		type RuntimeEvent = RuntimeEvent;
+		type OnSlash = ();
+		type ProposalBond = ProposalBond;
+		type ProposalBondMinimum = ConstU64<1>;
+		type ProposalBondMaximum = ();
+		type SpendPeriod = ConstU64<2>;
+		type Burn = Burn;
+		type BurnDestination = (); // Just gets burned.
+		type WeightInfo = ();
+		type SpendFunds = ();
+		type MaxApprovals = ConstU32<100>;
+		type SpendOrigin = TestSpendOrigin;
 	}
 
 	pub fn new_test_ext() -> sp_io::TestExternalities {

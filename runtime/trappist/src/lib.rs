@@ -206,7 +206,7 @@ impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
 	type UncleGenerations = ConstU32<0>;
 	type FilterUncle = ();
-	type EventHandler = (CollatorSelection);
+	type EventHandler = CollatorSelection;
 }
 
 impl pallet_balances::Config for Runtime {
