@@ -10,8 +10,6 @@ use stout_runtime::{
 	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, Signature, SudoConfig, SystemConfig,
 };
 
-const STOUT_PARA_ID: u32 = 3000;
-
 const DEFAULT_PROTOCOL_ID: &str = "stout";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
@@ -19,6 +17,8 @@ pub type ChainSpec = sc_service::GenericChainSpec<stout_runtime::GenesisConfig, 
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
+
+const STOUT_PARA_ID: u32 = 3000;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_public_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -122,7 +122,7 @@ pub fn development_config() -> ChainSpec {
 	)
 }
 
-pub fn local_testnet_config() -> ChainSpec {
+pub fn stout_local_testnet_config() -> ChainSpec {
 	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "STOUT".into());
@@ -234,7 +234,7 @@ fn testnet_genesis(
 
 pub fn live_config() -> ChainSpec {
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "HOP".into());
+	properties.insert("tokenSymbol".into(), "STOUT".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 

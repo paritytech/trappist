@@ -122,7 +122,7 @@ pub fn development_config() -> ChainSpec {
 	)
 }
 
-pub fn local_testnet_config() -> ChainSpec {
+pub fn trappist_local_testnet_config() -> ChainSpec {
 	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "HOP".into());

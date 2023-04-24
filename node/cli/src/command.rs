@@ -23,12 +23,12 @@ use service::{new_partial, NativeExecutor};
 
 #[cfg(feature = "with-stout-runtime")]
 use service::chain_spec::stout::{
-	development_config, live_config, local_testnet_config, ChainSpec as ServiceChainSpec,
+	development_config, live_config, stout_local_testnet_config, ChainSpec as ServiceChainSpec,
 	Extensions,
 };
 #[cfg(feature = "with-trappist-runtime")]
 use service::chain_spec::trappist::{
-	development_config, live_config, local_testnet_config, ChainSpec as ServiceChainSpec,
+	development_config, live_config, trappist_local_testnet_config, ChainSpec as ServiceChainSpec,
 	Extensions,
 };
 
@@ -67,7 +67,10 @@ impl SubstrateCli for Cli {
 		Ok(match id {
 			// -- Trappist
 			"dev" | "trappist_dev" => Box::new(development_config()),
-			"" | "local" | "trappist-local" => Box::new(local_testnet_config()),
+			#[cfg(feature = "with-trappist-runtime")]
+			"trappist-local" => Box::new(trappist_local_testnet_config()),
+			#[cfg(feature = "with-stout-runtime")]
+			"stout-local" => Box::new(stout_local_testnet_config()),
 			// Live chain spec for Rococo - Trappist
 			"trappist-rococo" => Box::new(live_config()),
 			// -- Loading a specific spec from disk
