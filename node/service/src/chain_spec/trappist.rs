@@ -234,7 +234,7 @@ fn testnet_genesis(
 	}
 }
 
-pub fn live_config() -> ChainSpec {
+pub fn trappist_live_config() -> ChainSpec {
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "HOP".into());
 	properties.insert("tokenDecimals".into(), 12.into());
@@ -247,7 +247,7 @@ pub fn live_config() -> ChainSpec {
 		"trappist",
 		ChainType::Live,
 		move || {
-			live_genesis(
+			trappist_live_genesis(
 				// initial collators.
 				vec![
 					(
@@ -285,7 +285,7 @@ pub fn live_config() -> ChainSpec {
 	)
 }
 
-fn live_genesis(
+fn trappist_live_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
