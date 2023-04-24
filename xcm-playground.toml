@@ -43,6 +43,7 @@ chain = "statemine-local"
 id = 1836
 add_to_genesis = true
 cumulus_based = true
+chain = "trappist-local"
 
   [[parachains.collators]]
   name = "trappist-collator01"
@@ -60,6 +61,7 @@ cumulus_based = true
 id = 3000
 add_to_genesis = true
 cumulus_based = true
+chain = "stout-local"
 
   [[parachains.collators]]
   name = "stout-collator01"
