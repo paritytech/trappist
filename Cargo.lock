@@ -12197,6 +12197,7 @@ dependencies = [
  "pallet-collective",
  "pallet-contracts",
  "pallet-contracts-primitives",
+ "pallet-democracy",
  "pallet-dex",
  "pallet-dex-rpc-runtime-api",
  "pallet-identity",

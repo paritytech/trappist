@@ -479,7 +479,6 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-	//TODO: Discuss period durations before merging to main
 	pub LaunchPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_LAUNCH_PERIOD");
 	pub VotingPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_VOTING_PERIOD");
 	pub EnactmentPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_ENACTMENT_PERIOD");
