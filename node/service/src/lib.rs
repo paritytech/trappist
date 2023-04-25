@@ -30,8 +30,24 @@ use substrate_prometheus_endpoint::Registry;
 
 pub mod chain_spec;
 
+#[cfg(feature = "with-stout-runtime")]
+pub mod stout_executor {
+	pub use stout_runtime;
+	pub struct NativeExecutor;
+	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
+		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+			stout_runtime::api::dispatch(method, data)
+		}
+
+		fn native_version() -> sc_executor::NativeVersion {
+			stout_runtime::native_version()
+		}
+	}
+}
 #[cfg(feature = "with-trappist-runtime")]
-mod trappist_executor {
+pub mod trappist_executor {
 	pub use trappist_runtime;
 
 	pub struct NativeExecutor;
@@ -49,22 +65,16 @@ mod trappist_executor {
 }
 
 #[cfg(feature = "with-stout-runtime")]
-mod stout_executor {
-	pub use stout_runtime;
+pub use stout_executor::*;
 
-	pub struct NativeExecutor;
-	impl sc_executor::NativeExecutionDispatch for NativeExecutor {
-		type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+#[cfg(feature = "with-trappist-runtime")]
+pub use trappist_executor::*;
 
-		fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-			stout_runtime::api::dispatch(method, data)
-		}
+#[cfg(feature = "with-trappist-runtime")]
+pub type RuntimeApi = trappist_runtime::RuntimeApi;
 
-		fn native_version() -> sc_executor::NativeVersion {
-			stout_runtime::native_version()
-		}
-	}
-}
+#[cfg(feature = "with-stout-runtime")]
+pub type RuntimeApi = stout_runtime::RuntimeApi;
 
 type ParachainExecutor = NativeElseWasmExecutor<NativeExecutor>;
 
@@ -73,16 +83,6 @@ type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
 type ParachainBackend = TFullBackend<Block>;
 
 type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
-
-#[cfg(feature = "with-stout-runtime")]
-pub use stout_executor::*;
-#[cfg(feature = "with-trappist-runtime")]
-pub use trappist_executor::*;
-
-#[cfg(feature = "with-trappist-runtime")]
-pub type RuntimeApi = trappist_runtime::RuntimeApi;
-#[cfg(feature = "with-stout-runtime")]
-pub type RuntimeApi = stout_runtime::RuntimeApi;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
