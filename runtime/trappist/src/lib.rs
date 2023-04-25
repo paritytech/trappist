@@ -25,7 +25,6 @@ pub mod constants;
 mod contracts;
 pub mod xcm_config;
 
-use common::DAYS;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
@@ -64,7 +63,7 @@ pub use parachains_common as common;
 pub use parachains_common::{
 	impls::{AssetsToBlockAuthor, DealWithFees},
 	opaque, AccountId, AssetId, AuraId, Balance, BlockNumber, Hash, Header, Index, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
+	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
 	SLOT_DURATION,
 };
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
@@ -495,7 +494,7 @@ parameter_types! {
 impl pallet_democracy::Config for Runtime {
 	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
-	type Scheduler = Scheduler; //<<check
+	type Scheduler = Scheduler; 
 	type Preimages = Preimage;
 	type Currency = Balances;
 	type MinimumDeposit = MinimumDeposit;
@@ -504,7 +503,7 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 	type MaxDeposits = ConstU32<100>;
 	type MaxBlacklisted = ConstU32<100>;
-	type Slash = ();  //Define
+	type Slash = ();  
 	//Periods
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
