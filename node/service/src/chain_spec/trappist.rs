@@ -122,7 +122,7 @@ pub fn development_config() -> ChainSpec {
 	)
 }
 
-pub fn local_testnet_config() -> ChainSpec {
+pub fn trappist_local_testnet_config() -> ChainSpec {
 	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "HOP".into());
@@ -235,7 +235,7 @@ fn testnet_genesis(
 	}
 }
 
-pub fn trappist_config() -> ChainSpec {
+pub fn trappist_live_config() -> ChainSpec {
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "HOP".into());
 	properties.insert("tokenDecimals".into(), 12.into());
@@ -248,7 +248,7 @@ pub fn trappist_config() -> ChainSpec {
 		"trappist",
 		ChainType::Live,
 		move || {
-			trappist_genesis(
+			trappist_live_genesis(
 				// initial collators.
 				vec![
 					(
@@ -286,7 +286,7 @@ pub fn trappist_config() -> ChainSpec {
 	)
 }
 
-fn trappist_genesis(
+fn trappist_live_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,

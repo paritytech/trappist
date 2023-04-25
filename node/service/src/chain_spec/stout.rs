@@ -1,8 +1,9 @@
 use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public};
+use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use stout_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
@@ -16,6 +17,8 @@ pub type ChainSpec = sc_service::GenericChainSpec<stout_runtime::GenesisConfig, 
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
+
+const STOUT_PARA_ID: u32 = 3000;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_public_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -99,7 +102,7 @@ pub fn development_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Bob"),
 					get_account_id_from_seed::<sr25519::Public>("Charlie"),
 				],
-				3000.into(),
+				STOUT_PARA_ID.into(),
 			)
 		},
 		// Bootnodes
@@ -114,12 +117,12 @@ pub fn development_config() -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 3000,
+			para_id: STOUT_PARA_ID,
 		},
 	)
 }
 
-pub fn local_testnet_config() -> ChainSpec {
+pub fn stout_local_testnet_config() -> ChainSpec {
 	// Give your stout currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "STOUT".into());
@@ -156,7 +159,7 @@ pub fn local_testnet_config() -> ChainSpec {
 					get_account_id_from_seed::<sr25519::Public>("Eve"),
 					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
 				],
-				3000.into(),
+				STOUT_PARA_ID.into(),
 			)
 		},
 		// Bootnodes
@@ -171,7 +174,7 @@ pub fn local_testnet_config() -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 3000,
+			para_id: STOUT_PARA_ID,
 		},
 	)
 }
