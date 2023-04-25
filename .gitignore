@@ -13,6 +13,9 @@
 # The cache for chain data in container
 .local
 
+#Local toolchain configuration
+rust-toolchain.toml
+
 # direnv cache
 .direnv
 
