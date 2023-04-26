@@ -16,15 +16,9 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
-use frame_support::traits::{
-	fungibles::{self, Balanced, CreditOf},
-	Contains, Currency, Get, Imbalance, OnUnbalanced,
-};
-use pallet_asset_tx_payment::HandleCredit;
-use sp_runtime::{traits::Zero, Permill};
+use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
+
 use sp_std::marker::PhantomData;
-use xcm::latest::{AssetId, Fungibility::Fungible, MultiAsset, MultiLocation};
-use xcm_executor::traits::FilterAssetLocation;
 
 /// Type alias to conveniently refer to the `Currency::NegativeImbalance` associated type.
 pub type NegativeImbalance<T> = <pallet_balances::Pallet<T> as Currency<
