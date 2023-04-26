@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::constants::fee::default_fee_per_second;
+use crate::{constants::fee::default_fee_per_second, impls::ToAuthor};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -30,7 +30,6 @@ use parachains_common::{
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
 	AssetId,
 };
-use trappist_common::impls::ToAuthor;
 use xcm_executor::traits::{FilterAssetLocation, JustTry};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
 

@@ -98,8 +98,6 @@ xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.37" }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
-trappist-common = { package = "trappist-common", path = "../trappist-common", default-features = false }
-
 # External Pallets
 pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
 pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
@@ -131,7 +129,6 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
-	"trappist-common/std",
     "pallet-assets/std",
 	"pallet-asset-tx-payment/std",
     "pallet-aura/std",

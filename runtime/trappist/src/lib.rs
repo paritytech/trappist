@@ -23,6 +23,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod constants;
 mod contracts;
+pub mod impls;
 pub mod xcm_config;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
@@ -67,7 +68,7 @@ pub use parachains_common::{
 	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 
-use trappist_common::impls::DealWithFees;
+use impls::DealWithFees;
 
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 

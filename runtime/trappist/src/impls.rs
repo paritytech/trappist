@@ -39,8 +39,8 @@ pub struct ToAuthor<R>(PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for ToAuthor<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>:
-		From<polkadot_primitives::v2::AccountId> + Into<polkadot_primitives::v2::AccountId>,
+	AccountIdOf<R>: From<polkadot_core_primitives::v2::AccountId>
+		+ Into<polkadot_core_primitives::v2::AccountId>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
@@ -54,8 +54,8 @@ impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config + pallet_treasury::Config,
 	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
-	AccountIdOf<R>:
-		From<polkadot_primitives::v2::AccountId> + Into<polkadot_primitives::v2::AccountId>,
+	AccountIdOf<R>: From<polkadot_core_primitives::v2::AccountId>
+		+ Into<polkadot_core_primitives::v2::AccountId>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
@@ -72,47 +72,6 @@ where
 		}
 	}
 }
-
-/// A `HandleCredit` implementation that naively transfers the fees to the block author.
-/// Will drop and burn the assets in case the transfer fails.
-pub struct AssetsToBlockAuthor<R>(PhantomData<R>);
-impl<R> HandleCredit<AccountIdOf<R>, pallet_assets::Pallet<R>> for AssetsToBlockAuthor<R>
-where
-	R: pallet_authorship::Config + pallet_assets::Config,
-	AccountIdOf<R>:
-		From<polkadot_primitives::v2::AccountId> + Into<polkadot_primitives::v2::AccountId>,
-{
-	fn handle_credit(credit: CreditOf<AccountIdOf<R>, pallet_assets::Pallet<R>>) {
-		if let Some(author) = pallet_authorship::Pallet::<R>::author() {
-			// In case of error: Will drop the result triggering the `OnDrop` of the imbalance.
-			let _ = pallet_assets::Pallet::<R>::resolve(&author, credit);
-		}
-	}
-}
-
-/// Allow checking in assets that have issuance > 0.
-pub struct NonZeroIssuance<AccountId, Assets>(PhantomData<(AccountId, Assets)>);
-impl<AccountId, Assets> Contains<<Assets as fungibles::Inspect<AccountId>>::AssetId>
-	for NonZeroIssuance<AccountId, Assets>
-where
-	Assets: fungibles::Inspect<AccountId>,
-{
-	fn contains(id: &<Assets as fungibles::Inspect<AccountId>>::AssetId) -> bool {
-		!Assets::total_issuance(*id).is_zero()
-	}
-}
-
-/// Asset filter that allows all assets from a certain location.
-pub struct AssetsFrom<T>(PhantomData<T>);
-impl<T: Get<MultiLocation>> FilterAssetLocation for AssetsFrom<T> {
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		let loc = T::get();
-		&loc == origin &&
-			matches!(asset, MultiAsset { id: AssetId::Concrete(asset_loc), fun: Fungible(_a) }
-			if asset_loc.match_and_split(&loc).is_some())
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -123,7 +82,7 @@ mod tests {
 	};
 	use frame_system::{limits, EnsureRoot};
 	use pallet_collator_selection::IdentityCollator;
-	use polkadot_primitives::v2::AccountId;
+	use polkadot_core_primitives::v2::AccountId;
 	use sp_core::H256;
 	use sp_runtime::{
 		testing::Header,
@@ -292,35 +251,17 @@ mod tests {
 	#[test]
 	fn test_fees_and_tip_split() {
 		new_test_ext().execute_with(|| {
-			let fee = Balances::issue(10);
-			let tip = Balances::issue(20);
+			let fee = Balances::issue(100);
+			let tip = Balances::issue(30);
 
-			assert_eq!(Balances::free_balance(TEST_ACCOUNT), 0);
+			assert_eq!(Treasury::pot(), 0);
 
 			DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
 
-			// Author gets 100% of tip and 100% of fee = 30
-			assert_eq!(Balances::free_balance(CollatorSelection::account_id()), 30);
+			/// Author should get 20% of the fee + the 100% of the tip. (50)
+			assert_eq!(Balances::free_balance(CollatorSelection::account_id()), 50);
+			/// Treasury should get 80% of the fee. (80)
+			assert_eq!(Treasury::pot(), 80);
 		});
-	}
-
-	#[test]
-	fn assets_from_filters_correctly() {
-		parameter_types! {
-			pub SomeSiblingParachain: MultiLocation = MultiLocation::new(1, X1(Parachain(1234)));
-		}
-
-		let asset_location = SomeSiblingParachain::get()
-			.clone()
-			.pushed_with_interior(GeneralIndex(42))
-			.expect("multilocation will only have 2 junctions; qed");
-		let asset = MultiAsset { id: Concrete(asset_location), fun: 1_000_000.into() };
-		assert!(
-			AssetsFrom::<SomeSiblingParachain>::filter_asset_location(
-				&asset,
-				&SomeSiblingParachain::get()
-			),
-			"AssetsFrom should allow assets from any of its interior locations"
-		);
 	}
 }
