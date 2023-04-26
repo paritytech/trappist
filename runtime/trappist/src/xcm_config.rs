@@ -30,7 +30,7 @@ use parachains_common::{
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
 	AssetId,
 };
-use trappist_common::impls::DealWithFees;
+use trappist_common::impls::ToAuthor;
 use xcm_executor::traits::{FilterAssetLocation, JustTry};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
 
@@ -260,7 +260,7 @@ impl xcm_executor::Config for XcmConfig {
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = (
 		FixedRateOfFungible<XUsdPerSecond, ()>,
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
+		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap =
