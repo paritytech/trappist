@@ -662,11 +662,11 @@ construct_runtime!(
 
 		// Runtime features
 		Contracts: pallet_contracts = 40,
-		Assets: pallet_assets = 42,
-		Identity: pallet_identity = 43,
-		Uniques: pallet_uniques = 44,
-		Scheduler: pallet_scheduler = 45,
-		Preimage: pallet_preimage = 46,
+		Assets: pallet_assets = 41,
+		Identity: pallet_identity = 42,
+		Uniques: pallet_uniques = 43,
+		Scheduler: pallet_scheduler = 44,
+		Preimage: pallet_preimage = 45,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 50,
