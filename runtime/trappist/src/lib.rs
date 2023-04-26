@@ -76,7 +76,7 @@ pub use sp_runtime::BuildStorage;
 
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
-use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
+use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
 use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
@@ -482,6 +482,63 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
+	pub LaunchPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_LAUNCH_PERIOD");
+	pub VotingPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_VOTING_PERIOD");
+	pub EnactmentPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_ENACTMENT_PERIOD");
+	pub FastTrackVotingPeriod: BlockNumber = prod_or_fast!(3 * HOURS, 1 * MINUTES, "TRP_FAST_TRACK_VOTING_PERIOD");
+	pub CooloffPeriod: BlockNumber = prod_or_fast!(1 * DAYS, 1 * MINUTES, "TRP_VOTING_PERIOD");
+	pub const MinimumDeposit: Balance = 100 * CENTS;
+	pub const MaxVotes: u32 = 100;
+	pub const MaxProposals: u32 = 100;
+	pub const InstantAllowed: bool = true;
+}
+
+impl pallet_democracy::Config for Runtime {
+	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
+	type RuntimeEvent = RuntimeEvent;
+	type Scheduler = Scheduler;
+	type Preimages = Preimage;
+	type Currency = Balances;
+	type MinimumDeposit = MinimumDeposit;
+	type InstantAllowed = InstantAllowed;
+	type MaxVotes = MaxVotes;
+	type MaxProposals = MaxProposals;
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
+	type Slash = Treasury;
+	//Periods
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = EnactmentPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type CooloffPeriod = CooloffPeriod;
+	//Origins
+	//Council mayority can make proposal into referendum
+	type ExternalOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type ExternalMajorityOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type ExternalDefaultOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type FastTrackOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>;
+	type InstantOrigin =
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>;
+	type CancellationOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>,
+	>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EitherOfDiverse<
+		EnsureRoot<AccountId>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>,
+	>;
+	type VetoOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
+	type PalletsOrigin = OriginCaller;
+}
+
+parameter_types! {
 	pub const DexPalletId: PalletId = PalletId(*b"trap/dex");
 }
 
@@ -617,6 +674,7 @@ construct_runtime!(
 		// Governance related
 		Council: pallet_collective::<Instance1> = 61,
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 62,
+		Democracy: pallet_democracy = 63,
 
 		// Sudo
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Event<T>, Storage} = 100,
@@ -645,6 +703,8 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
+		[pallet_democracy, Democracy]
+		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]
 		[pallet_identity, Identity]

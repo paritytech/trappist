@@ -27,10 +27,10 @@ use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
 
 use parachains_common::{
-	impls::DealWithFees,
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
 	AssetId,
 };
+use trappist_common::impls::DealWithFees;
 use xcm_executor::traits::{FilterAssetLocation, JustTry};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
 
