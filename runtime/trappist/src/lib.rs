@@ -673,9 +673,9 @@ construct_runtime!(
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 51,
 
 		// Governance related
-		Council: pallet_collective::<Instance1> = 61,
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 62,
-		Democracy: pallet_democracy = 63,
+		Council: pallet_collective::<Instance1> = 60,
+		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 61,
+		Democracy: pallet_democracy = 62,
 
 		// Sudo
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Event<T>, Storage} = 100,
