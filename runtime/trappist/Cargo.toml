@@ -71,7 +71,6 @@ pallet-uniques = { git = "https://github.com/paritytech/substrate", default-feat
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 
-
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37", default-features = false }
 cumulus-pallet-dmp-queue = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37", default-features = false }
@@ -105,6 +104,7 @@ pallet-chess = { git = "https://github.com/SubstrateChess/pallet-chess.git", def
 
 # Trappist Pallets
 pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../../pallets/asset-registry" }
+pallet-maintenance-mode = { version = "0.0.1", default-features = false, path = "../../pallets/maintenance-mode" }
 
 [features]
 default = ["std"]
@@ -151,7 +151,6 @@ std = [
     "pallet-timestamp/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-transaction-payment/std",
-	"pallet-treasury/std",
     "pallet-uniques/std",
     "pallet-utility/std",
     "pallet-xcm/std",
@@ -192,7 +191,6 @@ runtime-benchmarks = [
 	"pallet-multisig/runtime-benchmarks",
     "pallet-scheduler/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
-	"pallet-treasury/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
