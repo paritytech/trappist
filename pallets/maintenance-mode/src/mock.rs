@@ -1,10 +1,15 @@
 use crate as pallet_maintenance_mode;
-use frame_support::traits::{ConstU16, ConstU64, Contains};
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
+use frame_support::{
+	traits::{ConstU16, ConstU64, Contains},
+	weights::Weight,
+};
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, ConstU32, IdentityLookup},
+	DispatchResult,
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -79,6 +84,27 @@ impl Contains<RuntimeCall> for RuntimeFilteredCalls {
 	}
 }
 
+pub struct MaintenanceDmpHandler;
+impl DmpMessageHandler for MaintenanceDmpHandler {
+	fn handle_dmp_messages(
+		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		limit: Weight,
+	) -> Weight {
+		limit
+	}
+}
+
+pub struct XcmExecutionManager {}
+
+impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
+	fn suspend_xcm_execution() -> DispatchResult {
+		Ok(())
+	}
+	fn resume_xcm_execution() -> DispatchResult {
+		Ok(())
+	}
+}
+
 impl pallet_remark::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
@@ -88,6 +114,8 @@ impl pallet_maintenance_mode::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type MaintenanceModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type FilteredCalls = RuntimeFilteredCalls;
+	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	type XcmExecutorManager = XcmExecutionManager;
 	type WeightInfo = pallet_maintenance_mode::weights::SubstrateWeight<Test>;
 }
 

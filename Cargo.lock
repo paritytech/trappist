@@ -13900,6 +13900,7 @@ name = "xcm-primitives"
 version = "0.0.1"
 dependencies = [
  "frame-support",
+ "sp-runtime",
  "sp-std",
  "xcm",
  "xcm-executor",

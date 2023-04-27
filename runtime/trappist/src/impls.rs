@@ -16,8 +16,13 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
-use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
-
+use super::*;
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
+use frame_support::{
+	traits::{Contains, Currency, Imbalance, OnUnbalanced},
+	weights::Weight,
+};
+use sp_runtime::DispatchResult;
 use sp_std::marker::PhantomData;
 
 /// Type alias to conveniently refer to the `Currency::NegativeImbalance` associated type.
@@ -66,6 +71,37 @@ where
 		}
 	}
 }
+
+pub struct RuntimeFilteredCalls;
+impl Contains<RuntimeCall> for RuntimeFilteredCalls {
+	fn contains(call: &RuntimeCall) -> bool {
+		match call {
+			RuntimeCall::Balances(_) => true,
+			_ => false,
+		}
+	}
+}
+
+pub struct MaintenanceDmpHandler;
+impl DmpMessageHandler for MaintenanceDmpHandler {
+	fn handle_dmp_messages(
+		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		limit: Weight,
+	) -> Weight {
+		limit
+	}
+}
+
+pub struct XcmExecutionManager {}
+impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
+	fn suspend_xcm_execution() -> DispatchResult {
+		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
+	}
+	fn resume_xcm_execution() -> DispatchResult {
+		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;

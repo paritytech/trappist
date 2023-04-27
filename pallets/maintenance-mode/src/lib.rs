@@ -21,11 +21,16 @@ pub const DEACTIVATE: bool = false;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use cumulus_primitives_core::{
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
+	};
 	use frame_support::{
 		pallet_prelude::{ValueQuery, *},
 		traits::Contains,
 	};
 	use frame_system::pallet_prelude::*;
+	use sp_std::vec::Vec;
+	use xcm_primitives::PauseXcmExecution;
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
@@ -48,6 +53,8 @@ pub mod pallet {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type MaintenanceModeOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type FilteredCalls: Contains<Self::RuntimeCall>;
+		type MaintenanceDmpHandler: DmpMessageHandler;
+		type XcmExecutorManager: PauseXcmExecution;
 		type WeightInfo: WeightInfo;
 	}
 
@@ -59,6 +66,14 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		MaintenanceModeActivated,
 		MaintenanceModeDeactivated,
+		/// The call to suspend on_idle XCM execution failed with inner error
+		FailedToSuspendIdleXcmExecution {
+			error: DispatchError,
+		},
+		/// The call to resume on_idle XCM execution failed with inner error
+		FailedToResumeIdleXcmExecution {
+			error: DispatchError,
+		},
 	}
 
 	#[pallet::error]
@@ -80,7 +95,10 @@ pub mod pallet {
 
 			MaintenanceModeOnOff::<T>::put(ACTIVATE);
 
-			// check xcm execution
+			if let Err(error) = T::XcmExecutorManager::suspend_xcm_execution() {
+				<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
+			}
+
 			Self::deposit_event(Event::MaintenanceModeActivated);
 
 			Ok(())
@@ -98,7 +116,10 @@ pub mod pallet {
 
 			MaintenanceModeOnOff::<T>::put(DEACTIVATE);
 
-			// check xcm execution
+			if let Err(error) = T::XcmExecutorManager::resume_xcm_execution() {
+				<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
+			}
+
 			Self::deposit_event(Event::MaintenanceModeDeactivated);
 
 			Ok(())
@@ -111,6 +132,20 @@ pub mod pallet {
 				T::FilteredCalls::contains(call)
 			} else {
 				return false
+			}
+		}
+	}
+
+	impl<T: Config> DmpMessageHandler for Pallet<T> {
+		fn handle_dmp_messages(
+			iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+			limit: Weight,
+		) -> Weight {
+			if MaintenanceModeOnOff::<T>::get() {
+				T::MaintenanceDmpHandler::handle_dmp_messages(iter, Weight::zero())
+			} else {
+				// Normal path, everything should pass through
+				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
 			}
 		}
 	}
