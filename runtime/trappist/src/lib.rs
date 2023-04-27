@@ -23,6 +23,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod constants;
 mod contracts;
+pub mod impls;
 pub mod xcm_config;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
@@ -32,7 +33,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, Percent, Permill,
 };
 
 use sp_std::prelude::*;
@@ -59,13 +60,16 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
+
 pub use parachains_common as common;
 pub use parachains_common::{
-	impls::{AssetsToBlockAuthor, DealWithFees},
-	opaque, AccountId, AssetId, AuraId, Balance, BlockNumber, Hash, Header, Index, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
-	SLOT_DURATION,
+	impls::AssetsToBlockAuthor, opaque, AccountId, AssetId, AuraId, Balance, BlockNumber, Hash,
+	Header, Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT,
+	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
+
+use impls::DealWithFees;
+
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
 #[cfg(any(feature = "std", test))]
@@ -203,7 +207,7 @@ impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
 	type UncleGenerations = ConstU32<0>;
 	type FilterUncle = ();
-	type EventHandler = (CollatorSelection,);
+	type EventHandler = CollatorSelection;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -502,7 +506,7 @@ impl pallet_democracy::Config for Runtime {
 	type MaxProposals = MaxProposals;
 	type MaxDeposits = ConstU32<100>;
 	type MaxBlacklisted = ConstU32<100>;
-	type Slash = ();
+	type Slash = Treasury;
 	//Periods
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
@@ -580,6 +584,48 @@ impl pallet_chess::Config for Runtime {
 	type IncentiveShare = IncentiveShare;
 }
 
+type TreasuryApproveCancelOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 6>,
+>;
+
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 2000 * CENTS;
+	pub const ProposalBondMaximum: Balance = 1 * GRAND;
+	pub const SpendPeriod: BlockNumber = 6 * DAYS;
+	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const TipCountdown: BlockNumber = 1 * DAYS;
+	pub const TipFindersFee: Percent = Percent::from_percent(20);
+	pub const TipReportDepositBase: Balance = 100 * CENTS;
+	pub const DataDepositPerByte: Balance = 1 * CENTS;
+	pub const MaxApprovals: u32 = 100;
+	pub const MaxAuthorities: u32 = 100_000;
+	pub const MaxKeys: u32 = 10_000;
+	pub const MaxPeerInHeartbeats: u32 = 10_000;
+	pub const MaxPeerDataEncodingSize: u32 = 1_000;
+
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = TreasuryApproveCancelOrigin;
+	type RejectOrigin = TreasuryApproveCancelOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type OnSlash = Treasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type ProposalBondMaximum = ProposalBondMaximum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
+	type SpendFunds = ();
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -616,17 +662,20 @@ construct_runtime!(
 
 		// Runtime features
 		Contracts: pallet_contracts = 40,
-		Council: pallet_collective::<Instance1> = 41,
-		Assets: pallet_assets = 42,
-		Identity: pallet_identity = 43,
-		Uniques: pallet_uniques = 44,
-		Scheduler: pallet_scheduler = 45,
-		Preimage: pallet_preimage = 46,
-		Democracy: pallet_democracy = 47,
+		Assets: pallet_assets = 41,
+		Identity: pallet_identity = 42,
+		Uniques: pallet_uniques = 43,
+		Scheduler: pallet_scheduler = 44,
+		Preimage: pallet_preimage = 45,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 50,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 51,
+
+		// Governance related
+		Council: pallet_collective::<Instance1> = 60,
+		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 61,
+		Democracy: pallet_democracy = 62,
 
 		// Sudo
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Event<T>, Storage} = 100,
@@ -656,6 +705,7 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
+		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]
 		[pallet_identity, Identity]
