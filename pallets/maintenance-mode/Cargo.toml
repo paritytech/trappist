@@ -1,6 +1,6 @@
 [package]
 name = "pallet-maintenance-mode"
-version = "0.0.1"
+version = "0.1.0"
 description = "Trappist pallet for setting maintenance mode."
 edition = "2021"
 license = "Apache-2.0"

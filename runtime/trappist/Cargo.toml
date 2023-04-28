@@ -104,7 +104,7 @@ pallet-chess = { git = "https://github.com/SubstrateChess/pallet-chess.git", def
 
 # Trappist Pallets
 pallet-asset-registry = { version = "0.0.1", default-features = false, path = "../../pallets/asset-registry" }
-pallet-maintenance-mode = { version = "0.0.1", default-features = false, path = "../../pallets/maintenance-mode" }
+pallet-maintenance-mode = { version = "0.1.0", default-features = false, path = "../../pallets/maintenance-mode" }
 
 [features]
 default = ["std"]
@@ -143,6 +143,7 @@ std = [
     "pallet-dex/std",
 	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
+	"pallet-maintenance-mode/std",
 	"pallet-multisig/std",
     "pallet-randomness-collective-flip/std",
     "pallet-scheduler/std",
@@ -188,6 +189,7 @@ runtime-benchmarks = [
 	"pallet-democracy/runtime-benchmarks",
     "pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
+	"pallet-maintenance-mode/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
     "pallet-scheduler/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",

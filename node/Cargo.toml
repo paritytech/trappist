@@ -41,7 +41,7 @@ tempfile = "3.2.0"
 [features]
 default = ["with-trappist-runtime"]
 runtime-benchmarks = [
-    "trappist-cli/runtime-benchmarks"
+    "trappist-cli/runtime-benchmarks",
 ]
 with-trappist-runtime = [
 	"trappist-service/with-trappist-runtime",
