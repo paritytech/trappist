@@ -18,14 +18,14 @@ benchmarks! {
 		MaintenanceMode::<T>::activate_maintenance_mode(RawOrigin::Root.into())?;
 	}: _(RawOrigin::Root)
 	verify {
-		assert_eq!(MaintenanceOnOff::<T>::get(), ACTIVATE);
+		assert_eq!(MaintenanceModeOnOff::<T>::get(), ACTIVATE);
 	}
 
 	deactivate_maintenance_mode {
 		MaintenanceMode::<T>::deactivate_maintenance_mode(RawOrigin::Root.into())?;
 	}: _(RawOrigin::Root)
 	verify {
-		assert_eq!(MaintenanceOnOff::<T>::get(), DEACTIVATE);
+		assert_eq!(MaintenanceModeOnOff::<T>::get(), DEACTIVATE);
 	}
 
 	impl_benchmark_test_suite!(MaintenanceMode, crate::mock::new_test_ext(), crate::mock::Test);
