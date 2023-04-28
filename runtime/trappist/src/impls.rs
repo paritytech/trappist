@@ -288,9 +288,9 @@ mod tests {
 
 			DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
 
-			/// Author should get 20% of the fee + the 100% of the tip. (50)
+			// Author should get 20% of the fee + the 100% of the tip. (50)
 			assert_eq!(Balances::free_balance(CollatorSelection::account_id()), 50);
-			/// Treasury should get 80% of the fee. (80)
+			// Treasury should get 80% of the fee. (80)
 			assert_eq!(Treasury::pot(), 80);
 		});
 	}

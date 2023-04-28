@@ -785,9 +785,6 @@ impl_runtime_apis! {
 			tx: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
-			if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&tx.function) {
-				return InvalidTransaction::Call.into();
-			}
 			Executive::validate_transaction(source, tx, block_hash)
 		}
 	}
