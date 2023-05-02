@@ -29,9 +29,9 @@ pub mod pallet {
 		traits::Contains,
 	};
 	use frame_system::pallet_prelude::*;
+	pub use log;
 	use sp_std::vec::Vec;
 	use xcm_primitives::PauseXcmExecution;
-
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
@@ -128,10 +128,12 @@ pub mod pallet {
 
 	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
 		fn contains(call: &T::RuntimeCall) -> bool {
+			log::info!("Pallet Contains: {:?}", call);
 			if MaintenanceModeOnOff::<T>::get() {
 				T::FilteredCalls::contains(call)
 			} else {
-				return false
+				log::info!("Maintenance Mode is off, all calls are allowed");
+				return true
 			}
 		}
 	}

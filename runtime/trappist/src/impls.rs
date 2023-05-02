@@ -22,6 +22,7 @@ use frame_support::{
 	traits::{Contains, Currency, Imbalance, OnUnbalanced},
 	weights::Weight,
 };
+pub use log;
 use sp_runtime::DispatchResult;
 use sp_std::marker::PhantomData;
 
@@ -76,8 +77,16 @@ pub struct RuntimeFilteredCalls;
 impl Contains<RuntimeCall> for RuntimeFilteredCalls {
 	fn contains(call: &RuntimeCall) -> bool {
 		match call {
-			RuntimeCall::Balances(_) => true,
-			_ => false,
+			RuntimeCall::Balances(_) => false,
+			RuntimeCall::Assets(_) => false,
+			RuntimeCall::Dex(_) => false,
+			RuntimeCall::PolkadotXcm(_) => false,
+			RuntimeCall::Treasury(_) => false,
+			RuntimeCall::Chess(_) => false,
+			RuntimeCall::Contracts(_) => false,
+			RuntimeCall::Uniques(_) => false,
+			RuntimeCall::AssetRegistry(_) => false,
+			_ => true,
 		}
 	}
 }
@@ -119,7 +128,6 @@ mod tests {
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
 		Perbill,
 	};
-	use xcm::prelude::*;
 
 	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 	type Block = frame_system::mocking::MockBlock<Test>;

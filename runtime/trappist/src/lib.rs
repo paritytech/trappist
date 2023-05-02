@@ -25,6 +25,7 @@ pub mod constants;
 mod contracts;
 pub mod impls;
 pub mod xcm_config;
+pub use log;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use sp_api::impl_runtime_apis;
@@ -785,6 +786,9 @@ impl_runtime_apis! {
 			tx: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
+			if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&tx.function) {
+				return InvalidTransaction::Call.into();
+			};
 			Executive::validate_transaction(source, tx, block_hash)
 		}
 	}
