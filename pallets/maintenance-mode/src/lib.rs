@@ -15,8 +15,8 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
-pub const ACTIVATE: bool = true;
-pub const DEACTIVATE: bool = false;
+pub const ACTIVATED: bool = true;
+pub const DEACTIVATEDD: bool = false;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -44,7 +44,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			MaintenanceModeOnOff::<T>::put(ACTIVATE);
+			MaintenanceModeStatus::<T>::put(ACTIVATED);
 		}
 	}
 
@@ -59,7 +59,7 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	pub type MaintenanceModeOnOff<T: Config> = StorageValue<_, bool, ValueQuery>;
+	pub type MaintenanceModeStatus<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -91,9 +91,12 @@ pub mod pallet {
 		pub fn activate_maintenance_mode(origin: OriginFor<T>) -> DispatchResult {
 			T::MaintenanceModeOrigin::ensure_origin(origin)?;
 
-			ensure!(!MaintenanceModeOnOff::<T>::get(), Error::<T>::MaintenanceModeAlreadyActivated);
+			ensure!(
+				!MaintenanceModeStatus::<T>::get(),
+				Error::<T>::MaintenanceModeAlreadyActivated
+			);
 
-			MaintenanceModeOnOff::<T>::put(ACTIVATE);
+			MaintenanceModeStatus::<T>::put(ACTIVATED);
 
 			if let Err(error) = T::XcmExecutorManager::suspend_xcm_execution() {
 				<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
@@ -110,11 +113,11 @@ pub mod pallet {
 			T::MaintenanceModeOrigin::ensure_origin(origin)?;
 
 			ensure!(
-				MaintenanceModeOnOff::<T>::get(),
+				MaintenanceModeStatus::<T>::get(),
 				Error::<T>::MaintenanceModeAlreadyDeactivated
 			);
 
-			MaintenanceModeOnOff::<T>::put(DEACTIVATE);
+			MaintenanceModeStatus::<T>::put(DEACTIVATEDD);
 
 			if let Err(error) = T::XcmExecutorManager::resume_xcm_execution() {
 				<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
@@ -129,7 +132,7 @@ pub mod pallet {
 	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
 		fn contains(call: &T::RuntimeCall) -> bool {
 			log::info!("Pallet Contains: {:?}", call);
-			if MaintenanceModeOnOff::<T>::get() {
+			if MaintenanceModeStatus::<T>::get() {
 				T::FilteredCalls::contains(call)
 			} else {
 				log::info!("Maintenance Mode is off, all calls are allowed");
@@ -143,7 +146,7 @@ pub mod pallet {
 			iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 			limit: Weight,
 		) -> Weight {
-			if MaintenanceModeOnOff::<T>::get() {
+			if MaintenanceModeStatus::<T>::get() {
 				T::MaintenanceDmpHandler::handle_dmp_messages(iter, Weight::zero())
 			} else {
 				// Normal path, everything should pass through
