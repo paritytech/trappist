@@ -29,7 +29,6 @@ pub mod pallet {
 		traits::Contains,
 	};
 	use frame_system::pallet_prelude::*;
-	pub use log;
 	use sp_std::vec::Vec;
 	use xcm_primitives::PauseXcmExecution;
 	#[pallet::pallet]
@@ -131,11 +130,9 @@ pub mod pallet {
 
 	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
 		fn contains(call: &T::RuntimeCall) -> bool {
-			log::info!("Pallet Contains: {:?}", call);
 			if MaintenanceModeStatus::<T>::get() {
 				T::FilteredCalls::contains(call)
 			} else {
-				log::info!("Maintenance Mode is off, all calls are allowed");
 				return true
 			}
 		}
