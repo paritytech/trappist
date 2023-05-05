@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::constants::fee::default_fee_per_second;
+use crate::{constants::fee::default_fee_per_second};
 
 use super::{
 	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
@@ -21,7 +21,7 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{EitherOfDiverse, Everything, Get, Nothing},
+	traits::{EitherOfDiverse, Everything, Get, Nothing, ContainsPair},
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
@@ -29,19 +29,19 @@ use sp_std::marker::PhantomData;
 use parachains_common::{
 	impls::DealWithFees,
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
-	AssetId,
 };
-use xcm_executor::traits::{FilterAssetLocation, JustTry};
+
+use xcm_executor::traits::JustTry;
 
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
-use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
+use xcm::{latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation}, v2::AssetId};
 
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
+	FixedWeightBounds, FungiblesAdapter, IsConcrete, NativeAsset,
 	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
@@ -94,7 +94,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
+	ConvertedConcreteId<
 		AssetId,
 		Balance,
 		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
@@ -184,7 +184,7 @@ parameter_types! {
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 
-	pub XUsdPerSecond: (xcm::v1::AssetId, u128) = (
+	pub XUsdPerSecond: (xcm::v2::AssetId, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10
 	);
@@ -201,8 +201,8 @@ fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
-impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
+impl<T: Get<MultiLocation>, U: Get<MultiAsset>> ContainsPair<T,U> for ReserveAssetsFrom<T> {
+	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
 		&prefix == origin &&
@@ -227,7 +227,6 @@ impl xcm_executor::Config for XcmConfig {
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
 	type IsTeleporter = (); // Teleporting is disabled.
-	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = (
@@ -248,7 +247,7 @@ pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, R
 /// queues.
 pub type XcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
-	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm>,
+	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
 );
@@ -263,7 +262,6 @@ impl pallet_xcm::Config for Runtime {
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	type LocationInverter = LocationInverter<Ancestry>;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;

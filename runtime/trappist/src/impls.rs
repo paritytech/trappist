@@ -81,7 +81,7 @@ mod tests {
 	use sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-		Perbill,
+		Perbill, Permill,
 	};
 	use xcm::prelude::*;
 
@@ -189,8 +189,6 @@ mod tests {
 
 	impl pallet_authorship::Config for Test {
 		type FindAuthor = OneAuthor;
-		type UncleGenerations = ();
-		type FilterUncle = ();
 		type EventHandler = ();
 	}
 
