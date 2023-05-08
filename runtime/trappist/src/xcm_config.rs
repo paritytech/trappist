@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::default_fee_per_second, impls::ToAuthor};
+use crate::{constants::fee::{default_fee_per_second, default_fee_per_mb}, impls::ToAuthor};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -40,7 +40,7 @@ use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
+	CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
 	FixedWeightBounds, FungiblesAdapter, IsConcrete, NativeAsset,
 	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
@@ -210,11 +210,11 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
-
+	//FIXME:
 	pub XUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10,
-		1
+		default_fee_per_mb()
 	);
 }
 

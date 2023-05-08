@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::default_fee_per_second};
+use crate::{constants::fee::{default_fee_per_second, default_fee_per_mb}};
 
 use super::{
 	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
@@ -187,7 +187,7 @@ parameter_types! {
 	pub XUsdPerSecond: (AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10,
-		1
+		default_fee_per_mb()
 	);
 }
 
