@@ -211,9 +211,10 @@ parameter_types! {
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 
-	pub XUsdPerSecond: (xcm::v2::AssetId, u128) = (
+	pub XUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
-		default_fee_per_second() * 10
+		default_fee_per_second() * 10,
+		1
 	);
 }
 
@@ -264,6 +265,17 @@ impl xcm_executor::Config for XcmConfig {
 		TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
+	//TODO:
+	type AssetExchanger = ();
+	type AssetLocker = ();
+	type CallDispatcher = ();
+	type FeeManager = ();
+	type MaxAssetsIntoHolding = ();
+	type MessageExporter = ();
+	type PalletInstancesInfo = ();
+	type SafeCallFilter = ();
+	type UniversalAliases = ();
+	type UniversalLocation = ();
 }
 
 /// Converts a local signed origin into an XCM multilocation.
@@ -293,6 +305,14 @@ impl pallet_xcm::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
+	//TODO:
+	type Currency = ();
+	type CurrencyMatcher = ();
+	type MaxLockers = ();
+	type SovereignAccountOf = ();
+	type TrustedLockers = ();
+	type UniversalLocation = ();
+	type WeightInfo = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -312,6 +332,8 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
+	//TODO:
+	type PriceForSiblingDelivery = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {

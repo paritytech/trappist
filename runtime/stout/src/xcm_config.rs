@@ -35,7 +35,7 @@ use xcm_executor::traits::JustTry;
 
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
-use xcm::{latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation}, v2::AssetId};
+use xcm::{latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation}};
 
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
@@ -184,9 +184,10 @@ parameter_types! {
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 
-	pub XUsdPerSecond: (xcm::v2::AssetId, u128) = (
+	pub XUsdPerSecond: (AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
-		default_fee_per_second() * 10
+		default_fee_per_second() * 10,
+		1
 	);
 }
 
@@ -237,6 +238,17 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
+	//TODO:
+	type AssetExchanger = ();
+	type AssetLocker = ();
+	type CallDispatcher = ();
+	type FeeManager = ();
+	type MaxAssetsIntoHolding = ();
+	type MessageExporter = ();
+	type PalletInstancesInfo = ();
+	type SafeCallFilter = ();
+	type UniversalAliases = ();
+	type UniversalLocation = ();
 }
 
 /// Converts a local signed origin into an XCM multilocation.
@@ -266,6 +278,14 @@ impl pallet_xcm::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
+	//FIXME:
+	type Currency = ();
+	type CurrencyMatcher = ();
+	type MaxLockers = ();
+	type SovereignAccountOf = ();
+	type TrustedLockers = ();
+	type UniversalLocation = ();
+	type WeightInfo = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -280,11 +300,13 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type VersionWrapper = PolkadotXcm;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
+	EnsureRoot<AccountId>,
+	EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
+	//FIXME:
+	type PriceForSiblingDelivery = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
