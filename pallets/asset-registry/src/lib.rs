@@ -137,7 +137,7 @@ pub mod pallet {
 			AssetIdMultiLocation::<T>::get(asset_id)
 		}
 
-		fn get_asset_id(asset_type: MultiLocation) -> Option<AssetIdOf<T>> {
+		fn get_asset_id(asset_type: &MultiLocation) -> Option<AssetIdOf<T>> {
 			AssetMultiLocationId::<T>::get(asset_type)
 		}
 	}

@@ -4,7 +4,7 @@ use frame_support::{
 	sp_runtime::SaturatedConversion,
 	traits::{fungibles::Inspect, Currency},
 };
-use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
+use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::latest::{
 	AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
 };
@@ -23,7 +23,7 @@ where
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 {
 	fn convert_ref(asset_multi_location: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow().clone()).ok_or(())
+		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow()).ok_or(())
 	}
 
 	fn reverse_ref(asset_id: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
@@ -33,7 +33,7 @@ where
 
 pub trait AssetMultiLocationGetter<AssetId> {
 	fn get_asset_multi_location(asset_id: AssetId) -> Option<MultiLocation>;
-	fn get_asset_id(asset_multi_location: MultiLocation) -> Option<AssetId>;
+	fn get_asset_id(asset_multi_location: &MultiLocation) -> Option<AssetId>;
 }
 
 pub struct ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertBalance>(
@@ -59,15 +59,34 @@ impl<
 	}
 }
 
+pub trait DropAssetsWeigher {
+	fn fungible() -> u64;
+	fn native() -> u64;
+	fn default() -> u64;
+}
+
 pub struct TrappistDropAssets<
 	AssetId,
 	AssetIdInfoGetter,
 	AssetsPallet,
 	BalancesPallet,
 	XcmPallet,
-	AccoundId,
->(PhantomData<(AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, AccoundId)>);
-impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, AccountId> DropAssets
+	AccountId,
+	Weigher,
+>(
+	PhantomData<(
+		AssetId,
+		AssetIdInfoGetter,
+		AssetsPallet,
+		BalancesPallet,
+		XcmPallet,
+		AccountId,
+		Weigher,
+	)>,
+);
+
+impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, AccountId, Weigher>
+	DropAssets
 	for TrappistDropAssets<
 		AssetId,
 		AssetIdInfoGetter,
@@ -75,52 +94,53 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		BalancesPallet,
 		XcmPallet,
 		AccountId,
+		Weigher,
 	> where
-	AssetId: Clone,
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 	AssetsPallet: Inspect<AccountId, AssetId = AssetId>,
 	BalancesPallet: Currency<AccountId>,
 	XcmPallet: DropAssets,
+	Weigher: DropAssetsWeigher,
 {
 	// assets are whatever the Holding Register had when XCVM halts
-	fn drop_assets(origin: &MultiLocation, assets: Assets) -> u64 {
-		let multi_assets: Vec<MultiAsset> = assets.into();
-		let mut trap: Vec<MultiAsset> = Vec::new();
+	fn drop_assets(origin: &MultiLocation, mut assets: Assets) -> u64 {
+		const NATIVE_LOCATION: MultiLocation = MultiLocation { parents: 0, interior: Here };
 
-		for asset in multi_assets {
-			if let MultiAsset { id: Concrete(location), fun: Fungible(amount) } = asset.clone() {
-				// is location a fungible on AssetRegistry?
-				if let Some(asset_id) = AssetIdInfoGetter::get_asset_id(location.clone()) {
-					let min_balance = AssetsPallet::minimum_balance(asset_id);
+		let mut weight = {
+			assets.non_fungible.clear();
+			Weigher::default()
+		};
 
-					// only trap if amount ≥ min_balance
-					// do nothing otherwise (asset is lost)
-					if min_balance <= amount.saturated_into::<AssetsPallet::Balance>() {
-						trap.push(asset);
-					}
+		assets.fungible.retain(|id, &mut amount| {
+			if let Concrete(location) = id {
+				match AssetIdInfoGetter::get_asset_id(location) {
+					Some(asset_id) => {
+						weight += Weigher::fungible();
 
-				// is location the native token?
-				} else if location == (MultiLocation { parents: 0, interior: Here }) {
-					let min_balance = BalancesPallet::minimum_balance();
+						// only trap if amount ≥ min_balance
+						// do nothing otherwise (asset is lost)
+						amount.saturated_into::<AssetsPallet::Balance>() >=
+							AssetsPallet::minimum_balance(asset_id)
+					},
+					None => {
+						weight += Weigher::native();
 
-					// only trap if amount ≥ min_balance
-					// do nothing otherwise (asset is lost)
-					if min_balance <= amount.saturated_into::<BalancesPallet::Balance>() {
-						trap.push(asset);
-					}
+						// only trap if native token and amount ≥ min_balance
+						// do nothing otherwise (asset is lost)
+						*location == NATIVE_LOCATION &&
+							amount.saturated_into::<BalancesPallet::Balance>() >=
+								BalancesPallet::minimum_balance()
+					},
 				}
+			} else {
+				weight += Weigher::default();
+				false
 			}
-		}
+		});
 
-		// TODO: put real weight of execution up until this point here
-		let mut weight = 0;
-
-		if !trap.is_empty() {
-			// we have filtered out non-compliant assets
-			// insert valid assets into the asset trap implemented by XcmPallet
-			weight += XcmPallet::drop_assets(origin, trap.into());
-		}
-
+		// we have filtered out non-compliant assets
+		// insert valid assets into the asset trap implemented by XcmPallet
+		weight += XcmPallet::drop_assets(origin, assets);
 		weight
 	}
 }

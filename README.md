@@ -62,7 +62,7 @@ cargo b -r --no-default-features --features with-stout-runtime --target-dir targ
 ```
 
 Alternatively, run
-`bash build_runtimes.sh` .
+`bash ./scripts/build_runtimes.sh` .
 
 
 ### XCM Playground via Zombienet
@@ -70,8 +70,6 @@ Alternatively, run
 Create a `bin` directory into the root of this repository and place the following binaries inside of it:
 - `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
 - `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
-- `trappist-collator` (which you will build from this repository)
-- `stout-collator` (which you will build from this repository)
 
 Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
 ```
