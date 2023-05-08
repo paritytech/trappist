@@ -81,10 +81,4 @@ pub mod fee {
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
 		base_tx_per_second * base_tx_fee()
 	}
-
-	pub fn default_fee_per_mb() -> u128 {
-		let base_weight = Balance::from(ExtrinsicBaseWeight::get().proof_size());
-		let base_tx_per_mb: u128 = (WEIGHT_PROOF_SIZE_PER_MB as u128) / base_weight;
-		base_tx_per_mb * base_tx_fee()
-	}
 }

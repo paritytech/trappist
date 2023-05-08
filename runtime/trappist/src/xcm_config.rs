@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::{default_fee_per_second, default_fee_per_mb}, impls::ToAuthor};
+use crate::{constants::fee::{default_fee_per_second}, impls::ToAuthor, AllPalletsWithSystem};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -25,9 +25,10 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
+use cumulus_primitives_core::AssetId;
 
 use parachains_common::{
-	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
+	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry}, AssetIdForTrustBackedAssets
 };
 use xcm_executor::traits::JustTry;
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
@@ -44,7 +45,7 @@ use xcm_builder::{
 	FixedWeightBounds, FungiblesAdapter, IsConcrete, NativeAsset,
 	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, ConvertedConcreteId,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, ConvertedConcreteId, NoChecking,
 };
 use xcm_executor::XcmExecutor;
 
@@ -53,12 +54,13 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-	pub const Local: MultiLocation = Here.into();
 	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
+	pub const MaxAssetsIntoHolding: u32 = 64;
+	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -109,9 +111,9 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We don't track any teleports of `Assets`.
-	Nothing,
+	NoChecking,
 	// We don't track any teleports of `Assets`.
-	CheckingAccount,
+	(),
 >;
 
 /// Means for transacting reserved fungible assets.
@@ -210,11 +212,11 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
-	//FIXME:
+	
 	pub XUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10,
-		default_fee_per_mb()
+		0
 	);
 }
 
@@ -229,7 +231,7 @@ fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
-impl<T: Get<MultiLocation>, U: Get<MultiAsset>> ContainsPair<T,U> for ReserveAssetsFrom<T> {
+impl<T: Get<MultiLocation>> ContainsPair<MultiAsset,MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
@@ -256,26 +258,26 @@ impl xcm_executor::Config for XcmConfig {
 	type IsTeleporter = (); // Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
+	//TODO: Modify current config of Trader removing XUsdPerSecond Inplementation
 	type Trader = (
 		FixedRateOfFungible<XUsdPerSecond, ()>,
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap =
-		TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
+		TrappistDropAssets<AssetIdForTrustBackedAssets, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	//TODO:
 	type AssetExchanger = ();
 	type AssetLocker = ();
-	type CallDispatcher = ();
+	type CallDispatcher = RuntimeCall;
 	type FeeManager = ();
-	type MaxAssetsIntoHolding = ();
+	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
 	type MessageExporter = ();
-	type PalletInstancesInfo = ();
+	type PalletInstancesInfo = AllPalletsWithSystem;
 	type SafeCallFilter = ();
-	type UniversalAliases = ();
-	type UniversalLocation = ();
+	type UniversalAliases = Nothing;
+	type UniversalLocation = UniversalLocation;
 }
 
 /// Converts a local signed origin into an XCM multilocation.
@@ -305,14 +307,14 @@ impl pallet_xcm::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-	//TODO:
-	type Currency = ();
+	type Currency = Balances;
 	type CurrencyMatcher = ();
 	type MaxLockers = ();
 	type SovereignAccountOf = ();
 	type TrustedLockers = ();
-	type UniversalLocation = ();
-	type WeightInfo = ();
+	type UniversalLocation = UniversalLocation;
+	// TODO: pallet-xcm weights
+	type WeightInfo = pallet_xcm::TestWeightInfo;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
