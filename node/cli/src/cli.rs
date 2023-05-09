@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
-use service::chain_spec;
 #[cfg(feature = "with-stout-runtime")]
 use service::chain_spec::stout::Extensions;
 #[cfg(feature = "with-trappist-runtime")]
