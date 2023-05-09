@@ -26,7 +26,7 @@ mod contracts;
 pub mod impls;
 pub mod xcm_config;
 
-use common::AssetIdForTrustBackedAssets;
+pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
@@ -451,7 +451,7 @@ impl pallet_uniques::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(10_000_000);
+	pub MaximumSchedulerWeight: Weight = Weight::from_parts(10_000_000, u64::MAX);
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
 

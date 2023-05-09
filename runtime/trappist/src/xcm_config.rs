@@ -21,11 +21,10 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess, ContainsPair},
+	traits::{EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess, ContainsPair}, weights::Weight,
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
-use cumulus_primitives_core::AssetId;
 
 use parachains_common::{
 	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry}, AssetIdForTrustBackedAssets
@@ -101,9 +100,9 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	ConvertedConcreteId<
-		AssetId,
+		AssetIdForTrustBackedAssets,
 		Balance,
-		AsPrefixedGeneralIndex<AssetsPalletLocation, AssetId, JustTry>,
+		AsPrefixedGeneralIndex<AssetsPalletLocation, AssetIdForTrustBackedAssets, JustTry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -113,7 +112,7 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// We don't track any teleports of `Assets`.
 	NoChecking,
 	// We don't track any teleports of `Assets`.
-	(),
+	CheckingAccount,
 >;
 
 /// Means for transacting reserved fungible assets.
@@ -124,9 +123,9 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Use this currency when it is a registered fungible asset matching the given location or name
 	// Assets not found in AssetRegistry will not be used
 	ConvertedRegisteredAssetId<
-		AssetId,
+		AssetIdForTrustBackedAssets,
 		Balance,
-		AsAssetMultiLocation<AssetId, AssetRegistry>,
+		AsAssetMultiLocation<AssetIdForTrustBackedAssets, AssetRegistry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -134,7 +133,7 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We don't track any teleports of `Assets`.
-	Nothing,
+	NoChecking,
 	// We don't track any teleports of `Assets`.
 	CheckingAccount,
 >;
@@ -169,7 +168,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: u64 = 1_000_000_000;
+	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000u64, 0);
 	pub const MaxInstructions: u32 = 100;
 }
 

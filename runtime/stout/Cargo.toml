@@ -94,8 +94,8 @@ xcm-executor = { git = "https://github.com/paritytech/polkadot", default-feature
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # External Pallets
-pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
-pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
+pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "vf-v9.40" }
+pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "vf-v9.40" }
 
 [features]
 default = ["std"]

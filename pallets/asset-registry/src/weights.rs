@@ -44,14 +44,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn register_reserve_asset() -> Weight {
-		Weight::from_ref_time(18_710_000)
+		Weight::from_parts(18_710_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn unregister_reserve_asset() -> Weight {
-		Weight::from_ref_time(16_570_000)
+		Weight::from_parts(16_570_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
@@ -62,14 +62,14 @@ impl WeightInfo for () {
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn register_reserve_asset() -> Weight {
-		Weight::from_ref_time(18_710_000)
+		Weight::from_parts(18_710_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(2))
 			.saturating_add(RocksDbWeight::get().writes(2))
 	}
 	// Storage: AssetRegistry AssetIdMultiLocation (r:1 w:1)
 	// Storage: AssetRegistry AssetMultiLocationId (r:0 w:1)
 	fn unregister_reserve_asset() -> Weight {
-		Weight::from_ref_time(16_570_000)
+		Weight::from_parts(16_570_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(1))
 			.saturating_add(RocksDbWeight::get().writes(2))
 	}

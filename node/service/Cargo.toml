@@ -69,6 +69,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sc-network-sync = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
@@ -95,7 +96,7 @@ polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "r
 xcm = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.40" }
 
 # External Dependencies
-pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false }
+pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "vf-v9.40"}
 
 [dev-dependencies]
 assert_cmd = "2.0"

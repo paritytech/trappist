@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::{default_fee_per_second, default_fee_per_mb}, AllPalletsWithSystem};
+use crate::{constants::fee::{default_fee_per_second}, AllPalletsWithSystem};
 
 use super::{
 	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
@@ -21,14 +21,14 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{EitherOfDiverse, Everything, Get, Nothing, ContainsPair},
+	traits::{EitherOfDiverse, Everything, Get, Nothing, ContainsPair},weights::Weight
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
 
 use parachains_common::{
 	impls::DealWithFees,
-	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
+	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry}, AssetIdForTrustBackedAssets,
 };
 
 use xcm_executor::traits::JustTry;
@@ -44,7 +44,7 @@ use xcm_builder::{
 	FixedWeightBounds, FungiblesAdapter, IsConcrete, NativeAsset,
 	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, NoChecking,
 };
 use xcm_executor::XcmExecutor;
 
@@ -97,9 +97,9 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	ConvertedConcreteId<
-		AssetId,
+		AssetIdForTrustBackedAssets,
 		Balance,
-		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetId, JustTry>,
+		AsPrefixedGeneralIndex<StatemineAssetsPalletLocation, AssetIdForTrustBackedAssets, JustTry>,
 		JustTry,
 	>,
 	// Convert an XCM MultiLocation into a local account id:
@@ -107,7 +107,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We don't track any teleports of `Assets`.
-	Nothing,
+	NoChecking,
 	// The account to use for tracking teleports.
 	CheckingAccount,
 >;
@@ -141,7 +141,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: u64 = 1_000_000_000;
+	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000,0);
 	pub const MaxInstructions: u32 = 100;
 }
 

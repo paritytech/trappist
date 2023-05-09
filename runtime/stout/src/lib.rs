@@ -444,7 +444,7 @@ impl pallet_uniques::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Weight::from_ref_time(10_000_000);
+	pub MaximumSchedulerWeight: Weight = Weight::from_parts(10_000_000, 0);
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
 
