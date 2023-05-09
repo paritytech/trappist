@@ -1,4 +1,5 @@
-#![warn(missing_docs)]
+// TODO: Write missing docs.
+//#![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 
 #[cfg(feature = "cli")]
