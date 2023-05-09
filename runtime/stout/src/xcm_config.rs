@@ -265,6 +265,11 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -287,6 +292,8 @@ impl pallet_xcm::Config for Runtime {
 	type UniversalLocation = UniversalLocation;
 	// TODO: pallet-xcm weights
 	type WeightInfo = pallet_xcm::TestWeightInfo;
+	#[cfg(feature = "runtime-benchmarks")]
+	type ReachableDest = ReachableDest;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
