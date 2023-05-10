@@ -5811,7 +5811,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=vf-v9.40#6dd4bc1f7ff3829117346fe31709a77f49fd4ba6"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.40#1def3149f3c26e6f2b3243111c729ab4d2c8c8e6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5825,7 +5825,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=vf-v9.40#6d7c019e87e7ec93c0b6b356639ed9064520467c"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.40#1def3149f3c26e6f2b3243111c729ab4d2c8c8e6"
 dependencies = [
  "jsonrpsee",
  "pallet-dex-rpc-runtime-api",
@@ -5838,7 +5838,7 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=vf-v9.40#6dd4bc1f7ff3829117346fe31709a77f49fd4ba6"
+source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.40#1def3149f3c26e6f2b3243111c729ab4d2c8c8e6"
 dependencies = [
  "pallet-dex",
  "parity-scale-codec",
