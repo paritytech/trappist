@@ -78,8 +78,8 @@ pub struct RuntimeFilteredCalls;
 impl Contains<RuntimeCall> for RuntimeFilteredCalls {
 	fn contains(call: &RuntimeCall) -> bool {
 		match call {
-			RuntimeCall::Balance(_) => true,
-			_ => false,
+			RuntimeCall::Balance(_) => false,
+			_ => true,
 		}
 	}
 }

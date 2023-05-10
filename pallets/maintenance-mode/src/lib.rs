@@ -16,7 +16,7 @@ pub mod weights;
 pub use weights::*;
 
 pub const ACTIVATED: bool = true;
-pub const DEACTIVATEDD: bool = false;
+pub const DEACTIVATED: bool = false;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -116,10 +116,10 @@ pub mod pallet {
 				Error::<T>::MaintenanceModeAlreadyDeactivated
 			);
 
-			MaintenanceModeStatus::<T>::put(DEACTIVATEDD);
+			MaintenanceModeStatus::<T>::put(DEACTIVATED);
 
 			if let Err(error) = T::XcmExecutorManager::resume_xcm_execution() {
-				<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
+				Self::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
 			}
 
 			Self::deposit_event(Event::MaintenanceModeDeactivated);

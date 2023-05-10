@@ -4,7 +4,7 @@ use super::*;
 
 #[allow(unused)]
 use crate::Pallet as MaintenanceMode;
-use crate::{ACTIVATED, DEACTIVATEDD};
+use crate::{ACTIVATED, DEACTIVATED};
 use frame_benchmarking::benchmarks;
 use frame_support::{assert_ok, traits::fungibles::Inspect};
 use frame_system::RawOrigin;
@@ -25,7 +25,7 @@ benchmarks! {
 		MaintenanceMode::<T>::deactivate_maintenance_mode(RawOrigin::Root.into())?;
 	}: _(RawOrigin::Root)
 	verify {
-		assert_eq!(MaintenanceModeStatus::<T>::get(), DEACTIVATEDD);
+		assert_eq!(MaintenanceModeStatus::<T>::get(), DEACTIVATED);
 	}
 
 	impl_benchmark_test_suite!(MaintenanceMode, crate::mock::new_test_ext(), crate::mock::Test);
