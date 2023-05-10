@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	sp_runtime::SaturatedConversion,
+	sp_runtime::{SaturatedConversion, Saturating},
 	traits::{fungibles::Inspect, Currency},
 };
 use sp_std::{borrow::Borrow, marker::PhantomData};
@@ -115,7 +115,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 			if let Concrete(location) = id {
 				match AssetIdInfoGetter::get_asset_id(location) {
 					Some(asset_id) => {
-						weight += Weigher::fungible();
+						weight.saturating_accrue(Weigher::fungible());
 
 						// only trap if amount ≥ min_balance
 						// do nothing otherwise (asset is lost)
@@ -123,7 +123,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 							AssetsPallet::minimum_balance(asset_id)
 					},
 					None => {
-						weight += Weigher::native();
+						weight.saturating_accrue(Weigher::native());
 
 						// only trap if native token and amount ≥ min_balance
 						// do nothing otherwise (asset is lost)
@@ -133,14 +133,13 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 					},
 				}
 			} else {
-				weight += Weigher::default();
+				weight.saturating_accrue(Weigher::default());
 				false
 			}
 		});
 
 		// we have filtered out non-compliant assets
 		// insert valid assets into the asset trap implemented by XcmPallet
-		weight += XcmPallet::drop_assets(origin, assets);
-		weight
+		weight.saturating_add(XcmPallet::drop_assets(origin, assets))
 	}
 }
