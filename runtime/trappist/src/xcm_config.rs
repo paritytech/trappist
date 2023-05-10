@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::{default_fee_per_second}, impls::ToAuthor, AllPalletsWithSystem};
+use crate::{constants::fee::default_fee_per_second, impls::ToAuthor, AllPalletsWithSystem};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -21,13 +21,15 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess, ContainsPair}, weights::Weight,
+	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+	weights::Weight,
 };
 use frame_system::EnsureRoot;
 use sp_std::marker::PhantomData;
 
 use parachains_common::{
-	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry}, AssetIdForTrustBackedAssets
+	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
+	AssetIdForTrustBackedAssets,
 };
 use xcm_executor::traits::JustTry;
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
@@ -40,11 +42,11 @@ use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, NativeAsset,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, ConvertedConcreteId, NoChecking,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
+	FungiblesAdapter, IsConcrete, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents,
 };
 use xcm_executor::XcmExecutor;
 
@@ -211,7 +213,6 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
-	
 	pub XUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10,
@@ -230,7 +231,7 @@ fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
-impl<T: Get<MultiLocation>> ContainsPair<MultiAsset,MultiLocation> for ReserveAssetsFrom<T> {
+impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
@@ -257,14 +258,20 @@ impl xcm_executor::Config for XcmConfig {
 	type IsTeleporter = (); // Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	//TODO: Modify current config of Trader removing XUsdPerSecond Inplementation
+	//TODO: Modify current config of Trader removing XUsdPerSecond Implementation
 	type Trader = (
 		FixedRateOfFungible<XUsdPerSecond, ()>,
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
-	type AssetTrap =
-		TrappistDropAssets<AssetIdForTrustBackedAssets, AssetRegistry, Assets, Balances, PolkadotXcm, AccountId>;
+	type AssetTrap = TrappistDropAssets<
+		AssetIdForTrustBackedAssets,
+		AssetRegistry,
+		Assets,
+		Balances,
+		PolkadotXcm,
+		AccountId,
+	>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetExchanger = ();
@@ -340,7 +347,6 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
-	//TODO:
 	type PriceForSiblingDelivery = ();
 }
 

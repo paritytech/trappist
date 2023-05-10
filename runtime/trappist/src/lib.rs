@@ -64,9 +64,9 @@ use frame_system::{
 
 pub use parachains_common as common;
 pub use parachains_common::{
-	impls::AssetsToBlockAuthor, opaque, AccountId, AuraId, Balance, BlockNumber, Hash,
-	Header, Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT,
-	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
+	impls::AssetsToBlockAuthor, opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header,
+	Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES,
+	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 
 use impls::DealWithFees;
@@ -566,8 +566,6 @@ impl pallet_asset_registry::Config for Runtime {
 	type Assets = Assets;
 	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
 }
-
-
 
 type TreasuryApproveCancelOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,

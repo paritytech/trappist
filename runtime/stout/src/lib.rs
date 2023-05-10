@@ -75,7 +75,7 @@ pub use sp_runtime::BuildStorage;
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
-use xcm::{latest::prelude::BodyId};
+use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
 

@@ -5,9 +5,13 @@ use frame_support::{
 	traits::{fungibles::Inspect, Currency},
 };
 use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
-use xcm::{latest::{
-	AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation, Weight
-}, v3::XcmContext};
+use xcm::{
+	latest::{
+		AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
+		Weight,
+	},
+	v3::XcmContext,
+};
 use xcm_executor::{
 	traits::{Convert, DropAssets, Error as MatchError, MatchesFungibles},
 	Assets,

@@ -13,13 +13,13 @@ use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
 use cumulus_client_network::BlockAnnounceValidator;
-use sc_consensus::ImportQueue;
 use cumulus_client_service::{
-	build_relay_chain_interface, prepare_node_config, start_collator, start_full_node, BuildNetworkParams, build_network,
-	StartCollatorParams, StartFullNodeParams,
+	build_network, build_relay_chain_interface, prepare_node_config, start_collator,
+	start_full_node, BuildNetworkParams, StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::ParaId;
-use cumulus_relay_chain_interface::{RelayChainInterface};
+use cumulus_relay_chain_interface::RelayChainInterface;
+use sc_consensus::ImportQueue;
 
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{NetworkBlock, NetworkService};
@@ -259,7 +259,7 @@ async fn start_node_impl(
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
-		sync_service: sync_service.clone()
+		sync_service: sync_service.clone(),
 	})?;
 
 	if let Some(hwbench) = hwbench {
@@ -314,7 +314,7 @@ async fn start_node_impl(
 			import_queue: import_queue_service,
 			collator_key: collator_key.expect("Command line arguments do not allow this. qed"),
 			relay_chain_slot_duration,
-			recovery_handle: Box::new(overseer_handle)
+			recovery_handle: Box::new(overseer_handle),
 		};
 
 		start_collator(params).await?;
@@ -327,7 +327,7 @@ async fn start_node_impl(
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue: import_queue_service,
-			recovery_handle: Box::new(overseer_handle)
+			recovery_handle: Box::new(overseer_handle),
 		};
 
 		start_full_node(params)?;
