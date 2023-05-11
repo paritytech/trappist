@@ -233,7 +233,7 @@ fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
-		maintenance_mode: Default::default(),
+		lockdown_mode: Default::default(),
 	}
 }
 
@@ -350,6 +350,6 @@ fn trappist_live_genesis(
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
-		maintenance_mode: Default::default(),
+		lockdown_mode: Default::default(),
 	}
 }

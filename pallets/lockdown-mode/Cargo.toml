@@ -1,7 +1,7 @@
 [package]
-name = "pallet-maintenance-mode"
+name = "pallet-lockdown-mode"
 version = "0.1.0"
-description = "Trappist pallet for setting maintenance mode."
+description = "Trappist pallet for setting lockdown mode."
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/paritytech/trappist"

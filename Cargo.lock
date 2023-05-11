@@ -5992,7 +5992,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-maintenance-mode"
+name = "pallet-lockdown-mode"
 version = "0.1.0"
 dependencies = [
  "cumulus-pallet-dmp-queue",
@@ -12263,7 +12263,7 @@ dependencies = [
  "pallet-dex",
  "pallet-dex-rpc-runtime-api",
  "pallet-identity",
- "pallet-maintenance-mode",
+ "pallet-lockdown-mode",
  "pallet-multisig",
  "pallet-preimage",
  "pallet-randomness-collective-flip",

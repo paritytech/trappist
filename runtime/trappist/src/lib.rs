@@ -69,7 +69,7 @@ pub use parachains_common::{
 	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 
-use impls::{DealWithFees, MaintenanceDmpHandler, RuntimeFilteredCalls, XcmExecutionManager};
+use impls::{DealWithFees, LockdownDmpHandler, RuntimeFilteredCalls, XcmExecutionManager};
 
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
@@ -170,7 +170,7 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = MaintenanceMode;
+	type BaseCallFilter = LockdownMode;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
 	type AccountId = AccountId;
@@ -283,7 +283,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
-	type DmpMessageHandler = MaintenanceMode;
+	type DmpMessageHandler = LockdownMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
@@ -627,13 +627,13 @@ impl pallet_treasury::Config for Runtime {
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 }
 
-impl pallet_maintenance_mode::Config for Runtime {
+impl pallet_lockdown_mode::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MaintenanceModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type FilteredCalls = RuntimeFilteredCalls;
-	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	type LockdownDmpHandler = LockdownDmpHandler;
 	type XcmExecutorManager = XcmExecutionManager;
-	type WeightInfo = pallet_maintenance_mode::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -677,7 +677,7 @@ construct_runtime!(
 		Uniques: pallet_uniques = 43,
 		Scheduler: pallet_scheduler = 44,
 		Preimage: pallet_preimage = 45,
-		MaintenanceMode: pallet_maintenance_mode = 46,
+		LockdownMode: pallet_lockdown_mode = 46,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 50,
@@ -716,7 +716,7 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
-		[pallet_maintenance_mode, MaintenanceMode]
+		[pallet_lockdown_mode, LockdownMode]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]

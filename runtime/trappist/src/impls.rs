@@ -91,8 +91,8 @@ impl Contains<RuntimeCall> for RuntimeFilteredCalls {
 	}
 }
 
-pub struct MaintenanceDmpHandler;
-impl DmpMessageHandler for MaintenanceDmpHandler {
+pub struct LockdownDmpHandler;
+impl DmpMessageHandler for LockdownDmpHandler {
 	fn handle_dmp_messages(
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		limit: Weight,

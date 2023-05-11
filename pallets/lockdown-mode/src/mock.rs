@@ -1,4 +1,4 @@
-use crate as pallet_maintenance_mode;
+use crate as pallet_lockdown_mode;
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 use frame_support::{
 	traits::{ConstU16, ConstU64, Contains},
@@ -29,7 +29,7 @@ frame_support::construct_runtime!(
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system,
-		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Storage, Event<T>},
+		LockdownMode: pallet_lockdown_mode::{Pallet, Call, Storage, Event<T>},
 		Balance: pallet_balances::{Pallet, Call, Storage, Event<T>},
 		Remark: pallet_remark::{Pallet, Call, Storage, Event<T>},
 	}
@@ -84,8 +84,8 @@ impl Contains<RuntimeCall> for RuntimeFilteredCalls {
 	}
 }
 
-pub struct MaintenanceDmpHandler;
-impl DmpMessageHandler for MaintenanceDmpHandler {
+pub struct LockdownDmpHandler;
+impl DmpMessageHandler for LockdownDmpHandler {
 	fn handle_dmp_messages(
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		limit: Weight,
@@ -110,13 +110,13 @@ impl pallet_remark::Config for Test {
 	type WeightInfo = ();
 }
 
-impl pallet_maintenance_mode::Config for Test {
+impl pallet_lockdown_mode::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type MaintenanceModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type FilteredCalls = RuntimeFilteredCalls;
-	type MaintenanceDmpHandler = MaintenanceDmpHandler;
+	type LockdownDmpHandler = LockdownDmpHandler;
 	type XcmExecutorManager = XcmExecutionManager;
-	type WeightInfo = pallet_maintenance_mode::weights::SubstrateWeight<Test>;
+	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Test>;
 }
 
 // Build genesis storage according to the mock runtime.
