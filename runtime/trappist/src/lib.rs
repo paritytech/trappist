@@ -716,6 +716,7 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
+		[pallet_maintenance_mode, MaintenanceMode]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]

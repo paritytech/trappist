@@ -1,5 +1,3 @@
-//! Benchmarking setup for pallet-asset-registry
-
 use super::*;
 
 #[allow(unused)]
@@ -15,15 +13,15 @@ use xcm::opaque::latest::{
 
 benchmarks! {
 	activate_maintenance_mode {
-		MaintenanceMode::<T>::activate_maintenance_mode(RawOrigin::Root.into())?;
-	}: _(RawOrigin::Root)
+		MaintenanceModeStatus::<T>::put(DEACTIVATED);
+	}: activate_maintenance_mode(RawOrigin::Root)
 	verify {
 		assert_eq!(MaintenanceModeStatus::<T>::get(), ACTIVATED);
 	}
 
-	deactivate_maintenance_mode {
-		MaintenanceMode::<T>::deactivate_maintenance_mode(RawOrigin::Root.into())?;
-	}: _(RawOrigin::Root)
+	 deactivate_maintenance_mode {
+		MaintenanceModeStatus::<T>::put(ACTIVATED);
+	}: deactivate_maintenance_mode(RawOrigin::Root)
 	verify {
 		assert_eq!(MaintenanceModeStatus::<T>::get(), DEACTIVATED);
 	}

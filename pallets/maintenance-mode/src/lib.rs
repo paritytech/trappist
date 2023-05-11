@@ -110,7 +110,6 @@ pub mod pallet {
 		#[pallet::weight(<T as pallet::Config>::WeightInfo::deactivate_maintenance_mode())]
 		pub fn deactivate_maintenance_mode(origin: OriginFor<T>) -> DispatchResult {
 			T::MaintenanceModeOrigin::ensure_origin(origin)?;
-
 			ensure!(
 				MaintenanceModeStatus::<T>::get(),
 				Error::<T>::MaintenanceModeAlreadyDeactivated
