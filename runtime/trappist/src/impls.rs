@@ -126,7 +126,7 @@ mod tests {
 	use sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-		Perbill,
+		Perbill, Permill,
 	};
 
 	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;

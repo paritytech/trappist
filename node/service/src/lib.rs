@@ -30,6 +30,9 @@ use substrate_prometheus_endpoint::Registry;
 
 pub mod chain_spec;
 
+#[cfg(all(feature = "with-trappist-runtime", feature = "with-stout-runtime"))]
+compile_error!("features `with-trappist-runtime` and `with-stout-runtime` are mutually exclusive");
+
 #[cfg(feature = "with-stout-runtime")]
 pub mod stout_executor {
 	pub use stout_runtime;

@@ -7,6 +7,7 @@ license = "Unlicense"
 homepage = "https://trappist.io"
 repository = "https://github.com/TrappistNetwork/trappist"
 edition = "2021"
+default-run = "trappist-collator"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -41,7 +42,7 @@ tempfile = "3.2.0"
 [features]
 default = ["with-trappist-runtime"]
 runtime-benchmarks = [
-    "trappist-cli/runtime-benchmarks",
+	"trappist-cli/runtime-benchmarks"
 ]
 with-trappist-runtime = [
 	"trappist-service/with-trappist-runtime",
