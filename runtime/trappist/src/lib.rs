@@ -693,7 +693,7 @@ mod benches {
 	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_asset_registry, AssetRegistry]
-		[pallet_benchmarks, pallet_benchmarks::Pallet::<Runtime>]
+		[trappist_runtime_benchmarks, trappist_runtime_benchmarks::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
@@ -961,7 +961,7 @@ impl_runtime_apis! {
 			use xcm_primitives::TrappistDropAssets;
 			use xcm::prelude::MultiLocation;
 			use crate::weights::TrappistDropAssetsWeigher;
-			impl pallet_benchmarks::Config for Runtime {
+			impl trappist_runtime_benchmarks::Config for Runtime {
 				type AssetId = AssetId;
 				type Balance = Balance;
 				type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;

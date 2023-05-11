@@ -105,7 +105,7 @@ pallet-chess = { git = "https://github.com/SubstrateChess/pallet-chess.git", def
 
 # Trappist Pallets
 pallet-asset-registry = { default-features = false, path = "../../pallets/asset-registry" }
-pallet-benchmarks = { default-features = false, path = "../../pallets/benchmarks" }
+trappist-runtime-benchmarks = { default-features = false, path = "../../pallets/benchmarks" }
 
 [features]
 default = ["std"]
@@ -184,7 +184,7 @@ runtime-benchmarks = [
 	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-registry/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"pallet-benchmarks/runtime-benchmarks",
+	"trappist-runtime-benchmarks/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
