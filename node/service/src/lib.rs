@@ -12,7 +12,6 @@ use cumulus_client_consensus_aura::{AuraConsensus, BuildAuraConsensusParams, Slo
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainConsensus,
 };
-use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	build_network, build_relay_chain_interface, prepare_node_config, start_collator,
 	start_full_node, BuildNetworkParams, StartCollatorParams, StartFullNodeParams,
@@ -22,7 +21,7 @@ use cumulus_relay_chain_interface::RelayChainInterface;
 use sc_consensus::ImportQueue;
 
 use sc_executor::NativeElseWasmExecutor;
-use sc_network::{NetworkBlock, NetworkService};
+use sc_network::{NetworkBlock};
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -180,6 +179,8 @@ async fn start_node_impl(
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
+    use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
+
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
@@ -268,6 +269,14 @@ async fn start_node_impl(
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);
 
+		//Check whether the hardware meets your chains' requirements. The
+		// requirements for a para-chain are dictated by its relay-chain.
+		if !SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) && validator {
+			log::warn!(
+				"⚠️  The hardware does not meet the minimal requirements for role 'Authority'."
+			);
+		}
+		
 		if let Some(ref mut telemetry) = telemetry {
 			let telemetry_handle = telemetry.handle();
 			task_manager.spawn_handle().spawn(
