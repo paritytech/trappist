@@ -74,8 +74,8 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = [u8; 8];
 }
 
-pub struct RuntimeFilteredCalls;
-impl Contains<RuntimeCall> for RuntimeFilteredCalls {
+pub struct RuntimeBlackListedCalls;
+impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	fn contains(call: &RuntimeCall) -> bool {
 		match call {
 			RuntimeCall::Balance(_) => false,
@@ -113,7 +113,7 @@ impl pallet_remark::Config for Test {
 impl pallet_lockdown_mode::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type FilteredCalls = RuntimeFilteredCalls;
+	type BlackListedCalls = RuntimeBlackListedCalls;
 	type LockdownDmpHandler = LockdownDmpHandler;
 	type XcmExecutorManager = XcmExecutionManager;
 	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Test>;

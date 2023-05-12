@@ -69,7 +69,7 @@ pub use parachains_common::{
 	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 
-use impls::{DealWithFees, LockdownDmpHandler, RuntimeFilteredCalls, XcmExecutionManager};
+use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
@@ -630,7 +630,7 @@ impl pallet_treasury::Config for Runtime {
 impl pallet_lockdown_mode::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type FilteredCalls = RuntimeFilteredCalls;
+	type BlackListedCalls = RuntimeBlackListedCalls;
 	type LockdownDmpHandler = LockdownDmpHandler;
 	type XcmExecutorManager = XcmExecutionManager;
 	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Runtime>;

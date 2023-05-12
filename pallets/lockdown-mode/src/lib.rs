@@ -51,7 +51,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type LockdownModeOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-		type FilteredCalls: Contains<Self::RuntimeCall>;
+		type BlackListedCalls: Contains<Self::RuntimeCall>;
 		type LockdownDmpHandler: DmpMessageHandler;
 		type XcmExecutorManager: PauseXcmExecution;
 		type WeightInfo: WeightInfo;
@@ -96,7 +96,7 @@ pub mod pallet {
 
 			if let Err(error) = T::XcmExecutorManager::suspend_xcm_execution() {
 				log::error!("Failed to suspend idle XCM execution {:?}", error);
-				<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
+				Self::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
 			}
 
 			Self::deposit_event(Event::LockdownModeActivated);
@@ -126,7 +126,7 @@ pub mod pallet {
 	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
 		fn contains(call: &T::RuntimeCall) -> bool {
 			if LockdownModeStatus::<T>::get() {
-				T::FilteredCalls::contains(call)
+				T::BlackListedCalls::contains(call)
 			} else {
 				return true
 			}

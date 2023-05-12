@@ -73,8 +73,8 @@ where
 	}
 }
 
-pub struct RuntimeFilteredCalls;
-impl Contains<RuntimeCall> for RuntimeFilteredCalls {
+pub struct RuntimeBlackListedCalls;
+impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	fn contains(call: &RuntimeCall) -> bool {
 		match call {
 			RuntimeCall::Balances(_) => false,

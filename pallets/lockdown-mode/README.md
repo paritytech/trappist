@@ -16,7 +16,7 @@ This pallet supports configurable traits that allow customization according to s
 
 - `RuntimeEvent`: Specifies the runtime event type.
 - `LockdownModeOrigin`: Specifies the origin that is allowed to activate and deactivate the lockdown mode.
-- `FilteredCalls`: Specifies the filter used to filter incoming runtime calls in lockdown mode.
+- `BlackListedCalls`: Specifies the filter used to filter incoming runtime calls in lockdown mode.
 - `LockdownDmpHandler`: Specifies the handler for downward messages in lockdown mode.
 - `XcmExecutorManager`: Interface to control the execution of XCMP Queue messages.
 
