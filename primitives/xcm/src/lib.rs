@@ -4,6 +4,7 @@ use frame_support::{
 	sp_runtime::{SaturatedConversion, Saturating},
 	traits::{fungibles::Inspect, Currency},
 };
+use sp_runtime::DispatchResult;
 use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::latest::{
 	AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
@@ -141,5 +142,21 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		// we have filtered out non-compliant assets
 		// insert valid assets into the asset trap implemented by XcmPallet
 		weight.saturating_add(XcmPallet::drop_assets(origin, assets))
+	}
+}
+
+/// Pause and resume execution of XCM
+#[cfg(not(test))]
+pub trait PauseXcmExecution {
+	fn suspend_xcm_execution() -> DispatchResult;
+	fn resume_xcm_execution() -> DispatchResult;
+}
+#[cfg(not(test))]
+impl PauseXcmExecution for () {
+	fn suspend_xcm_execution() -> DispatchResult {
+		Ok(())
+	}
+	fn resume_xcm_execution() -> DispatchResult {
+		Ok(())
 	}
 }

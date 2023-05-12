@@ -27,8 +27,8 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
-		EqualPrivilegeOnly, Everything,
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
+		EqualPrivilegeOnly,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
@@ -48,6 +48,9 @@ pub use parachains_common::{
 	Header, Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT,
 	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
+
+use impls::{LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
+
 use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
@@ -56,7 +59,7 @@ pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
-	transaction_validity::{TransactionSource, TransactionValidity},
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Percent, Permill,
 };
 use sp_std::prelude::*;
@@ -168,7 +171,7 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = Everything;
+	type BaseCallFilter = LockdownMode;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
 	type AccountId = AccountId;
@@ -281,7 +284,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
-	type DmpMessageHandler = DmpQueue;
+	type DmpMessageHandler = LockdownMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
@@ -625,6 +628,15 @@ impl pallet_treasury::Config for Runtime {
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 }
 
+impl pallet_lockdown_mode::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type BlackListedCalls = RuntimeBlackListedCalls;
+	type LockdownDmpHandler = LockdownDmpHandler;
+	type XcmExecutorManager = XcmExecutionManager;
+	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -666,6 +678,7 @@ construct_runtime!(
 		Uniques: pallet_uniques = 43,
 		Scheduler: pallet_scheduler = 44,
 		Preimage: pallet_preimage = 45,
+		LockdownMode: pallet_lockdown_mode = 46,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 50,
@@ -701,6 +714,7 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
+		[pallet_lockdown_mode, LockdownMode]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]
@@ -771,6 +785,9 @@ impl_runtime_apis! {
 			tx: <Block as BlockT>::Extrinsic,
 			block_hash: <Block as BlockT>::Hash,
 		) -> TransactionValidity {
+			if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&tx.function) {
+				return InvalidTransaction::Call.into();
+			};
 			Executive::validate_transaction(source, tx, block_hash)
 		}
 	}
