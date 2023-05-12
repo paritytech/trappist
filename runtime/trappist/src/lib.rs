@@ -17,32 +17,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "256"]
 
-// Make the WASM binary available.
-#[cfg(feature = "std")]
-include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
-
-pub mod constants;
-mod contracts;
-pub mod impls;
-pub mod xcm_config;
-pub use log;
+#[cfg(feature = "runtime-benchmarks")]
+#[macro_use]
+extern crate frame_benchmarking;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
-	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Percent, Permill,
-};
-
-use sp_std::prelude::*;
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-use sp_version::RuntimeVersion;
-
-use constants::{currency::*, fee::WeightToFee};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -61,7 +40,8 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
-
+// Polkadot imports
+use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::AssetsToBlockAuthor, opaque, AccountId, AssetId, AuraId, Balance, BlockNumber, Hash,
@@ -69,17 +49,38 @@ pub use parachains_common::{
 	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 
-use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
+use impls::{LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 
-use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
-
+use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
+use sp_api::impl_runtime_apis;
+use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-
-// Polkadot imports
-use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
-use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
+	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, Percent, Permill,
+};
+use sp_std::prelude::*;
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
+
+use constants::{currency::*, fee::WeightToFee};
+use impls::DealWithFees;
+use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
+
+// Make the WASM binary available.
+#[cfg(feature = "std")]
+include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
+
+pub mod constants;
+mod contracts;
+pub mod impls;
+mod weights;
+pub mod xcm_config;
 
 pub const MICROUNIT: Balance = 1_000_000;
 
@@ -701,14 +702,11 @@ construct_runtime!(
 );
 
 #[cfg(feature = "runtime-benchmarks")]
-#[macro_use]
-extern crate frame_benchmarking;
-
-#[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_asset_registry, AssetRegistry]
+		[trappist_runtime_benchmarks, trappist_runtime_benchmarks::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
@@ -976,6 +974,21 @@ impl_runtime_apis! {
 
 			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
 			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+
+			use xcm_primitives::TrappistDropAssets;
+			use xcm::prelude::MultiLocation;
+			use crate::weights::TrappistDropAssetsWeigher;
+			impl trappist_runtime_benchmarks::Config for Runtime {
+				type AssetId = AssetId;
+				type Balance = Balance;
+				type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
+				type DropAssets = TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
+
+				fn register_asset(asset_id: Self::AssetId, location: MultiLocation) {
+					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(&location, asset_id);
+					pallet_asset_registry::AssetIdMultiLocation::<Runtime>::insert(asset_id, location);
+				}
+			}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
