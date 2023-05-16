@@ -363,7 +363,7 @@ impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = AssetBalance;
 	type AssetId = AssetId;
-	type AssetIdParameter = codec::Compact<u32>;
+	type AssetIdParameter = codec::Compact<AssetId>;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
@@ -561,11 +561,30 @@ impl pallet_dex::Config for Runtime {
 	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub struct AssetRegistryBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_asset_registry::BenchmarkHelper<AssetId> for AssetRegistryBenchmarkHelper {
+	fn get_registered_asset() -> AssetId {
+		use sp_runtime::traits::StaticLookup;
+
+		let root = frame_system::RawOrigin::Root.into();
+		let asset_id = 1;
+		let caller = frame_benchmarking::whitelisted_caller();
+		let caller_lookup = <Runtime as frame_system::Config>::Lookup::unlookup(caller);
+		Assets::force_create(root, asset_id.into(), caller_lookup, true, 1)
+			.expect("Should have been able to force create asset");
+		asset_id
+	}
+}
+
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
 	type Assets = Assets;
 	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = AssetRegistryBenchmarkHelper;
 }
 
 parameter_types! {
