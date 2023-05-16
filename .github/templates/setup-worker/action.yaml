@@ -1,0 +1,25 @@
+name: setup-worker
+description: |
+  This action sets up a worker for use in other actions. It installs the
+  necessary dependencies for building the project.
+
+inputs:
+  rust-components:
+    description: Comma-separated list of components to be additionally installed for a new rust toolchain
+    required: false
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Setup Ubuntu dependencies
+      shell: bash
+      run: sudo apt update && sudo apt install -y git clang curl libssl-dev llvm libudev-dev cmake protobuf-compiler
+
+    - name: Install Rust nightly
+      shell: bash
+      run: |
+        rustup toolchain install nightly-2023-01-01
+        rustup default nightly-2023-01-01
+        rustup target add wasm32-unknown-unknown
+        rustup component add rustfmt
