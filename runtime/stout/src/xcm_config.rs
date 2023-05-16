@@ -25,6 +25,7 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
+use sp_core::ConstU32;
 use sp_std::marker::PhantomData;
 
 use parachains_common::{
@@ -46,7 +47,7 @@ use xcm_builder::{
 	FungiblesAdapter, IsConcrete, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents,
+	UsingComponents, MintLocation,
 };
 use xcm_executor::XcmExecutor;
 
@@ -56,9 +57,14 @@ parameter_types! {
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
+	pub CheckAccount: (AccountId, MintLocation) = (PolkadotXcm::check_account(), MintLocation::Local);
+	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const MaxAssetsIntoHolding: u32 = 64;
-	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub UniversalLocation: InteriorMultiLocation = (
+		GlobalConsensus(NetworkId::Rococo),
+		Parachain(ParachainInfo::parachain_id().into()),
+	).into();
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -90,7 +96,7 @@ pub type CurrencyTransactor = CurrencyAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We don't track any teleports.
-	(),
+	CheckAccount,
 >;
 
 /// Means for transacting assets besides the native currency on this chain.
@@ -186,7 +192,6 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
-	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub XUsdPerSecond: (AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
 		default_fee_per_second() * 10,
@@ -288,7 +293,7 @@ impl pallet_xcm::Config for Runtime {
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 	type Currency = Balances;
 	type CurrencyMatcher = ();
-	type MaxLockers = ();
+	type MaxLockers = ConstU32<8>;
 	type SovereignAccountOf = ();
 	type TrustedLockers = ();
 	type UniversalLocation = UniversalLocation;

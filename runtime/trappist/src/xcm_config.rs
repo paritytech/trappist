@@ -25,6 +25,7 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
+use sp_core::ConstU32;
 use sp_std::marker::PhantomData;
 
 use parachains_common::{
@@ -46,7 +47,7 @@ use xcm_builder::{
 	FungiblesAdapter, IsConcrete, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents,
+	UsingComponents, MintLocation,
 };
 use xcm_executor::XcmExecutor;
 
@@ -58,10 +59,14 @@ parameter_types! {
 	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
+	pub CheckAccount: (AccountId, MintLocation) = (PolkadotXcm::check_account(), MintLocation::Local);
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const MaxAssetsIntoHolding: u32 = 64;
-	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub UniversalLocation: InteriorMultiLocation = (
+		GlobalConsensus(NetworkId::Rococo),
+		Parachain(ParachainInfo::parachain_id().into()),
+	).into();
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -93,7 +98,7 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
 	// We don't track any teleports of `Balances`.
-	(),
+	CheckAccount,
 >;
 
 /// Means for transacting assets besides the native currency on this chain.
@@ -320,8 +325,8 @@ impl pallet_xcm::Config for Runtime {
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 	type Currency = Balances;
 	type CurrencyMatcher = ();
-	type MaxLockers = ();
-	type SovereignAccountOf = ();
+	type MaxLockers = ConstU32<8>;
+	type SovereignAccountOf = LocationToAccountId;
 	type TrustedLockers = ();
 	type UniversalLocation = UniversalLocation;
 	// TODO: pallet-xcm weights
