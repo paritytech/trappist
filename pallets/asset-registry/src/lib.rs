@@ -107,8 +107,9 @@ pub mod pallet {
 				Error::<T>::WrongMultiLocation
 			);
 
-			// register asset
+			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
+			// register asset_multi_location => asset_id
 			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
 
 			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
@@ -123,10 +124,11 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::ReserveAssetModifierOrigin::ensure_origin(origin)?;
 
-			// unregister asset
+			// remove asset_id => asset_multi_location, while getting the value
 			let asset_multi_location =
 				AssetIdMultiLocation::<T>::mutate_exists(asset_id, Option::take)
 					.ok_or(Error::<T>::AssetIsNotRegistered)?;
+			// remove asset_multi_location => asset_id
 			AssetMultiLocationId::<T>::remove(&asset_multi_location);
 
 			Self::deposit_event(Event::ReserveAssetUnregistered { asset_id, asset_multi_location });
