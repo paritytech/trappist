@@ -363,6 +363,8 @@ async fn start_node_impl(
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
+    use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
+
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
