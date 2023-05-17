@@ -1121,6 +1121,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "cozy-chess"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0aa2dcdbe66b10019af0f81ee4f404ca12c1d24e56f47e7f2588954f8bfa306"
+dependencies = [
+ "cozy-chess-types",
+]
+
+[[package]]
+name = "cozy-chess-types"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f4a557c6659b8705d301732f473c9a61659c740ffda3e3485e79d1d4b7a1e12"
+
+[[package]]
 name = "cpp_demangle"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5666,6 +5681,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-chess"
+version = "4.0.0-dev"
+source = "git+https://github.com/SubstrateChess/pallet-chess.git?branch=polkadot-v0.9.40#50639a3b12b4e1edf9d945fbd2b97623bd12ffc0"
+dependencies = [
+ "cozy-chess",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-assets",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-child-bounties"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40#98f2e3451c9143278ec53c6718940aeabcd3b68a"
@@ -7019,7 +7054,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-keyring",
- "substrate-build-script-utils 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40)",
+ "substrate-build-script-utils",
  "thiserror",
  "try-runtime-cli",
 ]
@@ -11620,14 +11655,6 @@ dependencies = [
 [[package]]
 name = "substrate-build-script-utils"
 version = "3.0.0"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.30#a3ed0119c45cdd0d571ad34e5b3ee7518c8cef8d"
-dependencies = [
- "platforms 2.0.0",
-]
-
-[[package]]
-name = "substrate-build-script-utils"
-version = "3.0.0"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40#98f2e3451c9143278ec53c6718940aeabcd3b68a"
 dependencies = [
  "platforms 2.0.0",
@@ -12239,7 +12266,7 @@ dependencies = [
  "futures 0.3.28",
  "log",
  "nix 0.23.2",
- "substrate-build-script-utils 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40)",
+ "substrate-build-script-utils",
  "tempfile",
  "trappist-cli",
  "trappist-service",
@@ -12281,7 +12308,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "stout-runtime",
- "substrate-build-script-utils 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40)",
+ "substrate-build-script-utils",
  "tempfile",
  "trappist-runtime",
  "trappist-service",
@@ -12341,6 +12368,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-chess",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-contracts",
@@ -12453,7 +12481,7 @@ dependencies = [
  "sp-timestamp",
  "sp-transaction-pool",
  "stout-runtime",
- "substrate-build-script-utils 3.0.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.30)",
+ "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
  "tempfile",

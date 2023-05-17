@@ -1,53 +1,37 @@
-name: Check Set-Up & Build
+name: Check Build and Tests
 
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ main ]
+    branches: [ main, xcmv3-dev ]
   pull_request:
-    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  check:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-20.04
-    env:
-      NIGHTLY: nightly-2022-11-02 # Fix version to prevent cache misses with nightly changes
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  lint:
+    runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Set-Up
-        run: sudo apt update && sudo apt install -y git clang curl libssl-dev llvm libudev-dev cmake protobuf-compiler
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - name: Setup worker
+        uses: "./.github/templates/setup-worker"
         with:
-          profile: minimal
-          toolchain: stable
+          rust-components: rustfmt
 
-      - name: Install Nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ env.NIGHTLY }}
-          override: true
-          target: wasm32-unknown-unknown
-          components: rustfmt
-
-      # Fail fast: check formatting first as it doesn't require compilation
       - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all --check
+        run: cargo fmt --all -- --check
+
+  check:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup worker
+        uses: "./.github/templates/setup-worker"
 
       - name: Cache Build artefacts
         uses: actions/cache@v3
@@ -58,8 +42,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release
 
       - name: Check Build Trappist Runtime
         run: |
@@ -69,12 +53,37 @@ jobs:
         run: |
           SKIP_WASM_BUILD=1 cargo check --release --no-default-features --features with-stout-runtime
 
-      - name: Check Build for Benchmarking Trappist Runtime
-        run: >
-          pushd node &&
-          cargo check --features=runtime-benchmarks,with-trappist-runtime --release
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      # Tests with benchmarks require a lot of disk space
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: false
+          haskell: false
+          large-packages: false
+          swap-storage: false
 
-      - name: Check Build for Benchmarking stout Runtime
-        run: >
-          pushd node &&
-          cargo check --no-default-features --features=runtime-benchmarks,with-stout-runtime --release
+      - uses: actions/checkout@v3
+
+      - name: Setup worker
+        uses: "./.github/templates/setup-worker"
+
+      - name: Cache Build artefacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-debug
+
+      - name: Run tests
+        run: |
+          cargo test --features runtime-benchmarks --jobs 2

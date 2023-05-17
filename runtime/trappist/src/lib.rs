@@ -34,7 +34,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Percent, Permill,
+	ApplyExtrinsicResult, Percent, Permill, Perbill,
 };
 
 use sp_std::prelude::*;
@@ -451,7 +451,8 @@ impl pallet_uniques::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Weight::from_parts(10_000_000, u64::MAX);
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) *
+	RuntimeBlockWeights::get().max_block;
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
 
@@ -560,6 +561,24 @@ impl pallet_dex::Config for Runtime {
 	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
+parameter_types! {
+	pub const ChessPalletId: PalletId = PalletId(*b"subchess");
+	pub const IncentiveShare: u8 = 10; // janitor gets 10% of the prize
+}
+
+impl pallet_chess::Config for Runtime {
+	type PalletId = ChessPalletId;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_chess::weights::SubstrateWeight<Runtime>;
+	type Assets = Assets;
+	type AssetBalance = u128;
+	type BulletPeriod = ConstU32<{ 1 * MINUTES }>; // ~1 minute
+	type BlitzPeriod = ConstU32<{ 5 * MINUTES }>; // ~5 minutes
+	type RapidPeriod = ConstU32<{ 15 * MINUTES }>; // ~15 minutes
+	type DailyPeriod = ConstU32<{ 25 * HOURS }>; // ~24 hours
+	type IncentiveShare = IncentiveShare;
+}
+
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
@@ -666,6 +685,9 @@ construct_runtime!(
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
+
+		// Chess
+		Chess: pallet_chess::{Pallet, Call, Storage, Event<T>} = 120,
 	}
 );
 

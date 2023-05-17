@@ -3,7 +3,6 @@
 // std
 use std::{sync::Arc, time::Duration};
 
-use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 // Common Runtime Types
 pub use parachains_common::{Block, Hash};
 
