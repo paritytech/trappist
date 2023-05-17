@@ -21,7 +21,7 @@ use cumulus_relay_chain_interface::RelayChainInterface;
 use sc_consensus::ImportQueue;
 
 use sc_executor::NativeElseWasmExecutor;
-use sc_network::{NetworkBlock};
+use sc_network::NetworkBlock;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -179,7 +179,7 @@ async fn start_node_impl(
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
-    use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
+	use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 
 	let parachain_config = prepare_node_config(parachain_config);
 
@@ -276,7 +276,7 @@ async fn start_node_impl(
 				"⚠️  The hardware does not meet the minimal requirements for role 'Authority'."
 			);
 		}
-		
+
 		if let Some(ref mut telemetry) = telemetry {
 			let telemetry_handle = telemetry.handle();
 			task_manager.spawn_handle().spawn(
@@ -396,7 +396,7 @@ async fn start_node_impl(
 			para_id,
 			spawn_handle: task_manager.spawn_handle(),
 			relay_chain_interface: relay_chain_interface.clone(),
-			import_queue: params.import_queue,	
+			import_queue: params.import_queue,
 		})
 		.await?;
 
@@ -493,7 +493,6 @@ async fn start_node_impl(
 			params.keystore_container.sync_keystore(),
 			force_authoring,
 			para_id,
-			
 		)?;
 
 		let spawner = task_manager.spawn_handle();
