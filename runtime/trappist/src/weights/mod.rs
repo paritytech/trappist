@@ -1,8 +1,7 @@
 use ::trappist_runtime_benchmarks::WeightInfo;
 use xcm_primitives::DropAssetsWeigher;
 
-use crate::Runtime;
-use crate::Weight;
+use crate::{Runtime, Weight};
 
 mod trappist_runtime_benchmarks;
 

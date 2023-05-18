@@ -31,7 +31,7 @@ pub mod pallet {
 
 	type AssetIdOf<T> =
 		<<T as Config>::Assets as Inspect<<T as frame_system::Config>::AccountId>>::AssetId;
-	
+
 	#[cfg(feature = "runtime-benchmarks")]
 	pub trait BenchmarkHelper<AssetId> {
 		fn get_registered_asset() -> AssetId;
@@ -109,7 +109,7 @@ pub mod pallet {
 
 			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
-			// register asset_multi_location => asset_id	
+			// register asset_multi_location => asset_id
 			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
 
 			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
@@ -127,7 +127,7 @@ pub mod pallet {
 			// remove asset_id => asset_multi_location, while getting the value
 			let asset_multi_location =
 				AssetIdMultiLocation::<T>::mutate_exists(asset_id, Option::take)
-				.ok_or(Error::<T>::AssetIsNotRegistered)?;
+					.ok_or(Error::<T>::AssetIsNotRegistered)?;
 			// remove asset_multi_location => asset_id
 			AssetMultiLocationId::<T>::remove(&asset_multi_location);
 
@@ -145,5 +145,4 @@ pub mod pallet {
 			AssetMultiLocationId::<T>::get(asset_type)
 		}
 	}
-
 }

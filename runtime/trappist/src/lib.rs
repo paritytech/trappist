@@ -24,8 +24,8 @@ extern crate frame_benchmarking;
 pub mod constants;
 mod contracts;
 pub mod impls;
-pub mod xcm_config;
 mod weights;
+pub mod xcm_config;
 
 pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
@@ -50,12 +50,12 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
-		EqualPrivilegeOnly, Contains
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
+		EqualPrivilegeOnly,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
-		ConstantMultiplier, Weight, 
+		ConstantMultiplier, Weight,
 	},
 	PalletId,
 };
@@ -568,7 +568,9 @@ impl pallet_dex::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 pub struct AssetRegistryBenchmarkHelper;
 #[cfg(feature = "runtime-benchmarks")]
-impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets> for AssetRegistryBenchmarkHelper {
+impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets>
+	for AssetRegistryBenchmarkHelper
+{
 	fn get_registered_asset() -> AssetIdForTrustBackedAssets {
 		use sp_runtime::traits::StaticLookup;
 

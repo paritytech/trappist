@@ -1,15 +1,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	sp_runtime::{SaturatedConversion},
-	traits::{fungibles::Inspect, Currency}, weights::Weight,
+	sp_runtime::SaturatedConversion,
+	traits::{fungibles::Inspect, Currency},
+	weights::Weight,
 };
 use sp_runtime::DispatchResult;
 use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::{
 	latest::{
 		AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
-		
 	},
 	v3::XcmContext,
 };
@@ -148,7 +148,6 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		weight.saturating_add(XcmPallet::drop_assets(origin, assets, context))
 	}
 }
-
 
 /// Pause and resume execution of XCM
 #[cfg(not(test))]

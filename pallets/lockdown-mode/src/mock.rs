@@ -123,4 +123,4 @@ impl pallet_lockdown_mode::Config for Test {
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
 	storage.into()
-}   
+}

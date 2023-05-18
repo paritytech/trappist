@@ -14,7 +14,9 @@
 // limitations under the License.
 
 use crate::{
-	constants::fee::default_fee_per_second, impls::ToAuthor, AllPalletsWithSystem, weights::TrappistDropAssetsWeigher};
+	constants::fee::default_fee_per_second, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
+	AllPalletsWithSystem,
+};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
