@@ -57,6 +57,23 @@ chain = "trappist-local"
   ws_port = 9921
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
+[[parachains]]
+id = 3000
+add_to_genesis = true
+cumulus_based = true
+chain = "stout-local"
+
+  [[parachains.collators]]
+  name = "stout-collator01"
+  command = "./target_stout/release/stout-collator"
+  ws_port = 9930
+  args = ["--log=xcm=trace,pallet-assets=trace"]
+
+  [[parachains.collators]]
+  name = "stout-collator02"
+  command = "./target_stout/release/stout-collator"
+  ws_port = 9931
+  args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [types.Header]
 number = "u64"
@@ -75,3 +92,26 @@ recipient = 1000
 max_capacity = 8
 max_message_size = 512
 
+[[hrmp_channels]]
+sender = 1000
+recipient = 3000
+max_capacity = 8
+max_message_size = 512
+
+[[hrmp_channels]]
+sender = 3000
+recipient = 1000
+max_capacity = 8
+max_message_size = 512
+
+[[hrmp_channels]]
+sender = 1836
+recipient = 3000
+max_capacity = 8
+max_message_size = 512
+
+[[hrmp_channels]]
+sender = 3000
+recipient = 1836
+max_capacity = 8
+max_message_size = 512
