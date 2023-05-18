@@ -1,42 +1,67 @@
-use crate::{mock::*, Error};
 use frame_support::{assert_noop, assert_ok};
 use xcm::latest::prelude::*;
+
+use crate::{mock::*, AssetIdMultiLocation, AssetMultiLocationId, Error};
+
+const STATEMINE_ASSET_MULTI_LOCATION: MultiLocation = MultiLocation {
+	parents: 1,
+	interior: X3(
+		Parachain(StatemineParaIdInfo::get()),
+		PalletInstance(StatemineAssetsInstanceInfo::get()),
+		GeneralIndex(StatemineAssetIdInfo::get()),
+	),
+};
 
 #[test]
 fn register_reserve_asset_works() {
 	new_test_ext().execute_with(|| {
-		let statemine_para_id = StatemineParaIdInfo::get();
-		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id = StatemineAssetIdInfo::get();
-
-		let statemine_asset_multi_location = MultiLocation {
-			parents: 1,
-			interior: X3(
-				Parachain(statemine_para_id),
-				PalletInstance(statemine_assets_pallet),
-				GeneralIndex(statemine_asset_id),
-			),
-		};
-
 		assert_ok!(AssetRegistry::register_reserve_asset(
 			RuntimeOrigin::root(),
 			LOCAL_ASSET_ID,
-			statemine_asset_multi_location.clone(),
+			STATEMINE_ASSET_MULTI_LOCATION,
 		));
 
-		let read_asset_multi_location = AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID)
-			.expect("error reading AssetIdMultiLocation");
-		assert_eq!(read_asset_multi_location, statemine_asset_multi_location);
+		assert_eq!(
+			AssetIdMultiLocation::<Test>::get(LOCAL_ASSET_ID),
+			Some(STATEMINE_ASSET_MULTI_LOCATION)
+		);
+		assert_eq!(
+			AssetMultiLocationId::<Test>::get(STATEMINE_ASSET_MULTI_LOCATION),
+			Some(LOCAL_ASSET_ID)
+		);
+	});
+}
 
-		let read_asset_id = AssetRegistry::asset_multilocation_id(&statemine_asset_multi_location)
-			.expect("error reading AssetMultiLocationId");
-		assert_eq!(read_asset_id, LOCAL_ASSET_ID);
+#[test]
+fn cannot_register_unexisting_asset() {
+	new_test_ext().execute_with(|| {
+		let unexisting_asset_id = 9999;
+
+		assert_noop!(
+			AssetRegistry::register_reserve_asset(
+				RuntimeOrigin::root(),
+				unexisting_asset_id,
+				STATEMINE_ASSET_MULTI_LOCATION,
+			),
+			Error::<Test>::AssetDoesNotExist
+		);
+	});
+}
+
+#[test]
+fn cannot_double_register() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetRegistry::register_reserve_asset(
+			RuntimeOrigin::root(),
+			LOCAL_ASSET_ID,
+			STATEMINE_ASSET_MULTI_LOCATION,
+		));
 
 		assert_noop!(
 			AssetRegistry::register_reserve_asset(
 				RuntimeOrigin::root(),
 				LOCAL_ASSET_ID,
-				statemine_asset_multi_location,
+				STATEMINE_ASSET_MULTI_LOCATION,
 			),
 			Error::<Test>::AssetAlreadyRegistered
 		);
@@ -46,30 +71,25 @@ fn register_reserve_asset_works() {
 #[test]
 fn unregister_reserve_asset_works() {
 	new_test_ext().execute_with(|| {
-		let statemine_para_id = StatemineParaIdInfo::get();
-		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
-		let statemine_asset_id = StatemineAssetIdInfo::get();
-
-		let statemine_asset_multi_location = MultiLocation {
-			parents: 1,
-			interior: X3(
-				Parachain(statemine_para_id),
-				PalletInstance(statemine_assets_pallet),
-				GeneralIndex(statemine_asset_id),
-			),
-		};
-
 		assert_ok!(AssetRegistry::register_reserve_asset(
 			RuntimeOrigin::root(),
 			LOCAL_ASSET_ID,
-			statemine_asset_multi_location.clone(),
+			STATEMINE_ASSET_MULTI_LOCATION,
 		));
 
 		assert_ok!(AssetRegistry::unregister_reserve_asset(RuntimeOrigin::root(), LOCAL_ASSET_ID));
 
-		assert!(AssetRegistry::asset_id_multilocation(LOCAL_ASSET_ID).is_none());
-		assert!(
-			AssetRegistry::asset_multilocation_id(statemine_asset_multi_location.clone()).is_none()
+		assert!(AssetIdMultiLocation::<Test>::get(LOCAL_ASSET_ID).is_none());
+		assert!(AssetMultiLocationId::<Test>::get(STATEMINE_ASSET_MULTI_LOCATION).is_none());
+	});
+}
+
+#[test]
+fn cannot_register_unregistered_asset() {
+	new_test_ext().execute_with(|| {
+		assert_noop!(
+			AssetRegistry::unregister_reserve_asset(RuntimeOrigin::root(), LOCAL_ASSET_ID),
+			Error::<Test>::AssetIsNotRegistered
 		);
 	});
 }

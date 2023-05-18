@@ -361,7 +361,7 @@ impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = AssetBalance;
 	type AssetId = AssetIdForTrustBackedAssets;
-	type AssetIdParameter = codec::Compact<u32>;
+	type AssetIdParameter = codec::Compact<AssetIdForTrustBackedAssets>;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
@@ -562,6 +562,32 @@ impl pallet_dex::Config for Runtime {
 	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub struct AssetRegistryBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets> for AssetRegistryBenchmarkHelper {
+	fn get_registered_asset() -> AssetIdForTrustBackedAssets {
+		use sp_runtime::traits::StaticLookup;
+
+		let root = frame_system::RawOrigin::Root.into();
+		let asset_id = 1;
+		let caller = frame_benchmarking::whitelisted_caller();
+		let caller_lookup = <Runtime as frame_system::Config>::Lookup::unlookup(caller);
+		Assets::force_create(root, asset_id.into(), caller_lookup, true, 1)
+			.expect("Should have been able to force create asset");
+		asset_id
+	}
+}
+
+impl pallet_asset_registry::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Assets = Assets;
+	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = AssetRegistryBenchmarkHelper;
+}
+
 parameter_types! {
 	pub const ChessPalletId: PalletId = PalletId(*b"subchess");
 	pub const IncentiveShare: u8 = 10; // janitor gets 10% of the prize
@@ -578,13 +604,6 @@ impl pallet_chess::Config for Runtime {
 	type RapidPeriod = ConstU32<{ 15 * MINUTES }>; // ~15 minutes
 	type DailyPeriod = ConstU32<{ 25 * HOURS }>; // ~24 hours
 	type IncentiveShare = IncentiveShare;
-}
-
-impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type Assets = Assets;
-	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
 }
 
 type TreasuryApproveCancelOrigin = EitherOfDiverse<
