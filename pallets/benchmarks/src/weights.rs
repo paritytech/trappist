@@ -1,4 +1,5 @@
-use crate::Weight;
+use frame_support::weights::Weight;
+
 
 pub trait WeightInfo {
 	fn drop_assets_fungible() -> Weight;

@@ -19,6 +19,7 @@ use super::{
 	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
 	RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
 };
+use cumulus_pallet_xcmp_queue::weights::SubstrateWeight;
 use frame_support::{
 	match_types, parameter_types,
 	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing},
@@ -319,7 +320,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 		EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = SubstrateWeight<Runtime>;
 	type PriceForSiblingDelivery = ();
 }
 

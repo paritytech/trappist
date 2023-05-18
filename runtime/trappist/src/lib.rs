@@ -17,17 +17,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "256"]
 
-// Make the WASM binary available.
-#[cfg(feature = "std")]
-include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
+#[cfg(feature = "runtime-benchmarks")]
+#[macro_use]
+extern crate frame_benchmarking;
 
 pub mod constants;
 mod contracts;
 pub mod impls;
 pub mod xcm_config;
+mod weights;
 
 pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use cumulus_primitives_core::BodyId;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
 use sp_runtime::{
@@ -53,7 +55,7 @@ use frame_support::{
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
-		ConstantMultiplier, Weight,
+		ConstantMultiplier, Weight, 
 	},
 	PalletId,
 };
@@ -61,25 +63,24 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
-
+// Polkadot imports
+use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::AssetsToBlockAuthor, opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header,
 	Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES,
 	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
+use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
 
 use impls::DealWithFees;
-
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
+// Make the WASM binary available.
+#[cfg(feature = "std")]
+include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-
-// Polkadot imports
-use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
-use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
-use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
 
@@ -692,14 +693,11 @@ construct_runtime!(
 );
 
 #[cfg(feature = "runtime-benchmarks")]
-#[macro_use]
-extern crate frame_benchmarking;
-
-#[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_asset_registry, AssetRegistry]
+		[trappist_runtime_benchmarks, trappist_runtime_benchmarks::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
@@ -973,6 +971,21 @@ impl_runtime_apis! {
 
 			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
 			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+
+			use xcm_primitives::TrappistDropAssets;
+			use xcm::prelude::MultiLocation;
+			use crate::weights::TrappistDropAssetsWeigher;
+			impl trappist_runtime_benchmarks::Config for Runtime {
+				type AssetId = AssetIdForTrustBackedAssets;
+				type Balance = Balance;
+				type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
+				type DropAssets = TrappistDropAssets<AssetIdForTrustBackedAssets, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
+
+				fn register_asset(asset_id: Self::AssetId, location: MultiLocation) {
+					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(&location, asset_id);
+					pallet_asset_registry::AssetIdMultiLocation::<Runtime>::insert(asset_id, location);
+				}
+			}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number

@@ -12412,10 +12412,27 @@ dependencies = [
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder",
+ "trappist-runtime-benchmarks",
  "xcm",
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives",
+]
+
+[[package]]
+name = "trappist-runtime-benchmarks"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]
