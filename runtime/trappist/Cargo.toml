@@ -106,6 +106,7 @@ pallet-chess = { git = "https://github.com/SubstrateChess/pallet-chess.git", def
 # Trappist Pallets
 pallet-asset-registry = { default-features = false, path = "../../pallets/asset-registry" }
 trappist-runtime-benchmarks = { default-features = false, path = "../../pallets/benchmarks" }
+pallet-lockdown-mode = { version = "0.1.0", default-features = false, path = "../../pallets/lockdown-mode" }
 
 [features]
 default = ["std"]
@@ -144,8 +145,9 @@ std = [
 	"pallet-dex/std",
 	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
-	"pallet-multisig/std",
     "pallet-insecure-randomness-collective-flip/std",
+	"pallet-lockdown-mode/std",
+	"pallet-multisig/std",
     "pallet-scheduler/std",
     "pallet-session/std",
     "pallet-sudo/std",
@@ -191,6 +193,7 @@ runtime-benchmarks = [
 	"pallet-democracy/runtime-benchmarks",
 	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
+	"pallet-lockdown-mode/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",

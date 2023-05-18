@@ -21,6 +21,11 @@ default_command = "./bin/polkadot"
   validator = true
   extra_args = [ "-lparachain=debug" ]
 
+  [[relaychain.nodes]]
+  name = "dave"
+  validator = true
+  extra_args = [ "-lparachain=debug" ]
+
 [[parachains]]
 id = 1000
 add_to_genesis = true
