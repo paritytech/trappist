@@ -5,8 +5,12 @@ use frame_support::{
 	traits::{fungibles::Inspect, Currency},
 };
 use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
-use xcm::latest::{
-	AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
+use xcm::{
+	latest::{
+		AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
+		Weight,
+	},
+	v3::XcmContext,
 };
 use xcm_executor::{
 	traits::{Convert, DropAssets, Error as MatchError, MatchesFungibles},
@@ -50,9 +54,9 @@ impl<
 	fn matches_fungibles(a: &MultiAsset) -> Result<(AssetId, Balance), MatchError> {
 		let (amount, id) = match (&a.fun, &a.id) {
 			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
-			_ => return Err(MatchError::AssetNotFound),
+			_ => return Err(MatchError::AssetNotHandled),
 		};
-		let what = ConvertAssetId::convert_ref(id).map_err(|_| MatchError::AssetNotFound)?;
+		let what = ConvertAssetId::convert_ref(id).map_err(|_| MatchError::AssetNotHandled)?;
 		let amount = ConvertBalance::convert_ref(amount)
 			.map_err(|_| MatchError::AmountToBalanceConversionFailed)?;
 		Ok((what, amount))
@@ -83,7 +87,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 	XcmPallet: DropAssets,
 {
 	// assets are whatever the Holding Register had when XCVM halts
-	fn drop_assets(origin: &MultiLocation, assets: Assets) -> u64 {
+	fn drop_assets(origin: &MultiLocation, assets: Assets, context: &XcmContext) -> Weight {
 		let multi_assets: Vec<MultiAsset> = assets.into();
 		let mut trap: Vec<MultiAsset> = Vec::new();
 
@@ -113,12 +117,12 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		}
 
 		// TODO: put real weight of execution up until this point here
-		let mut weight = 0;
+		let mut weight: Weight = Weight::from_parts(0, 0);
 
 		if !trap.is_empty() {
 			// we have filtered out non-compliant assets
 			// insert valid assets into the asset trap implemented by XcmPallet
-			weight += XcmPallet::drop_assets(origin, trap.into());
+			weight += XcmPallet::drop_assets(origin, trap.into(), context);
 		}
 
 		weight
