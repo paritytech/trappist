@@ -65,7 +65,6 @@ parameter_types! {
 	pub CheckAccount: (AccountId, MintLocation) = (PolkadotXcm::check_account(), MintLocation::Local);
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
-	pub const MaxAssetsIntoHolding: u32 = 64;
 	pub UniversalLocation: InteriorMultiLocation = (
 		GlobalConsensus(NetworkId::Rococo),
 		Parachain(ParachainInfo::parachain_id().into()),
@@ -178,8 +177,9 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000u64, 0);
+	pub UnitWeightCost: Weight = Weight::from_parts(1_000_000_000u64, 64 * 1024);
 	pub const MaxInstructions: u32 = 100;
+	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
 match_types! {
