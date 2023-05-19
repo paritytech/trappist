@@ -135,7 +135,7 @@ pub mod pallet {
 			if LockdownModeStatus::<T>::get() {
 				T::BlackListedCalls::contains(call)
 			} else {
-				return true;
+				return true
 			}
 		}
 	}
