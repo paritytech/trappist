@@ -1,4 +1,4 @@
-use super::{*, GenesisConfig};
+use super::{GenesisConfig, *};
 use crate::{mock::*, Error, ACTIVATED, DEACTIVATED};
 use frame_support::{assert_noop, assert_ok, traits::Contains};
 use pallet_balances::{self, Call as BalancesCall};
