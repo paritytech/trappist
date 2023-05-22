@@ -2,7 +2,8 @@
 
 use frame_support::{
 	sp_runtime::SaturatedConversion,
-	traits::{fungibles::Inspect, Currency}, weights::Weight,
+	traits::{fungibles::Inspect, Currency},
+	weights::Weight,
 };
 use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::{
@@ -97,7 +98,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		BalancesPallet,
 		XcmPallet,
 		AccountId,
-		Weigher
+		Weigher,
 	> where
 	AssetId: Clone,
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
@@ -105,7 +106,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 	BalancesPallet: Currency<AccountId>,
 	XcmPallet: DropAssets,
 	Weigher: DropAssetsWeigher,
-	{
+{
 	// assets are whatever the Holding Register had when XCVM halts
 	fn drop_assets(origin: &MultiLocation, mut assets: Assets, context: &XcmContext) -> Weight {
 		const NATIVE_LOCATION: MultiLocation = MultiLocation { parents: 0, interior: Here };
@@ -147,4 +148,3 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		weight.saturating_add(XcmPallet::drop_assets(origin, assets, context))
 	}
 }
-

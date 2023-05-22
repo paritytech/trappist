@@ -13,7 +13,7 @@ benchmarks! {
 		let asset = MultiAsset { id: XcmAssetId::Concrete(location), fun: Fungibility::Fungible(100) };
 	} : {
 		T::DropAssets::drop_assets(
-			&origin, 
+			&origin,
 			asset.into(),
 			&XcmContext {
 				origin: Some(origin.clone()),
@@ -30,7 +30,7 @@ benchmarks! {
 		let asset = MultiAsset { id: XcmAssetId::Concrete(location), fun: Fungibility::Fungible(amount) };
 	} : {
 		T::DropAssets::drop_assets(
-			&origin, 
+			&origin,
 			asset.into(),
 			&XcmContext {
 				origin: Some(origin.clone()),
@@ -45,7 +45,7 @@ benchmarks! {
 		let asset = MultiAsset { id: XcmAssetId::Abstract(Default::default()), fun: Fungibility::Fungible(0) };
 	} : {
 		T::DropAssets::drop_assets(
-			&origin, 
+			&origin,
 			asset.into(),
 			&XcmContext {
 				origin: Some(origin.clone()),

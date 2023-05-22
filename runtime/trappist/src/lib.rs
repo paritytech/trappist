@@ -24,8 +24,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 pub mod constants;
 mod contracts;
 pub mod impls;
-pub mod xcm_config;
 mod weights;
+pub mod xcm_config;
 
 pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
