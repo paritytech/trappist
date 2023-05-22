@@ -1097,11 +1097,13 @@ impl_runtime_apis! {
 			use xcm::prelude::MultiLocation;
 			use crate::weights::TrappistDropAssetsWeigher;
 
+			use parachains_common::AssetId as TrappistAssetId;
+
 			impl trappist_runtime_benchmarks::Config for Runtime {
-				type AssetId = AssetId;
+				type AssetId = TrappistAssetId;
 				type Balance = Balance;
 				type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
-				type DropAssets = TrappistDropAssets<AssetId, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
+				type DropAssets = TrappistDropAssets<TrappistAssetId, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
 
 				fn register_asset(asset_id: Self::AssetId, location: MultiLocation) {
 					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(&location, asset_id);
