@@ -97,7 +97,7 @@ impl DmpMessageHandler for LockdownDmpHandler {
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		limit: Weight,
 	) -> Weight {
-		limit
+		DmpQueue::handle_dmp_messages(_iter, limit)
 	}
 }
 
