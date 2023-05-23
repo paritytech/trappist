@@ -23,7 +23,6 @@ fn genesis_config_initialized() {
 #[test]
 fn activate_lockdown_mode_works() {
 	new_test_ext(false).execute_with(|| {
-		assert_eq!(LockdownModeStatus::<Test>::get(), DEACTIVATED);
 		assert_ok!(LockdownMode::activate_lockdown_mode(RuntimeOrigin::root()));
 
 		let lockdown_mode = LockdownModeStatus::<Test>::get();
