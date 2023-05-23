@@ -37,20 +37,20 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig {
-		pub activated: bool,
+		pub initial_status: bool,
 	}
 
 	#[cfg(feature = "std")]
 	impl Default for GenesisConfig {
 		fn default() -> Self {
-			Self { activated: ACTIVATED }
+			Self { initial_status: ACTIVATED }
 		}
 	}
 
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			LockdownModeStatus::<T>::put(&self.activated);
+			LockdownModeStatus::<T>::put(&self.initial_status);
 		}
 	}
 

@@ -119,10 +119,10 @@ impl pallet_lockdown_mode::Config for Test {
 	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Test>;
 }
 
-pub fn new_test_ext(activated: bool) -> sp_io::TestExternalities {
+pub fn new_test_ext(initial_status: bool) -> sp_io::TestExternalities {
 	let mut storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
 	GenesisBuild::<Test>::assimilate_storage(
-		&pallet_lockdown_mode::GenesisConfig { activated },
+		&pallet_lockdown_mode::GenesisConfig { initial_status },
 		&mut storage,
 	)
 	.unwrap();
