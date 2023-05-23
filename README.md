@@ -14,7 +14,7 @@
 
 Altogether those technologies enable an array of exciting cross-chain applications & services:
 
-![XCM use cases](/docs/assets/xcm-use-cases.png)
+![XCM use cases](/docs/media/xcm-use-cases.png)
 
 
 This repository contains the source code of **Trappist**, a feature-rich parachain for exploring and learning about cross-chain applications and services, along with a script to run a complete local multi-chain environment that includes:
@@ -25,7 +25,7 @@ This repository contains the source code of **Trappist**, a feature-rich paracha
 
 All these pre-configured to allow cross-chain communication via XCM messages on HRMP channels.
 
-![Trappist topology](/docs/assets/trappist-topology.png)
+![Trappist topology](/docs/media/trappist-topology.png)
 
 ### Why "Trappist" ?
 
