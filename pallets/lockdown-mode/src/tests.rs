@@ -37,10 +37,7 @@ fn activate_lockdown_mode_works() {
 
 #[test]
 fn deactivate_lockdown_mode_works() {
-	new_test_ext(false).execute_with(|| {
-		// We activate lockdown mode first so we can deactivate it.
-		assert_ok!(LockdownMode::activate_lockdown_mode(RuntimeOrigin::root()));
-
+	new_test_ext(true).execute_with(|| {
 		assert_ok!(LockdownMode::deactivate_lockdown_mode(RuntimeOrigin::root()));
 
 		let lockdown_mode = LockdownModeStatus::<Test>::get();
