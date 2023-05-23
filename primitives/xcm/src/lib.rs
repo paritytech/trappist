@@ -27,7 +27,7 @@ where
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 {
 	fn convert_ref(asset_multi_location: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow().clone()).ok_or(())
+		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow()).ok_or(())
 	}
 
 	fn reverse_ref(asset_id: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
@@ -37,7 +37,7 @@ where
 
 pub trait AssetMultiLocationGetter<AssetId> {
 	fn get_asset_multi_location(asset_id: AssetId) -> Option<MultiLocation>;
-	fn get_asset_id(asset_multi_location: MultiLocation) -> Option<AssetId>;
+	fn get_asset_id(asset_multi_location: &MultiLocation) -> Option<AssetId>;
 }
 
 pub struct ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertBalance>(
@@ -118,7 +118,7 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 
 		assets.fungible.retain(|id, &mut amount| {
 			if let Concrete(location) = id {
-				match AssetIdInfoGetter::get_asset_id(*location) {
+				match AssetIdInfoGetter::get_asset_id(location) {
 					Some(asset_id) => {
 						weight.saturating_accrue(Weigher::fungible());
 
