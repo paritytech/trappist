@@ -4,6 +4,7 @@ use frame_support::{
 	sp_runtime::SaturatedConversion,
 	traits::{fungibles::Inspect, Currency},
 };
+use sp_runtime::DispatchResult;
 use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
 use xcm::{
 	latest::{
@@ -126,5 +127,21 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		}
 
 		weight
+	}
+}
+
+/// Pause and resume execution of XCM
+#[cfg(not(test))]
+pub trait PauseXcmExecution {
+	fn suspend_xcm_execution() -> DispatchResult;
+	fn resume_xcm_execution() -> DispatchResult;
+}
+#[cfg(not(test))]
+impl PauseXcmExecution for () {
+	fn suspend_xcm_execution() -> DispatchResult {
+		Ok(())
+	}
+	fn resume_xcm_execution() -> DispatchResult {
+		Ok(())
 	}
 }
