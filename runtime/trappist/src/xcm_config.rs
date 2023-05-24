@@ -13,7 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::default_fee_per_second, impls::ToAuthor, AllPalletsWithSystem};
+use crate::{
+	constants::fee::default_fee_per_second, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
+	AllPalletsWithSystem,
+};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -276,6 +279,7 @@ impl xcm_executor::Config for XcmConfig {
 		Balances,
 		PolkadotXcm,
 		AccountId,
+		TrappistDropAssetsWeigher,
 	>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;

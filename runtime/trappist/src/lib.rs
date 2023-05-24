@@ -24,19 +24,22 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 pub mod constants;
 mod contracts;
 pub mod impls;
+mod weights;
 pub mod xcm_config;
 
 pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use cumulus_primitives_core::BodyId;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
+#[cfg(any(feature = "std", test))]
+pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
-
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -62,6 +65,7 @@ use frame_system::{
 	EnsureRoot, EnsureSigned,
 };
 
+// Polkadot imports
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::AssetsToBlockAuthor, opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header,
@@ -73,13 +77,9 @@ use impls::DealWithFees;
 
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
-
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
-use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
 
@@ -700,6 +700,7 @@ mod benches {
 	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_asset_registry, AssetRegistry]
+		[trappist_runtime_benchmarks, trappist_runtime_benchmarks::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
@@ -973,6 +974,21 @@ impl_runtime_apis! {
 
 			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
 			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+
+			use xcm_primitives::TrappistDropAssets;
+			use xcm::prelude::MultiLocation;
+			use crate::weights::TrappistDropAssetsWeigher;
+			impl trappist_runtime_benchmarks::Config for Runtime {
+				type AssetId = AssetIdForTrustBackedAssets;
+				type Balance = Balance;
+				type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
+				type DropAssets = TrappistDropAssets<AssetIdForTrustBackedAssets, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
+
+				fn register_asset(asset_id: Self::AssetId, location: MultiLocation) {
+					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(&location, asset_id);
+					pallet_asset_registry::AssetIdMultiLocation::<Runtime>::insert(asset_id, location);
+				}
+			}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
