@@ -86,4 +86,4 @@ jobs:
 
       - name: Run tests
         run: |
-          cargo test --features runtime-benchmarks --jobs 2
+          cargo test --features runtime-benchmarks --jobs 1
