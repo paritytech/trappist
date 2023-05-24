@@ -14,12 +14,12 @@ benchmarks! {
 		assert_eq!(LockdownModeStatus::<T>::get(), ACTIVATED);
 	}
 
-	 deactivate_lockdown_mode {
+	deactivate_lockdown_mode {
 		LockdownModeStatus::<T>::put(ACTIVATED);
 	}: deactivate_lockdown_mode(RawOrigin::Root)
 	verify {
 		assert_eq!(LockdownModeStatus::<T>::get(), DEACTIVATED);
 	}
 
-	impl_benchmark_test_suite!(LockdownMode, crate::mock::new_test_ext(), crate::mock::Test);
+	impl_benchmark_test_suite!(LockdownMode, crate::mock::new_test_ext(true), crate::mock::Test);
 }
