@@ -65,7 +65,7 @@ jobs:
           dotnet: true
           haskell: true
           large-packages: true
-          swap-storage: false
+          swap-storage: true
 
       - uses: actions/checkout@v3
 
@@ -86,4 +86,4 @@ jobs:
 
       - name: Run tests
         run: |
-          cargo test --features runtime-benchmarks --jobs 2
+          cargo test --features runtime-benchmarks --jobs 1
