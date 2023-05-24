@@ -35,15 +35,22 @@ pub mod pallet {
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
-	#[derive(Default)]
 	#[pallet::genesis_config]
-	/// Genesis config for lockdown mode pallet
-	pub struct GenesisConfig {}
+	pub struct GenesisConfig {
+		pub initial_status: bool,
+	}
+
+	#[cfg(feature = "std")]
+	impl Default for GenesisConfig {
+		fn default() -> Self {
+			Self { initial_status: ACTIVATED }
+		}
+	}
 
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			LockdownModeStatus::<T>::put(ACTIVATED);
+			LockdownModeStatus::<T>::put(&self.initial_status);
 		}
 	}
 

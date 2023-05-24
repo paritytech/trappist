@@ -1,7 +1,7 @@
 use crate as pallet_lockdown_mode;
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 use frame_support::{
-	traits::{ConstU16, ConstU64, Contains},
+	traits::{ConstU16, ConstU64, Contains, GenesisBuild},
 	weights::Weight,
 };
 use frame_system as system;
@@ -119,8 +119,12 @@ impl pallet_lockdown_mode::Config for Test {
 	type WeightInfo = pallet_lockdown_mode::weights::SubstrateWeight<Test>;
 }
 
-// Build genesis storage according to the mock runtime.
-pub fn new_test_ext() -> sp_io::TestExternalities {
-	let storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
+pub fn new_test_ext(initial_status: bool) -> sp_io::TestExternalities {
+	let mut storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	GenesisBuild::<Test>::assimilate_storage(
+		&pallet_lockdown_mode::GenesisConfig { initial_status },
+		&mut storage,
+	)
+	.unwrap();
 	storage.into()
 }
