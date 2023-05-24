@@ -14,7 +14,7 @@
 
 Altogether those technologies enable an array of exciting cross-chain applications & services:
 
-![XCM use cases](xcm-use-cases.png)
+![XCM use cases](/docs/media/xcm-use-cases.png)
 
 
 This repository contains the source code of **Trappist**, a feature-rich parachain for exploring and learning about cross-chain applications and services, along with a script to run a complete local multi-chain environment that includes:
@@ -25,7 +25,7 @@ This repository contains the source code of **Trappist**, a feature-rich paracha
 
 All these pre-configured to allow cross-chain communication via XCM messages on HRMP channels.
 
-![Trappist topology](trappist-topology.png)
+![Trappist topology](/docs/media/trappist-topology.png)
 
 ### Why "Trappist" ?
 
@@ -55,15 +55,15 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 Use the following command to build the Trappist collator binary:
 
-```
+```bash 
 cargo b -r --features with-trappist-runtime
 cargo b -r --no-default-features --features with-stout-runtime --target-dir target_stout
-
 ```
 
-Alternatively, run
-`bash ./scripts/build_runtimes.sh` .
-
+Alternatively, run:
+```bash  
+./scripts/build_runtimes.sh
+```
 
 ### XCM Playground via Zombienet
 
@@ -72,16 +72,22 @@ Create a `bin` directory into the root of this repository and place the followin
 - `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
 
 Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
-```
+```bash
 $ chmod +x zombienet-linux # OR
 $ chmod +x zombienet-macos
 ```
 
 Then, start the **Trappist** playground with:
+```bash
+./zombienet-linux -p native spawn ./zombienet/trappist_rococo.toml
 ```
-./zombienet-linux -p native spawn xcm-playground.toml
+You can also run:
+```bash
+# To start Trappist and Stout together
+./zombienet-linux -p native spawn ./zombienet/full_network.toml
+# To only run stout
+./zombienet-linux -p native spawn ./zombienet/stout_rococo.toml
 ```
-
 ### Integration Tests
 [parachains-integration-tests](https://github.com/paritytech/parachains-integration-tests) is a tool meant for XCM message execution in a locally spawned network. Tests are written as YAML files and converted into [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
@@ -99,5 +105,4 @@ cd xcm-simulator && cargo test --release tests::; cd ..
 ```
 
 ## License
-
 Trappist is licensed under [Apache 2](LICENSE).
