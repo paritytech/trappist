@@ -32,21 +32,27 @@ pub mod pallet {
 	type AssetIdOf<T> =
 		<<T as Config>::Assets as Inspect<<T as frame_system::Config>::AccountId>>::AssetId;
 
+	#[cfg(feature = "runtime-benchmarks")]
+	pub trait BenchmarkHelper<AssetId> {
+		fn get_registered_asset() -> AssetId;
+	}
+
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type ReserveAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		type Assets: Inspect<Self::AccountId>;
 		type WeightInfo: WeightInfo;
+		/// Helper trait for benchmarks.
+		#[cfg(feature = "runtime-benchmarks")]
+		type BenchmarkHelper: BenchmarkHelper<AssetIdOf<Self>>;
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn asset_id_multilocation)]
 	pub type AssetIdMultiLocation<T: Config> =
 		StorageMap<_, Blake2_128Concat, AssetIdOf<T>, MultiLocation>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn asset_multilocation_id)]
 	pub type AssetMultiLocationId<T: Config> =
 		StorageMap<_, Blake2_128Concat, MultiLocation, AssetIdOf<T>>;
 
@@ -81,7 +87,7 @@ pub mod pallet {
 			T::ReserveAssetModifierOrigin::ensure_origin(origin)?;
 
 			// verify asset exists on pallet-assets
-			ensure!(Self::asset_exists(asset_id), Error::<T>::AssetDoesNotExist);
+			ensure!(T::Assets::asset_exists(asset_id), Error::<T>::AssetDoesNotExist);
 
 			// verify asset is not yet registered
 			ensure!(
@@ -90,19 +96,20 @@ pub mod pallet {
 			);
 
 			// verify MultiLocation is valid
-			let parents_multi_location_ok = { asset_multi_location.parents == 1 };
-			let junctions_multi_location_ok = matches!(
-				asset_multi_location.interior,
-				Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_))
-			);
-
 			ensure!(
-				parents_multi_location_ok && junctions_multi_location_ok,
+				matches!(
+					asset_multi_location,
+					MultiLocation {
+						parents: 1,
+						interior: Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_))
+					}
+				),
 				Error::<T>::WrongMultiLocation
 			);
 
-			// register asset
+			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
+			// register asset_multi_location => asset_id
 			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
 
 			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
@@ -118,12 +125,11 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::ReserveAssetModifierOrigin::ensure_origin(origin)?;
 
-			// verify asset is registered
+			// remove asset_id => asset_multi_location, while getting the value
 			let asset_multi_location =
-				AssetIdMultiLocation::<T>::get(asset_id).ok_or(Error::<T>::AssetIsNotRegistered)?;
-
-			// unregister asset
-			AssetIdMultiLocation::<T>::remove(asset_id);
+				AssetIdMultiLocation::<T>::mutate_exists(asset_id, Option::take)
+					.ok_or(Error::<T>::AssetIsNotRegistered)?;
+			// remove asset_multi_location => asset_id
 			AssetMultiLocationId::<T>::remove(&asset_multi_location);
 
 			Self::deposit_event(Event::ReserveAssetUnregistered { asset_id, asset_multi_location });
@@ -138,13 +144,6 @@ pub mod pallet {
 
 		fn get_asset_id(asset_type: MultiLocation) -> Option<AssetIdOf<T>> {
 			AssetMultiLocationId::<T>::get(asset_type)
-		}
-	}
-
-	impl<T: Config> Pallet<T> {
-		// check if the asset exists
-		fn asset_exists(asset_id: AssetIdOf<T>) -> bool {
-			T::Assets::asset_exists(asset_id)
 		}
 	}
 }
