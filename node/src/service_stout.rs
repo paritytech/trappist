@@ -91,26 +91,11 @@ impl sc_executor::NativeExecutionDispatch for StoutRuntimeExecutor {
 	}
 }
 
-// Native Trappist executor instance.
-pub struct TrappistRuntimeExecutor;
-
-impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
-	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		trappist_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		trappist_runtime::native_version()
-	}
-}
-
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
-pub fn new_partial<RuntimeApi, BIQ>(
+pub fn new_stout_partial<RuntimeApi, BIQ>(
 	config: &Configuration,
 	build_import_queue: BIQ,
 ) -> Result<
@@ -133,7 +118,6 @@ where
 			Block,
 			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
 		> + sp_offchain::OffchainWorkerApi<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ sp_block_builder::BlockBuilder<Block>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	BIQ: FnOnce(
@@ -217,7 +201,7 @@ where
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
-async fn start_node_impl<RuntimeApi, RB, BIQ, BIC>(
+async fn start_stout_node_impl<RuntimeApi, RB, BIQ, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -238,9 +222,8 @@ where
 		> + sp_offchain::OffchainWorkerApi<Block>
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
-		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
-		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
+		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	RB: Fn(Arc<ParachainClient<RuntimeApi>>) -> Result<jsonrpsee::RpcModule<()>, sc_service::Error>,
 	BIQ: FnOnce(
@@ -268,7 +251,7 @@ where
 {
 	let parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial::<RuntimeApi, BIQ>(&parachain_config, build_import_queue)?;
+	let params = new_stout_partial::<RuntimeApi, BIQ>(&parachain_config, build_import_queue)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 
 	let client = params.client.clone();
@@ -323,7 +306,7 @@ where
 				deny_unsafe,
 			};
 
-			rpc::create_full(deps, backend_for_rpc.clone()).map_err(Into::into)
+			rpc::create_stout_full(deps, backend_for_rpc.clone()).map_err(Into::into)
 		})
 	};
 
@@ -410,6 +393,7 @@ where
 
 	Ok((task_manager, client))
 }
+
 enum BuildOnAccess<R> {
 	Uninitialized(Option<Box<dyn FnOnce() -> R + Send + Sync>>),
 	Initialized(R),
@@ -519,7 +503,7 @@ where
 
 /// Start an aura powered parachain node.
 /// (collective-polkadot and statemine/t use this)
-pub async fn start_generic_aura_node<RuntimeApi, AuraId: AppKey>(
+pub async fn start_stout_aura_node<RuntimeApi, AuraId: AppKey>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
@@ -539,19 +523,18 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppKey>::Pair as Pair>::Public>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	<<AuraId as AppKey>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
 {
-	start_node_impl::<RuntimeApi, _, _, _>(
+	start_stout_node_impl::<RuntimeApi, _, _, _>(
 		parachain_config,
 		polkadot_config,
 		collator_options,
 		para_id,
 		|_| Ok(RpcModule::new(())),
-		aura_build_import_queue::<_, AuraId>,
+		aura_stout_build_import_queue::<_, AuraId>,
 		|client,
 		 block_import,
 		 prometheus_registry,
@@ -685,7 +668,7 @@ where
 }
 
 /// Build the import queue for Aura-based parachains.
-pub fn aura_build_import_queue<RuntimeApi, AuraId: AppKey>(
+pub fn aura_stout_build_import_queue<RuntimeApi, AuraId: AppKey>(
 	client: Arc<ParachainClient<RuntimeApi>>,
 	block_import: ParachainBlockImport<RuntimeApi>,
 	config: &Configuration,
