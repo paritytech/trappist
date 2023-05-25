@@ -1,0 +1,54 @@
+[package]
+name = "trappist"
+version = "1.0.0"
+authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
+description = "A versatile Proof-of-Authority (PoA) Blockchain network."
+license = "Unlicense"
+homepage = "https://trappist.io"
+repository = "https://github.com/TrappistNetwork/trappist"
+edition = "2021"
+default-run = "trappist-collator"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[build-dependencies]
+substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+
+[[bin]]
+required-features = ["with-trappist-runtime"]
+name = "trappist-collator"
+path = "src/main.rs"
+
+
+[[bin]]
+required-features = ["with-stout-runtime"]
+name = "stout-collator"
+path = "src/main.rs"
+
+[dependencies]
+async-trait = "0.1.57"
+clap = { version = "4.0.32", features = ["derive"] }
+log = "0.4.17"
+futures = { version = "0.3.1", features = ["compat"] }
+trappist-cli = { path = "cli" }
+trappist-service = { path = "service" }
+
+[dev-dependencies]
+assert_cmd = "2.0"
+nix = "0.23"
+tempfile = "3.2.0"
+
+[features]
+default = ["with-trappist-runtime"]
+runtime-benchmarks = [
+	"trappist-cli/runtime-benchmarks"
+]
+with-trappist-runtime = [
+	"trappist-service/with-trappist-runtime",
+	"trappist-cli/with-trappist-runtime",
+]
+with-stout-runtime = [
+	"trappist-service/with-stout-runtime",
+	"trappist-cli/with-stout-runtime",
+]
