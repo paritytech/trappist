@@ -17,7 +17,9 @@
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, Block, StoutRuntimeExecutor, TrappistRuntimeExecutor},
+	service::{
+		new_partial, new_stout_partial, Block, StoutRuntimeExecutor, TrappistRuntimeExecutor,
+	},
 };
 use codec::Encode;
 use cumulus_client_cli::generate_genesis_block;
@@ -204,7 +206,7 @@ macro_rules! construct_benchmark_partials {
 				$code
 			},
 			Runtime::Stout => {
-				let $partials = new_partial::<stout_runtime::RuntimeApi, _>(
+				let $partials = new_stout_partial::<stout_runtime::RuntimeApi, _>(
 					&$config,
 					crate::service::aura_build_import_queue::<_, AuraId>,
 				)?;
@@ -231,7 +233,7 @@ macro_rules! construct_async_run {
 			},
 			Runtime::Stout => {
 				runner.async_run(|$config| {
-					let $components = new_partial::<stout_runtime::RuntimeApi, _>(
+					let $components = new_stout_partial::<stout_runtime::RuntimeApi, _>(
 						&$config,
 						crate::service::aura_build_import_queue::<_, AuraId>,
 					)?;
