@@ -83,25 +83,64 @@ where
 	Ok(module)
 }
 
-/// Instantiate all RPC extensions.
-pub fn create_stout_full<C, P, B>(
-	deps: FullDeps<C, P>,
-	backend: Arc<B>,
-) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
+pub trait RuntimeApiCollection:
+	frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
+	+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+	+ BlockBuilder<Block>
+	+ 'static
+{
+}
+
+pub trait ClientRequiredTraits:
+	ProvideRuntimeApi<Block>
+	+ HeaderBackend<Block>
+	+ AuxStore
+	+ HeaderMetadata<Block, Error = BlockChainError>
+	+ Send
+	+ Sync
+	+ 'static
 where
-	C: ProvideRuntimeApi<Block>
+	<Self as ProvideRuntimeApi<Block>>::Api: RuntimeApiCollection,
+{
+}
+
+pub trait PoolRequiredTraits: TransactionPool + Sync + Send + 'static {}
+
+pub trait BackendRequiredTraits: sc_client_api::Backend<Block> + Send + Sync + 'static
+where
+	<Self as sc_client_api::Backend<Block>>::State:
+		sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
+{
+}
+
+impl<T> ClientRequiredTraits for T
+where
+	T: ProvideRuntimeApi<Block>
 		+ HeaderBackend<Block>
 		+ AuxStore
 		+ HeaderMetadata<Block, Error = BlockChainError>
 		+ Send
 		+ Sync
 		+ 'static,
-	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
-	C::Api: BlockBuilder<Block>,
-	P: TransactionPool + Sync + Send + 'static,
-	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
-	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
+	T::Api: RuntimeApiCollection,
+{
+}
+
+impl<T> PoolRequiredTraits for T where T: TransactionPool + Sync + Send + 'static {}
+
+impl<T> BackendRequiredTraits for T
+where
+	T: sc_client_api::Backend<Block> + Send + Sync + 'static,
+	T::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
+{
+}
+
+pub fn create_stout_full<C: ClientRequiredTraits, P: PoolRequiredTraits, B: BackendRequiredTraits>(
+	deps: FullDeps<C, P>,
+	backend: Arc<B>,
+) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
+where
+	C::Api: RuntimeApiCollection,
 {
 	use frame_rpc_system::{System, SystemApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
