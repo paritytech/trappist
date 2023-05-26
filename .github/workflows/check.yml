@@ -43,15 +43,14 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-release
 
       - name: Check Build Trappist Runtime
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release --features with-trappist-runtime
+          SKIP_WASM_BUILD=1 cargo check --release --locked --features with-trappist-runtime
 
       - name: Check Build Stout Runtime
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release --no-default-features --features with-stout-runtime
+          SKIP_WASM_BUILD=1 cargo check --release --locked --no-default-features --features with-stout-runtime
 
   test:
     needs: lint
@@ -62,8 +61,8 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           android: true
-          dotnet: false
-          haskell: false
+          dotnet: true
+          haskell: true
           large-packages: false
           swap-storage: false
 
@@ -82,8 +81,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-debug
 
       - name: Run tests
         run: |
-          cargo test --features runtime-benchmarks --jobs 2
+          cargo test --features runtime-benchmarks --locked --jobs 1
