@@ -106,6 +106,142 @@ impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
 	}
 }
 
+pub trait RuntimeApiExt:
+    sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+    + sp_api::Metadata<Block>
+    + sp_session::SessionKeys<Block>
+    + sp_api::ApiExt<
+		Block, StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>>
+    + sp_offchain::OffchainWorkerApi<Block>
+    + sp_block_builder::BlockBuilder<Block>
+    + Send
+    + Sync
+    + 'static
+{
+}
+
+type ImportQueueBuilder<RuntimeApi> = 
+    dyn FnOnce(
+        Arc<ParachainClient<RuntimeApi>>,
+        ParachainBlockImport<RuntimeApi>,
+        &Configuration,
+        Option<TelemetryHandle>,
+        &TaskManager,
+    ) -> Result<
+        sc_consensus::DefaultImportQueue<Block, ParachainClient<RuntimeApi>>,
+        sc_service::Error,
+    >;
+
+
+pub fn new_generic_partial<RuntimeApi>(
+	config: &Configuration,
+	build_import_queue: Box<ImportQueueBuilder<RuntimeApi>>,
+) -> Result<
+	PartialComponents<
+		ParachainClient<RuntimeApi>,
+		ParachainBackend,
+		(),
+		sc_consensus::DefaultImportQueue<Block, ParachainClient<RuntimeApi>>,
+		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>,
+		(ParachainBlockImport<RuntimeApi>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+	>,
+	sc_service::Error,
+>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiExt,
+	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
+{
+	let telemetry = config
+		.telemetry_endpoints
+		.clone()
+		.filter(|x| !x.is_empty())
+		.map(|endpoints| -> Result<_, sc_telemetry::Error> {
+			let worker = TelemetryWorker::new(16)?;
+			let telemetry = worker.handle().new_telemetry(endpoints);
+			Ok((worker, telemetry))
+		})
+		.transpose()?;
+
+	let executor = sc_executor::WasmExecutor::<HostFunctions>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+		None,
+		config.runtime_cache_size,
+	);
+
+	let (client, backend, keystore_container, task_manager) =
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+			config,
+			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
+		)?;
+	let client = Arc::new(client);
+
+	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
+
+	let telemetry = telemetry.map(|(worker, telemetry)| {
+		task_manager.spawn_handle().spawn("telemetry", None, worker.run());
+		telemetry
+	});
+
+	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
+		config.transaction_pool.clone(),
+		config.role.is_authority().into(),
+		config.prometheus_registry(),
+		task_manager.spawn_essential_handle(),
+		client.clone(),
+	);
+
+	let block_import = ParachainBlockImport::new(client.clone(), backend.clone());
+
+	let import_queue = build_import_queue(
+		client.clone(),
+		block_import.clone(),
+		config,
+		telemetry.as_ref().map(|telemetry| telemetry.handle()),
+		&task_manager,
+	)?;
+
+	let params = PartialComponents {
+		backend,
+		client,
+		import_queue,
+		keystore_container,
+		task_manager,
+		transaction_pool,
+		select_chain: (),
+		other: (block_import, telemetry, telemetry_worker_handle),
+	};
+
+	Ok(params)
+}
+
+pub fn new_trappist_partial<RuntimeApi>(
+	config: &Configuration,
+	build_import_queue: Box<ImportQueueBuilder<RuntimeApi>>,
+) -> Result<
+	PartialComponents<
+		ParachainClient<RuntimeApi>,
+		ParachainBackend,
+		(),
+		sc_consensus::DefaultImportQueue<Block, ParachainClient<RuntimeApi>>,
+		sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>,
+		(ParachainBlockImport<RuntimeApi>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+	>,
+	sc_service::Error,
+>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiExt + pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance> ,
+	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>
+{
+	new_generic_partial::<RuntimeApi>(config, build_import_queue)
+}
+
+
+
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
