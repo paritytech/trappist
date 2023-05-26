@@ -12277,6 +12277,7 @@ dependencies = [
  "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-benchmarks",
  "parachain-info",
  "parachains-common",
  "parity-scale-codec",

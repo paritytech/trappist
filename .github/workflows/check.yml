@@ -62,7 +62,7 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           android: true
-          dotnet: false
+          dotnet: true
           haskell: false
           large-packages: false
           swap-storage: false
@@ -86,4 +86,4 @@ jobs:
 
       - name: Run tests
         run: |
-          cargo test --features runtime-benchmarks --jobs 2
+          cargo test --features runtime-benchmarks --jobs 1
