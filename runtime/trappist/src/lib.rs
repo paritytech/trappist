@@ -24,19 +24,22 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 pub mod constants;
 mod contracts;
 pub mod impls;
+mod weights;
 pub mod xcm_config;
 
 pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use cumulus_primitives_core::BodyId;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
+#[cfg(any(feature = "std", test))]
+pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
-
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -62,6 +65,7 @@ use frame_system::{
 	EnsureRoot, EnsureSigned,
 };
 
+// Polkadot imports
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::AssetsToBlockAuthor, opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header,
@@ -73,13 +77,9 @@ use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecut
 
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
-
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
-use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
 
@@ -360,7 +360,7 @@ impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = AssetBalance;
 	type AssetId = AssetIdForTrustBackedAssets;
-	type AssetIdParameter = codec::Compact<u32>;
+	type AssetIdParameter = codec::Compact<AssetIdForTrustBackedAssets>;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
@@ -561,6 +561,34 @@ impl pallet_dex::Config for Runtime {
 	type MinDeposit = ConstU128<{ UNITS }>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub struct AssetRegistryBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_asset_registry::BenchmarkHelper<AssetIdForTrustBackedAssets>
+	for AssetRegistryBenchmarkHelper
+{
+	fn get_registered_asset() -> AssetIdForTrustBackedAssets {
+		use sp_runtime::traits::StaticLookup;
+
+		let root = frame_system::RawOrigin::Root.into();
+		let asset_id = 1;
+		let caller = frame_benchmarking::whitelisted_caller();
+		let caller_lookup = <Runtime as frame_system::Config>::Lookup::unlookup(caller);
+		Assets::force_create(root, asset_id.into(), caller_lookup, true, 1)
+			.expect("Should have been able to force create asset");
+		asset_id
+	}
+}
+
+impl pallet_asset_registry::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
+	type Assets = Assets;
+	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = AssetRegistryBenchmarkHelper;
+}
+
 parameter_types! {
 	pub const ChessPalletId: PalletId = PalletId(*b"subchess");
 	pub const IncentiveShare: u8 = 10; // janitor gets 10% of the prize
@@ -577,13 +605,6 @@ impl pallet_chess::Config for Runtime {
 	type RapidPeriod = ConstU32<{ 15 * MINUTES }>; // ~15 minutes
 	type DailyPeriod = ConstU32<{ 25 * HOURS }>; // ~24 hours
 	type IncentiveShare = IncentiveShare;
-}
-
-impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ReserveAssetModifierOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type Assets = Assets;
-	type WeightInfo = pallet_asset_registry::weights::SubstrateWeight<Runtime>;
 }
 
 type TreasuryApproveCancelOrigin = EitherOfDiverse<
@@ -710,6 +731,7 @@ mod benches {
 	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_asset_registry, AssetRegistry]
+		[trappist_runtime_benchmarks, trappist_runtime_benchmarks::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
@@ -987,6 +1009,21 @@ impl_runtime_apis! {
 
 			use cumulus_pallet_session_benchmarking::Pallet as SessionBench;
 			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
+
+			use xcm_primitives::TrappistDropAssets;
+			use xcm::prelude::MultiLocation;
+			use crate::weights::TrappistDropAssetsWeigher;
+			impl trappist_runtime_benchmarks::Config for Runtime {
+				type AssetId = AssetIdForTrustBackedAssets;
+				type Balance = Balance;
+				type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
+				type DropAssets = TrappistDropAssets<AssetIdForTrustBackedAssets, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
+
+				fn register_asset(asset_id: Self::AssetId, location: MultiLocation) {
+					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(&location, asset_id);
+					pallet_asset_registry::AssetIdMultiLocation::<Runtime>::insert(asset_id, location);
+				}
+			}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
