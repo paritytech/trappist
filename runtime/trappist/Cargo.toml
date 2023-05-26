@@ -45,8 +45,6 @@ frame-system = { git = "https://github.com/paritytech/substrate", default-featur
 frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true, branch = "polkadot-v0.9.40" }
 frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 
-
-
 ## Substrate Pallet Dependencies
 pallet-assets = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-asset-tx-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
@@ -70,7 +68,6 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 pallet-uniques = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
-
 
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
@@ -105,6 +102,7 @@ pallet-chess = { git = "https://github.com/SubstrateChess/pallet-chess.git", def
 
 # Trappist Pallets
 pallet-asset-registry = { default-features = false, path = "../../pallets/asset-registry" }
+pallet-lockdown-mode = { default-features = false, path = "../../pallets/lockdown-mode" }
 trappist-runtime-benchmarks = { default-features = false, path = "../../pallets/benchmarks" }
 
 [features]
@@ -144,6 +142,7 @@ std = [
 	"pallet-dex/std",
 	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
+	"pallet-lockdown-mode/std",
 	"pallet-multisig/std",
     "pallet-insecure-randomness-collective-flip/std",
     "pallet-scheduler/std",
@@ -191,6 +190,7 @@ runtime-benchmarks = [
 	"pallet-democracy/runtime-benchmarks",
 	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
+	"pallet-lockdown-mode/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
