@@ -83,64 +83,102 @@ where
 	Ok(module)
 }
 
-pub trait RuntimeApiCollection:
-	frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
-	+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-	+ BlockBuilder<Block>
-	+ 'static
-{
+/* pub trait ClientRequiredTraits {
+	type Client: ProvideRuntimeApi<Block>
+		+ HeaderBackend<Block>
+		+ AuxStore
+		+ HeaderMetadata<Block, Error = BlockChainError>
+		+ Send
+		+ Sync
+		+ 'static;
+	type Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
+		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+		+ BlockBuilder<Block>;
 }
 
-pub trait ClientRequiredTraits:
-	ProvideRuntimeApi<Block>
-	+ HeaderBackend<Block>
-	+ AuxStore
-	+ HeaderMetadata<Block, Error = BlockChainError>
-	+ Send
-	+ Sync
-	+ 'static
+impl<C> ClientRequiredTraits for C
 where
-	<Self as ProvideRuntimeApi<Block>>::Api: RuntimeApiCollection,
-{
-}
-
-pub trait PoolRequiredTraits: TransactionPool + Sync + Send + 'static {}
-
-pub trait BackendRequiredTraits: sc_client_api::Backend<Block> + Send + Sync + 'static
-where
-	<Self as sc_client_api::Backend<Block>>::State:
-		sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
-{
-}
-
-impl<T> ClientRequiredTraits for T
-where
-	T: ProvideRuntimeApi<Block>
+	C: ProvideRuntimeApi<Block>
 		+ HeaderBackend<Block>
 		+ AuxStore
 		+ HeaderMetadata<Block, Error = BlockChainError>
 		+ Send
 		+ Sync
 		+ 'static,
-	T::Api: RuntimeApiCollection,
+	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
+		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+		+ BlockBuilder<Block>,
 {
+	type Client = C;
+	type Api = C::Api;
 }
 
-impl<T> PoolRequiredTraits for T where T: TransactionPool + Sync + Send + 'static {}
+pub trait PoolRequiredTraits {
+	type Pool: TransactionPool + Sync + Send + 'static;
+}
+
+impl<T> PoolRequiredTraits for T
+where
+	T: TransactionPool + Sync + Send + 'static,
+{
+	type Pool = T;
+}
+
+pub trait BackendRequiredTraits {
+	type Backend: sc_client_api::Backend<Block> + Send + Sync + 'static;
+	type State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>;
+}
 
 impl<T> BackendRequiredTraits for T
 where
 	T: sc_client_api::Backend<Block> + Send + Sync + 'static,
 	T::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
 {
+	type Backend = T;
+	type State = T::State;
 }
 
-pub fn create_stout_full<C: ClientRequiredTraits, P: PoolRequiredTraits, B: BackendRequiredTraits>(
+pub fn create_stout_full_bck<C, P, B>(
 	deps: FullDeps<C, P>,
 	backend: Arc<B>,
 ) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
 where
-	C::Api: RuntimeApiCollection,
+	C: ClientRequiredTraits,
+	P: PoolRequiredTraits,
+	B: BackendRequiredTraits,
+{
+	use frame_rpc_system::{System, SystemApiServer};
+	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+	use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
+
+	let mut module = RpcExtension::new(());
+	let FullDeps { client, pool, deny_unsafe } = deps;
+
+	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
+	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
+	module.merge(StateMigration::new(client.clone(), backend, deny_unsafe).into_rpc())?;
+
+	Ok(module)
+} */
+
+pub fn create_stout_full<C, P, B>(
+	deps: FullDeps<C, P>,
+	backend: Arc<B>,
+) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
+where
+	C: ProvideRuntimeApi<Block>
+		+ HeaderBackend<Block>
+		+ AuxStore
+		+ HeaderMetadata<Block, Error = BlockChainError>
+		+ Send
+		+ Sync
+		+ 'static,
+	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+	C::Api: BlockBuilder<Block>,
+	P: TransactionPool + Sync + Send + 'static,
+	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
+	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
 {
 	use frame_rpc_system::{System, SystemApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};

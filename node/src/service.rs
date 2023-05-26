@@ -144,7 +144,14 @@ pub fn new_generic_partial<RuntimeApi, BIQ>(
 >
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiExt,
+	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+		+ sp_api::Metadata<Block>
+		+ sp_session::SessionKeys<Block>
+		+ sp_api::ApiExt<
+			Block,
+			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
+		> + sp_offchain::OffchainWorkerApi<Block>
+		+ sp_block_builder::BlockBuilder<Block>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	BIQ: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
@@ -239,7 +246,15 @@ pub fn new_trappist_partial<RuntimeApi, BIQ>(
 >
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiExt + pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance> ,
+	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+		+ sp_api::Metadata<Block>
+		+ sp_session::SessionKeys<Block>
+		+ sp_api::ApiExt<
+			Block,
+			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
+		> + sp_offchain::OffchainWorkerApi<Block>
+		+ sp_block_builder::BlockBuilder<Block>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance> ,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	BIQ: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
@@ -257,7 +272,7 @@ where
 
 
 
-fn create_stout_full_rpc<C, P, B>(
+/* fn create_stout_full_rpc<C, P, B>(
     deps: rpc::FullDeps<C, P>,
     backend: Arc<B>,
 ) -> Result<jsonrpsee::RpcModule<()>, sc_service::Error> 
@@ -265,10 +280,9 @@ where
     C: rpc::ClientRequiredTraits,
     P: rpc::PoolRequiredTraits,
     B: rpc::BackendRequiredTraits,
-    C::Api: rpc::RuntimeApiCollection,
 {
     rpc::create_stout_full(deps, backend.clone()).map_err(Into::into)
-}
+} */
 
  /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
@@ -286,7 +300,17 @@ async fn start_generic_node_impl<RuntimeApi, BIQ, RB, BIC>(
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: NodeRuntimeApiExt,
+	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+	+ sp_api::Metadata<Block>
+	+ sp_session::SessionKeys<Block>
+	+ sp_api::ApiExt<
+		Block,
+		StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
+	> + sp_offchain::OffchainWorkerApi<Block>
+	+ sp_block_builder::BlockBuilder<Block>
+	+ cumulus_primitives_core::CollectCollationInfo<Block>
+	+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+	+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	RB: Fn(
 			rpc::FullDeps<
@@ -887,9 +911,18 @@ pub async fn start_generic_2_aura_node<RuntimeApi, AuraId: AppKey>(
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
- 	RuntimeApi::RuntimeApi: NodeRuntimeApiExt 
+	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
+		+ sp_api::Metadata<Block>
+		+ sp_session::SessionKeys<Block>
+		+ sp_api::ApiExt<
+			Block,
+			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
+		> + sp_offchain::OffchainWorkerApi<Block>
+		+ sp_block_builder::BlockBuilder<Block>
+		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppKey>::Pair as Pair>::Public>
-		+ rpc::RuntimeApiCollection, 
+		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	<<AuraId as AppKey>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
@@ -899,7 +932,7 @@ where
 		polkadot_config,
 		collator_options,
 		para_id,
-		|deps, backend| create_stout_full_rpc::<_, _, _>(deps, backend),
+		|deps, backend| rpc::create_stout_full::<_, _, _>(deps, backend).map_err(Into::into),
 		aura_build_generic_import_queue::<RuntimeApi, AuraId>,
 		|client,
 		 block_import,
@@ -1211,7 +1244,6 @@ pub fn aura_build_generic_import_queue<RuntimeApi, AuraId: AppKey>(
 ) -> Result<sc_consensus::DefaultImportQueue<Block, ParachainClient<RuntimeApi>>, sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, ParachainClient<RuntimeApi>> + Send + Sync + 'static,
-	//RuntimeApi::RuntimeApi: NodeRuntimeApiExt,
 	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
 	+ sp_api::Metadata<Block>
 	+ sp_session::SessionKeys<Block>

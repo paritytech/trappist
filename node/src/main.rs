@@ -25,7 +25,6 @@ mod service;
 mod cli;
 mod command;
 mod rpc;
-mod service_stout;
 
 fn main() -> sc_cli::Result<()> {
 	command::run()

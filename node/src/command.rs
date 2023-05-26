@@ -17,8 +17,7 @@
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, Block, TrappistRuntimeExecutor},
-	service_stout::{new_stout_partial, StoutRuntimeExecutor},
+	service::{new_partial, new_generic_partial, Block, TrappistRuntimeExecutor, StoutRuntimeExecutor},
 };
 use codec::Encode;
 use cumulus_client_cli::generate_genesis_block;
@@ -205,9 +204,9 @@ macro_rules! construct_benchmark_partials {
 				$code
 			},
 			Runtime::Stout => {
-				let $partials = new_stout_partial::<stout_runtime::RuntimeApi, _>(
+				let $partials = new_generic_partial::<stout_runtime::RuntimeApi, _>(
 					&$config,
-					crate::service_stout::aura_stout_build_import_queue::<_, AuraId>,
+					crate::service::aura_build_generic_import_queue::<_, AuraId>,
 				)?;
 				$code
 			},
@@ -232,9 +231,9 @@ macro_rules! construct_async_run {
 			},
 			Runtime::Stout => {
 				runner.async_run(|$config| {
-					let $components = new_stout_partial::<stout_runtime::RuntimeApi, _>(
+					let $components = new_generic_partial::<stout_runtime::RuntimeApi, _>(
 						&$config,
-						crate::service_stout::aura_stout_build_import_queue::<_, AuraId>,
+						crate::service::aura_build_generic_import_queue::<_, AuraId>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -445,7 +444,7 @@ pub fn run() -> Result<()> {
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
-					Runtime::Stout => crate::service_stout::start_stout_aura_node::<
+					Runtime::Stout => crate::service::start_generic_2_aura_node::<
 						stout_runtime::RuntimeApi,
 						AuraId,
 					>(config, polkadot_config, collator_options, id, hwbench)
