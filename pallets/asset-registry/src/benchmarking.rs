@@ -11,8 +11,6 @@ use xcm::opaque::latest::{
 	Junctions, MultiLocation,
 };
 
-pub const LOCAL_ASSET_ID: u32 = 10;
-
 benchmarks! {
 	register_reserve_asset {
 		let asset_id = T::BenchmarkHelper::get_registered_asset();

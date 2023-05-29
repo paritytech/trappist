@@ -97,6 +97,7 @@ xcm = { git = "https://github.com/paritytech/polkadot", default-features = false
 xcm-builder = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.40" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", default-features = false, branch = "release-v0.9.40" }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
+pallet-xcm-benchmarks = { git = "https://github.com/paritytech/polkadot", default-features = false, optional = true, branch = "release-v0.9.40" }
 
 # External Pallets
 pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "polkadot-v0.9.40" }
@@ -199,7 +200,8 @@ runtime-benchmarks = [
 	"pallet-utility/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"cumulus-pallet-session-benchmarking/runtime-benchmarks",
-	"cumulus-pallet-xcmp-queue/runtime-benchmarks"
+	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
+	"pallet-xcm-benchmarks/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime",
