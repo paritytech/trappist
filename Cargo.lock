@@ -407,6 +407,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
+name = "assets-common"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.40#e05c8d7f71734ed71188337c6cb0d30715f6320f"
+dependencies = [
+ "frame-support",
+ "parachains-common",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-std",
+ "substrate-wasm-builder",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+]
+
+[[package]]
 name = "async-channel"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12398,6 +12414,7 @@ dependencies = [
 name = "trappist-runtime"
 version = "1.0.0"
 dependencies = [
+ "assets-common",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",

@@ -29,7 +29,7 @@ pub mod xcm_config;
 
 pub use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-use cumulus_primitives_core::BodyId;
+use cumulus_primitives_core::{BodyId, MultiAsset};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
 #[cfg(any(feature = "std", test))]
@@ -75,7 +75,7 @@ pub use parachains_common::{
 
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 
-use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
+use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId};
 
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
@@ -900,6 +900,33 @@ impl_runtime_apis! {
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
 			ParachainSystem::collect_collation_info(header)
+		}
+	}
+
+	impl assets_common::runtime_api::FungiblesApi<
+		Block,
+		AccountId,
+	> for Runtime
+	{
+		fn query_account_balances(account: AccountId) -> Result<Vec<MultiAsset>, assets_common::runtime_api::FungiblesAccessError> {
+			use assets_common::fungible_conversion::{convert, convert_balance};
+			Ok([
+				// collect pallet_balance
+				{
+					let balance = Balances::free_balance(account.clone());
+					if balance > 0 {
+						vec![convert_balance::<RelayLocation, Balance>(balance)?]
+					} else {
+						vec![]
+					}
+				},
+				// collect pallet_assets (TrustBackedAssets)
+				convert::<_, _, _, _, TrustBackedAssetsConvertedConcreteId>(
+					Assets::account_balances(account.clone())
+						.iter()
+						.filter(|(_, balance)| balance > &0)
+				)?
+			].concat().into())
 		}
 	}
 
