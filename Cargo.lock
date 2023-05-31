@@ -6535,6 +6535,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-xcm-benchmarks"
+version = "0.9.37"
+source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.37#645723987cf9662244be8faf4e9b63e8b9a1b3a3"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "parachain-info"
 version = "0.1.0"
 source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.37#09418fc04c2608b123f36ca80f16df3d2096753b"
@@ -13581,6 +13598,7 @@ name = "xcm-executor"
 version = "0.9.37"
 source = "git+https://github.com/paritytech/polkadot?branch=release-v0.9.37#645723987cf9662244be8faf4e9b63e8b9a1b3a3"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "impl-trait-for-tuples",
  "log",

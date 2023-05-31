@@ -17,7 +17,7 @@
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, new_generic_partial, Block, TrappistRuntimeExecutor, StoutRuntimeExecutor},
+	service::{new_partial, Block, StoutRuntimeExecutor, TrappistRuntimeExecutor},
 };
 use codec::Encode;
 use cumulus_client_cli::generate_genesis_block;
@@ -86,6 +86,7 @@ fn runtime(id: &str) -> Runtime {
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
+		"dev" => Box::new(chain_spec::trappist::development_config()),
 		"trappist-local" => Box::new(chain_spec::trappist::trappist_local_testnet_config()),
 		"stout-local" => Box::new(chain_spec::stout::stout_local_testnet_config()),
 		// Live chain spec for Rococo - Trappist]
@@ -98,13 +99,6 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 				Runtime::Default | Runtime::Trappist =>
 					Box::new(chain_spec::trappist::ChainSpec::from_json_file(path)?),
 			}
-		},
-		// -- Fallback (generic chainspec)
-		"" => {
-			log::warn!(
-				"No ChainSpec.id specified, so using default one, based on trappist-local runtime"
-			);
-			Box::new(chain_spec::trappist::trappist_local_testnet_config())
 		},
 	})
 }
@@ -204,9 +198,9 @@ macro_rules! construct_benchmark_partials {
 				$code
 			},
 			Runtime::Stout => {
-				let $partials = new_generic_partial::<stout_runtime::RuntimeApi, _>(
+				let $partials = new_partial::<stout_runtime::RuntimeApi, _>(
 					&$config,
-					crate::service::aura_build_generic_import_queue::<_, AuraId>,
+					crate::service::aura_build_import_queue::<_, AuraId>,
 				)?;
 				$code
 			},
@@ -231,9 +225,9 @@ macro_rules! construct_async_run {
 			},
 			Runtime::Stout => {
 				runner.async_run(|$config| {
-					let $components = new_generic_partial::<stout_runtime::RuntimeApi, _>(
+					let $components = new_partial::<stout_runtime::RuntimeApi, _>(
 						&$config,
-						crate::service::aura_build_generic_import_queue::<_, AuraId>,
+						crate::service::aura_build_import_queue::<_, AuraId>,
 					)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -437,14 +431,14 @@ pub fn run() -> Result<()> {
 				}
 
 				match config.chain_spec.runtime() {
-					Runtime::Trappist => crate::service::start_generic_aura_node::<
+					Runtime::Trappist => crate::service::start_aura_node::<
 						trappist_runtime::RuntimeApi,
 						AuraId,
 					>(config, polkadot_config, collator_options, id, hwbench)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
-					Runtime::Stout => crate::service::start_generic_2_aura_node::<
+					Runtime::Stout => crate::service::start_aura_node::<
 						stout_runtime::RuntimeApi,
 						AuraId,
 					>(config, polkadot_config, collator_options, id, hwbench)
@@ -602,15 +596,15 @@ impl CliConfiguration<Self> for RelayChainCli {
 #[cfg(test)]
 mod tests {
 	use crate::{
-		chain_spec::{get_account_id_from_seed, get_from_seed},
+		chain_spec::{get_account_id_from_seed, get_collator_keys_from_seed},
 		command::{Runtime, RuntimeResolver},
 	};
+	use parachains_common::AuraId;
 	use sc_chain_spec::{ChainSpec, ChainSpecExtension, ChainSpecGroup, ChainType, Extension};
 	use serde::{Deserialize, Serialize};
 	use sp_core::sr25519;
 	use std::path::PathBuf;
 	use tempfile::TempDir;
-
 	#[derive(
 		Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension, Default,
 	)]
@@ -641,8 +635,7 @@ mod tests {
 		cfg_file_path
 	}
 
-	pub type DummyChainSpec<E> =
-		sc_service::GenericChainSpec<rococo_parachain_runtime::GenesisConfig, E>;
+	pub type DummyChainSpec<E> = sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, E>;
 
 	pub fn create_default_with_extensions<E: Extension>(
 		id: &str,
@@ -653,12 +646,18 @@ mod tests {
 			id,
 			ChainType::Local,
 			move || {
-				crate::chain_spec::rococo_parachain::testnet_genesis(
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
+				crate::chain_spec::trappist::testnet_genesis(
 					vec![
-						get_from_seed::<rococo_parachain_runtime::AuraId>("Alice"),
-						get_from_seed::<rococo_parachain_runtime::AuraId>("Bob"),
+						(
+							get_account_id_from_seed::<sr25519::Public>("Alice"),
+							get_collator_keys_from_seed::<AuraId>("Alice"),
+						),
+						(
+							get_account_id_from_seed::<sr25519::Public>("Bob"),
+							get_collator_keys_from_seed::<AuraId>("Bob"),
+						),
 					],
+					get_account_id_from_seed::<sr25519::Public>("Alice"),
 					vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 					1000.into(),
 				)
@@ -702,7 +701,7 @@ mod tests {
 
 		let path = store_configuration(
 			&temp_dir,
-			Box::new(chain_spec::trappist::trappist_local_testnet_config()),
+			Box::new(crate::chain_spec::trappist::trappist_local_testnet_config()),
 		);
 		assert_eq!(Runtime::Trappist, path.runtime());
 	}
