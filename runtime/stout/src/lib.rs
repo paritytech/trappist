@@ -476,6 +476,26 @@ impl pallet_preimage::Config for Runtime {
 	type ByteDeposit = PreimageByteDeposit;
 }
 
+parameter_types! {
+	pub const DexPalletId: PalletId = PalletId(*b"trap/dex");
+}
+
+impl pallet_dex::Config for Runtime {
+	type PalletId = DexPalletId;
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type AssetBalance = AssetBalance;
+	type AssetToCurrencyBalance = sp_runtime::traits::Identity;
+	type CurrencyToAssetBalance = sp_runtime::traits::Identity;
+	type AssetId = AssetIdForTrustBackedAssets;
+	type Assets = Assets;
+	type AssetRegistry = Assets;
+	type WeightInfo = pallet_dex::weights::SubstrateWeight<Runtime>;
+	type ProviderFeeNumerator = ConstU128<3>;
+	type ProviderFeeDenominator = ConstU128<1000>;
+	type MinDeposit = ConstU128<{ UNITS }>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -521,6 +541,7 @@ construct_runtime!(
 		Utility: pallet_utility = 47,
 		Preimage: pallet_preimage = 48,
 		Multisig: pallet_multisig = 49,
+		Dex: pallet_dex = 50,
 
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 	}
@@ -544,6 +565,7 @@ mod benches {
 		[pallet_identity, Identity]
 		[pallet_multisig, Multisig]
 		[pallet_uniques, Uniques]
+		[pallet_dex, Dex]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
@@ -627,6 +649,36 @@ impl_runtime_apis! {
 			encoded: Vec<u8>,
 		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
 			SessionKeys::decode_into_raw_public_keys(&encoded)
+		}
+	}
+
+	impl pallet_dex_rpc_runtime_api::DexApi<Block, AssetIdForTrustBackedAssets, Balance, AssetBalance> for Runtime {
+		fn get_currency_to_asset_output_amount(
+			asset_id: AssetIdForTrustBackedAssets,
+			currency_amount: Balance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
+			Dex::get_currency_to_asset_output_amount(asset_id, currency_amount)
+		}
+
+		fn get_currency_to_asset_input_amount(
+			asset_id: AssetIdForTrustBackedAssets,
+			token_amount: AssetBalance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
+			Dex::get_currency_to_asset_input_amount(asset_id, token_amount)
+		}
+
+		fn get_asset_to_currency_output_amount(
+			asset_id: AssetIdForTrustBackedAssets,
+			token_amount: AssetBalance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
+			Dex::get_asset_to_currency_output_amount(asset_id, token_amount)
+		}
+
+		fn get_asset_to_currency_input_amount(
+			asset_id: AssetIdForTrustBackedAssets,
+			currency_amount: Balance
+		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
+			Dex::get_asset_to_currency_input_amount(asset_id, currency_amount)
 		}
 	}
 

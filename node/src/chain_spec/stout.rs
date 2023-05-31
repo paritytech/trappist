@@ -132,5 +132,6 @@ fn testnet_genesis(
 			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
+		dex: Default::default(),
 	}
 }
