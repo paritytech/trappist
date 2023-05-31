@@ -4,7 +4,7 @@ FROM docker.io/paritytech/ci-linux:production as builder
 WORKDIR /trappist
 COPY . /trappist
 
-RUN cargo b -r --features with-trappist-runtime
+RUN cargo build --release
 
 # the collator stage is normally built once, cached, and then ignored, but can
 # be specified with the --target build flag. This adds some extra tooling to the
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install jq curl bash -y && \
     npm install --global yarn && \
     yarn global add @polkadot/api-cli@0.10.0-beta.14
 COPY --from=builder \
-    /trappist/target/release/trappist-collator /usr/bin
+    /trappist/target/release/trappist-node /usr/bin
 COPY ./docker/scripts/inject_bootnodes.sh /usr/bin
 CMD ["/usr/bin/inject_bootnodes.sh"]
 COPY ./docker/scripts/healthcheck.sh /usr/bin/
@@ -41,6 +41,6 @@ CMD ["cp", "-v", "/var/opt/trappist_runtime.wasm", "/runtime/"]
 
 FROM debian:buster-slim
 COPY --from=builder \
-    /trappist/target/release/trappist-collator /usr/bin
+    /trappist/target/release/trappist-node /usr/bin
 
-CMD ["/usr/bin/trappist-collator"]
+CMD ["/usr/bin/trappist-node"]
