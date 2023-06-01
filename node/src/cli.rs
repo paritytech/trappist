@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
-#[cfg(feature = "with-stout-runtime")]
-use service::chain_spec::stout::Extensions;
-#[cfg(feature = "with-trappist-runtime")]
-use service::chain_spec::trappist::Extensions;
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
+	/// Key management CLI utilities
+	#[command(subcommand)]
+	Key(sc_cli::KeySubcommand),
+
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
 
@@ -89,7 +89,7 @@ pub struct Cli {
 
 	/// Relay chain arguments
 	#[arg(raw = true)]
-	pub relay_chain_args: Vec<String>,
+	pub relaychain_args: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -110,7 +110,7 @@ impl RelayChainCli {
 		para_config: &sc_service::Configuration,
 		relay_chain_args: impl Iterator<Item = &'a String>,
 	) -> Self {
-		let extension = Extensions::try_get(&*para_config.chain_spec);
+		let extension = crate::chain_spec::Extensions::try_get(&*para_config.chain_spec);
 		let chain_id = extension.map(|e| e.relay_chain.clone());
 		let base_path = para_config.base_path.as_ref().map(|x| x.path().join("polkadot"));
 		Self { base_path, chain_id, base: clap::Parser::parse_from(relay_chain_args) }

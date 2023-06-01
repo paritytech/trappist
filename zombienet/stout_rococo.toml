@@ -52,13 +52,13 @@ chain = "stout-local"
 
   [[parachains.collators]]
   name = "stout-collator01"
-  command = "./target_stout/release/stout-collator"
+  command = "./target/release/trappist-node"
   ws_port = 9930
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
   [[parachains.collators]]
   name = "stout-collator02"
-  command = "./target_stout/release/stout-collator"
+  command = "./target/release/trappist-node"
   ws_port = 9931
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
