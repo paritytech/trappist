@@ -19,7 +19,7 @@ path = "src/main.rs"
 [dependencies]
 async-trait = { workspace = true }
 clap = { workspace = true }
-codec = { package = "parity-scale-codec", version = "3.0.0" }
+codec = { workspace = true }
 futures = { workspace = true }
 hex-literal = { workspace = true }
 log = { workspace = true }
