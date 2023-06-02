@@ -75,7 +75,7 @@ substrate-state-trie-migration-rpc = { workspace = true }
 polkadot-cli = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-service = { workspace = true }
-xcm = { workspace = true }
+xcm = { workspace = true, features = [ "std" ] }
 
 # Cumulus
 cumulus-client-cli ={ workspace = true }
