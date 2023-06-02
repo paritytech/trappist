@@ -59,7 +59,7 @@ where
 	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_dex_rpc::DexRuntimeApi<
 		trappist_runtime::opaque::Block,
-		trappist_runtime::AssetId,
+		trappist_runtime::AssetIdForTrustBackedAssets,
 		trappist_runtime::Balance,
 		trappist_runtime::AssetBalance,
 	>,

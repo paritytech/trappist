@@ -20,23 +20,22 @@ use cumulus_client_consensus_aura::{AuraConsensus, BuildAuraConsensusParams, Slo
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainCandidate, ParachainConsensus,
 };
-use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	build_relay_chain_interface, prepare_node_config, start_collator, start_full_node,
-	StartCollatorParams, StartFullNodeParams,
+	StartCollatorParams, StartFullNodeParams, BuildNetworkParams, build_network,
 };
 use cumulus_primitives_core::{
 	relay_chain::v2::{Hash as PHash, PersistedValidationData},
 	ParaId,
 };
-use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
+use cumulus_relay_chain_interface::{RelayChainInterface};
 use sp_core::Pair;
 
 use jsonrpsee::RpcModule;
 
 use crate::rpc;
 pub use parachains_common::{
-	AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
+	AccountId, AssetIdForTrustBackedAssets, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
 };
 
 use cumulus_client_consensus_relay_chain::Verifier as RelayChainVerifier;
@@ -46,8 +45,8 @@ use sc_consensus::{
 	BlockImportParams, ImportQueue,
 };
 use sc_executor::WasmExecutor;
-use sc_network::NetworkService;
-use sc_network_common::service::NetworkBlock;
+use sc_network::NetworkBlock;
+use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_api::{ApiExt, ConstructRuntimeApi};
@@ -133,7 +132,7 @@ where
 			Block,
 			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
 		> + sp_offchain::OffchainWorkerApi<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetIdForTrustBackedAssets, Balance, Balance>
 		+ sp_block_builder::BlockBuilder<Block>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	BIQ: FnOnce(
@@ -239,7 +238,7 @@ where
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetIdForTrustBackedAssets, Balance, Balance>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	RB: Fn(Arc<ParachainClient<RuntimeApi>>) -> Result<jsonrpsee::RpcModule<()>, sc_service::Error>,
@@ -261,11 +260,13 @@ where
 		&TaskManager,
 		Arc<dyn RelayChainInterface>,
 		Arc<sc_transaction_pool::FullPool<Block, ParachainClient<RuntimeApi>>>,
-		Arc<NetworkService<Block, Hash>>,
+		Arc<SyncingService<Block>>,
 		SyncCryptoStorePtr,
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
+	use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
+
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial::<RuntimeApi, BIQ>(&parachain_config, build_import_queue)?;
@@ -284,13 +285,7 @@ where
 		hwbench.clone(),
 	)
 	.await
-	.map_err(|e| match e {
-		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
-		s => s.to_string().into(),
-	})?;
-
-	let block_announce_validator =
-		BlockAnnounceValidator::new(relay_chain_interface.clone(), para_id);
+	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
 	let force_authoring = parachain_config.force_authoring;
 	let validator = parachain_config.role.is_authority();
@@ -299,11 +294,11 @@ where
 	let import_queue_service = params.import_queue.service();
 
 	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
+		build_network(BuildNetworkParams {
 			parachain_config: &parachain_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
-			para_id
+			para_id,
 			spawn_handle: task_manager.spawn_handle(),
 			relay_chain_interface: relay_chain_interface.clone(),
 			import_queue: params.import_queue,
@@ -344,6 +339,14 @@ where
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);
 
+		//Check whether the hardware meets your chains' requirements. The
+		// requirements for a para-chain are dictated by its relay-chain.
+		if !SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) && validator {
+			log::warn!(
+				"⚠️  The hardware does not meet the minimal requirements for role 'Authority'."
+			);
+		}
+
 		if let Some(ref mut telemetry) = telemetry {
 			let telemetry_handle = telemetry.handle();
 			task_manager.spawn_handle().spawn(
@@ -355,11 +358,15 @@ where
 	}
 
 	let announce_block = {
-		let network = network.clone();
-		Arc::new(move |hash, data| network.announce_block(hash, data))
+		let sync_service = sync_service.clone();
+		Arc::new(move |hash, data| sync_service.announce_block(hash, data))
 	};
 
 	let relay_chain_slot_duration = Duration::from_secs(6);
+
+	let overseer_handle = relay_chain_interface
+		.overseer_handle()
+		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
 	if validator {
 		let parachain_consensus = build_consensus(
@@ -370,7 +377,7 @@ where
 			&task_manager,
 			relay_chain_interface.clone(),
 			transaction_pool,
-			network,
+			sync_service,
 			params.keystore_container.sync_keystore(),
 			force_authoring,
 		)?;
@@ -389,6 +396,7 @@ where
 			import_queue: import_queue_service,
 			collator_key: collator_key.expect("Command line arguments do not allow this. qed"),
 			relay_chain_slot_duration,
+			recovery_handle: Box::new(overseer_handle),
 		};
 
 		start_collator(params).await?;
@@ -401,6 +409,7 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue: import_queue_service,
+			recovery_handle: Box::new(overseer_handle),
 		};
 
 		start_full_node(params)?;
@@ -540,7 +549,7 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppKey>::Pair as Pair>::Public>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetIdForTrustBackedAssets, Balance, Balance>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	<<AuraId as AppKey>::Pair as Pair>::Signature:
@@ -703,7 +712,7 @@ where
 			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
 		> + sp_offchain::OffchainWorkerApi<Block>
 		+ sp_block_builder::BlockBuilder<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
+		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetIdForTrustBackedAssets, Balance, Balance>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppKey>::Pair as Pair>::Public>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	<<AuraId as AppKey>::Pair as Pair>::Signature:

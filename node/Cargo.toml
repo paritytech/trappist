@@ -59,6 +59,7 @@ sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polka
 sc-chain-spec = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sc-network-sync = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
