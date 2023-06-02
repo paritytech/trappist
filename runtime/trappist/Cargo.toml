@@ -1,11 +1,11 @@
 [package]
 name = "trappist-runtime"
 version = "1.0.0"
-authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
-license = "Unlicense"
-homepage = "https://trappist.io"
-repository = "https://github.com/TrappistNetwork/trappist"
-edition = "2021"
+authors = { workspace = true }
+license = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+edition = { workspace = true }
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

@@ -18,6 +18,14 @@ inherits = "release"
 lto = true
 codegen-units = 1
 
+[workspace.package]
+authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
+homepage = "https://trappist.io"
+repository = "https://github.com/TrappistNetwork/trappist"
+edition = "2021"
+license = "Apache License v2"
+
+
 [workspace.dependencies]
 
 # common
