@@ -26,12 +26,12 @@ log = "0.4.17"
 serde = { version = "1.0.152", features = ["derive"] }
 
 # Local Dependencies
-trappist-runtime = { path = "../runtime/trappist"}
-stout-runtime = { path = "../runtime/stout" }
-jsonrpsee = { version = "0.16.2", features = ["server"] }
+trappist-runtime = { workspace = true }
+stout-runtime = { workspace = true }
+jsonrpsee = { workspace = true, features = ["server"] }
 
 # External Dependencies
-pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "polkadot-v0.9.37" }
+pallet-dex-rpc = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, features = [ "std" ] }
