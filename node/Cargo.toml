@@ -37,7 +37,7 @@ pallet-dex-rpc = { workspace = true }
 frame-benchmarking = { workspace = true, features = [ "std" ] }
 frame-benchmarking-cli = { workspace = true }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
-sp-io = { workspace = true }
+sp-io = { workspace = true, features = [ "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-consensus = { workspace = true }
 sp-session = { workspace = true }

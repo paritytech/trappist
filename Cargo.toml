@@ -40,7 +40,7 @@ pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/subst
 
 # Substrate node
 
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+
 
 sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
@@ -77,7 +77,6 @@ substrate-state-trie-migration-rpc = { git = "https://github.com/paritytech/subs
 ## Substrate Runtime Dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
-sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 
 # Checked
@@ -86,6 +85,8 @@ frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", bran
 sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false  }
 sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false  }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 
 # Polkadot
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }

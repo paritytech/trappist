@@ -27,8 +27,8 @@ sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-aura = {  workspace = true }
 sp-core = {  workspace = true }
-#sp-inherents = {  workspace = true }
-#sp-io = {  workspace = true }
+sp-inherents = {  workspace = true }
+sp-io = {  workspace = true }
 #sp-offchain = {  workspace = true }
 #sp-runtime  = {  workspace = true }
 #sp-session = {  workspace = true }
@@ -36,9 +36,9 @@ sp-core = {  workspace = true }
 #sp-transaction-pool = {  workspace = true }
 #sp-version = {  workspace = true }
 
-# sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
-sp-inherents = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
+
+
+
 sp-offchain = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
 sp-session = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
