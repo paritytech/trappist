@@ -25,8 +25,8 @@ use cumulus_client_service::{
 	StartCollatorParams, StartFullNodeParams, BuildNetworkParams, build_network,
 };
 use cumulus_primitives_core::{
-	relay_chain::v2::{Hash as PHash, PersistedValidationData},
-	ParaId,
+		relay_chain::Hash as PHash, PersistedValidationData,
+		ParaId,
 };
 use cumulus_relay_chain_interface::{RelayChainInterface};
 use sp_core::Pair;
@@ -42,6 +42,7 @@ use cumulus_client_consensus_relay_chain::Verifier as RelayChainVerifier;
 use futures::lock::Mutex;
 use sc_consensus::{
 	import_queue::{BasicQueue, Verifier as VerifierT},
+	
 	BlockImportParams, ImportQueue,
 };
 use sc_executor::WasmExecutor;
@@ -50,12 +51,10 @@ use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_api::{ApiExt, ConstructRuntimeApi};
-use sp_consensus::CacheKeyId;
 use sp_consensus_aura::AuraApi;
 use sp_keystore::SyncCryptoStorePtr;
 use sp_runtime::{
 	app_crypto::AppKey,
-	generic::BlockId,
 	traits::{BlakeTwo256, Header as HeaderT},
 };
 use std::{marker::PhantomData, sync::Arc, time::Duration};
@@ -471,11 +470,10 @@ where
 		relay_parent: PHash,
 		validation_data: &PersistedValidationData,
 	) -> Option<ParachainCandidate<Block>> {
-		let block_id = BlockId::hash(parent.hash());
 		if self
 			.client
 			.runtime_api()
-			.has_api::<dyn AuraApi<Block, AuraId>>(&block_id)
+			.has_api::<dyn AuraApi<Block, AuraId>>(parent.hash())
 			.unwrap_or(false)
 		{
 			self.aura_consensus
@@ -511,13 +509,12 @@ where
 	async fn verify(
 		&mut self,
 		block_import: BlockImportParams<Block, ()>,
-	) -> Result<(BlockImportParams<Block, ()>, Option<Vec<(CacheKeyId, Vec<u8>)>>), String> {
-		let block_id = BlockId::hash(*block_import.header.parent_hash());
+	) -> Result<BlockImportParams<Block, ()>, String> {
 
 		if self
 			.client
 			.runtime_api()
-			.has_api::<dyn AuraApi<Block, AuraId>>(&block_id)
+			.has_api::<dyn AuraApi<Block, AuraId>>(*block_import.header.parent_hash())
 			.unwrap_or(false)
 		{
 			self.aura_verifier.get_mut().verify(block_import).await
