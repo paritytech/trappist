@@ -140,3 +140,9 @@ pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", bra
 parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37", default-features = false }
 parachain-info = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37", default-features = false }
 cumulus-pallet-session-benchmarking = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37", default-features = false, version = "3.0.0" }
+
+# Polkadot 
+polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
+polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
+xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }

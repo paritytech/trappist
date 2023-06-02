@@ -36,7 +36,7 @@ pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/subst
 # Substrate
 frame-benchmarking = { workspace = true, features = [ "std" ] }
 frame-benchmarking-cli = { workspace = true }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
+sp-runtime = { workspace = true }
 sp-io = { workspace = true, features = [ "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-consensus = { workspace = true }
@@ -72,10 +72,10 @@ pallet-transaction-payment-rpc = { workspace = true }
 substrate-state-trie-migration-rpc = { workspace = true }
 
 # Polkadot
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
+polkadot-cli = { workspace = true }
+polkadot-primitives = { workspace = true }
+polkadot-service = { workspace = true }
+xcm = { workspace = true }
 
 # Cumulus
 cumulus-client-cli ={ workspace = true }
