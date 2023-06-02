@@ -17,13 +17,13 @@ name = "trappist-node"
 path = "src/main.rs"
 
 [dependencies]
-async-trait = "0.1.57"
-clap = { version = "4.0.32", features = ["derive"] }
+async-trait = { workspace = true }
+clap = { workspace = true }
 codec = { package = "parity-scale-codec", version = "3.0.0" }
-futures = "0.3.25"
-hex-literal = "0.3.4"
-log = "0.4.17"
-serde = { version = "1.0.152", features = ["derive"] }
+futures = { workspace = true }
+hex-literal = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
 
 # Local Dependencies
 trappist-runtime = { workspace = true }
@@ -94,13 +94,13 @@ parachains-common = { workspace = true }
 substrate-build-script-utils = { workspace = true }
 
 [dev-dependencies]
-assert_cmd = "2.0"
-nix = "0.25"
+assert_cmd = { workspace = true }
+nix = { workspace = true }
 tempfile = "3.3.0"
-tokio = { version = "1.24.1", features = ["macros", "time", "parking_lot"] }
-wait-timeout = "0.2"
+tokio = { workspace = true }
+wait-timeout = { workspace = true }
 # purge_chain_works works with rococo-local and needs to allow this
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", features = ["rococo-native"] , branch = "release-v0.9.37" }
+polkadot-cli = { workspace = true }
 
 [features]
 default = []
