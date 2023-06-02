@@ -23,7 +23,6 @@ codegen-units = 1
 # common
 async-trait = "0.1.57"
 clap = { version = "4.0.32" }
-codec = { package = "parity-scale-codec", version = "3.0.0" }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = ["derive"] }
 futures = { version = "0.3.25"}
 hex-literal = { version = "0.3.4"}

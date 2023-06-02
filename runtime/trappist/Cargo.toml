@@ -15,7 +15,7 @@ substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", bran
 
 [dependencies]
 hex-literal = { workspace = true, optional = true }
-parity-scale-codec = { workspace = true }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
 log = { workspace = true, default-features = false }
 scale-info = { workspace = true }
 serde = { workspace = true, optional = true }
