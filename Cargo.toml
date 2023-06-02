@@ -43,7 +43,7 @@ pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/subst
 
 
 sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
-sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+
 sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
@@ -51,7 +51,7 @@ sc-executor = { git = "https://github.com/paritytech/substrate", branch = "polka
 sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+
 sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-network-common = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
@@ -62,7 +62,7 @@ sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polka
 sc-chain-spec = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
-sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
+
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 
 sc-sysinfo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
@@ -75,9 +75,7 @@ pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrat
 substrate-state-trie-migration-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37" }
 
 ## Substrate Runtime Dependencies
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
-sp-version = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.37" }
+
 
 # Checked
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
@@ -87,6 +85,13 @@ sp-consensus-aura = { git = "https://github.com/paritytech/substrate", branch = 
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+
+sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+sp-version = { git = "https://github.com/paritytech/substrate",  branch = "polkadot-v0.9.37", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate",  branch = "polkadot-v0.9.37", default-features = false }
+sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 
 # Polkadot
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.37" }
