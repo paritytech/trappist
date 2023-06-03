@@ -14,35 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
 
-use codec::Codec;
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_aura::{AuraConsensus, BuildAuraConsensusParams, SlotProportion};
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainCandidate, ParachainConsensus,
 };
 use cumulus_client_service::{
-	build_relay_chain_interface, prepare_node_config, start_collator, start_full_node,
-	StartCollatorParams, StartFullNodeParams, BuildNetworkParams, build_network,
+	build_network, build_relay_chain_interface, prepare_node_config, start_collator,
+	start_full_node, BuildNetworkParams, StartCollatorParams, StartFullNodeParams,
 };
-use cumulus_primitives_core::{
-		relay_chain::Hash as PHash, PersistedValidationData,
-		ParaId,
-};
-use cumulus_relay_chain_interface::{RelayChainInterface};
+use cumulus_primitives_core::{relay_chain::Hash as PHash, ParaId, PersistedValidationData};
+use cumulus_relay_chain_interface::RelayChainInterface;
+use parity_scale_codec::Codec;
 use sp_core::Pair;
 
 use jsonrpsee::RpcModule;
 
 use crate::rpc;
 pub use parachains_common::{
-	AccountId, AssetIdForTrustBackedAssets, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
+	AccountId, AssetIdForTrustBackedAssets, Balance, Block, BlockNumber, Hash, Header,
+	Index as Nonce,
 };
 
 use cumulus_client_consensus_relay_chain::Verifier as RelayChainVerifier;
 use futures::lock::Mutex;
 use sc_consensus::{
 	import_queue::{BasicQueue, Verifier as VerifierT},
-	
 	BlockImportParams, ImportQueue,
 };
 use sc_executor::WasmExecutor;
@@ -510,7 +507,6 @@ where
 		&mut self,
 		block_import: BlockImportParams<Block, ()>,
 	) -> Result<BlockImportParams<Block, ()>, String> {
-
 		if self
 			.client
 			.runtime_api()
