@@ -58,6 +58,10 @@ pub mod fee {
 	/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
 	///   - Setting it to `0` will essentially disable the weight fee.
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
+	/// 
+	/// TODO: Once the runtime is upgraded to polkadot v0.9.42 or above refactor this using 
+	/// the FeePolynomial struct that already includes the methods to make this calculations 
+	/// and remove the custom WeightCoefficientCalc inside ./trappist/src/impls.rs
 	pub struct WeightToFee;
 	impl frame_support::weights::WeightToFee for WeightToFee {
 		type Balance = Balance;
@@ -68,12 +72,14 @@ pub mod fee {
 			let proof_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> =
 				ProofSizeToFee::polynomial();
 
+			// Get fee amount from ref_time based on the RefTime polynomial
 			let ref_fee: Balance = ref_poly.iter().fold(0, |acc, term| {
 				term.saturating_eval(acc, Balance::saturated_from(weight.ref_time()))
 			});
 
+			// Get fee amount from proof_size based on the ProofSize polynomial
 			let proof_fee: Balance = proof_poly.iter().fold(0, |acc, term| {
-				term.saturating_eval(acc, Balance::saturated_from(weight.ref_time()))
+				term.saturating_eval(acc, Balance::saturated_from(weight.proof_size()))
 			});
 
 			// Take the maximum instead of the sum to charge by the more scarce resource.
@@ -81,6 +87,7 @@ pub mod fee {
 		}
 	}
 
+	/// Maps the Ref time component of `Weight` to a fee.
 	pub struct RefTimeToFee;
 	impl WeightToFeePolynomial for RefTimeToFee {
 		type Balance = Balance;
