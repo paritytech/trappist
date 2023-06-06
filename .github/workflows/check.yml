@@ -46,11 +46,7 @@ jobs:
 
       - name: Check Build Trappist Runtime
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release --locked --features with-trappist-runtime
-
-      - name: Check Build Stout Runtime
-        run: |
-          SKIP_WASM_BUILD=1 cargo check --release --locked --no-default-features --features with-stout-runtime
+          SKIP_WASM_BUILD=1 cargo check --release
 
   test:
     needs: lint

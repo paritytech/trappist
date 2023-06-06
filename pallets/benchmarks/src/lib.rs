@@ -2,8 +2,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::Codec;
 use frame_support::{pallet_prelude::*, traits::tokens::AssetId};
+use parity_scale_codec::Codec;
 use sp_runtime::traits::AtLeast32BitUnsigned;
 use xcm::prelude::*;
 use xcm_executor::traits::DropAssets;

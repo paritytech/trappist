@@ -41,41 +41,43 @@ pub struct FullDeps<C, P> {
 	pub deny_unsafe: DenyUnsafe,
 }
 
-/// Instantiate all RPCs we want at the canvas-kusama chain.
-pub fn trappist_create_full<C, P>(
+/// Instantiate all RPC extensions.
+pub fn create_full<C, P, B>(
 	deps: FullDeps<C, P>,
+	backend: Arc<B>,
 ) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
 where
 	C: ProvideRuntimeApi<Block>
-		+ sc_client_api::BlockBackend<Block>
 		+ HeaderBackend<Block>
 		+ AuxStore
 		+ HeaderMetadata<Block, Error = BlockChainError>
 		+ Send
 		+ Sync
 		+ 'static,
-	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+	C::Api: BlockBuilder<Block>,
 	C::Api: pallet_dex_rpc::DexRuntimeApi<
 		trappist_runtime::opaque::Block,
 		trappist_runtime::AssetIdForTrustBackedAssets,
 		trappist_runtime::Balance,
 		trappist_runtime::AssetBalance,
 	>,
-	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
+	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
+	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
 {
+	use frame_rpc_system::{System, SystemApiServer};
 	use pallet_dex_rpc::{Dex, DexApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use sc_rpc::dev::{Dev, DevApiServer};
-	use substrate_frame_rpc_system::{System, SystemApiServer};
+	use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
 	let mut module = RpcExtension::new(());
 	let FullDeps { client, pool, deny_unsafe } = deps;
 
-	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
+	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
-	module.merge(Dev::new(client.clone(), deny_unsafe).into_rpc())?;
+	module.merge(StateMigration::new(client.clone(), backend, deny_unsafe).into_rpc())?;
 	module.merge(Dex::new(client).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
@@ -86,6 +88,7 @@ where
 	Ok(module)
 }
 
+/// This function will be removed during the node refactor.
 /// Instantiate all RPCs we want at the canvas-kusama chain.
 pub fn stout_create_full<C, P>(
 	deps: FullDeps<C, P>,
@@ -99,14 +102,21 @@ where
 		+ Send
 		+ Sync
 		+ 'static,
-	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+	C::Api: pallet_dex_rpc::DexRuntimeApi<
+		trappist_runtime::opaque::Block,
+		trappist_runtime::AssetIdForTrustBackedAssets,
+		trappist_runtime::Balance,
+		trappist_runtime::AssetBalance,
+	>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + Sync + Send + 'static,
 {
+	use frame_rpc_system::{System, SystemApiServer};
+	use pallet_dex_rpc::{Dex, DexApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use sc_rpc::dev::{Dev, DevApiServer};
-	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
 	let FullDeps { client, pool, deny_unsafe } = deps;
@@ -114,6 +124,7 @@ where
 	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(Dev::new(client.clone(), deny_unsafe).into_rpc())?;
+	module.merge(Dex::new(client).into_rpc())?;
 
 	// Extend this RPC with a custom API by using the following syntax.
 	// `YourRpcStruct` should have a reference to a client, which is needed
