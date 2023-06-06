@@ -46,9 +46,9 @@ use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FungiblesAdapter,
-	IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
+	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	UsingComponents, WeightInfoBounds,
 };
@@ -90,6 +90,10 @@ pub type LocationToAccountId = (
 	AccountId32Aliases<RelayNetwork, AccountId>,
 );
 
+/// `AssetId/Balancer` converter for `TrustBackedAssets`
+pub type TrustBackedAssetsConvertedConcreteId =
+	assets_common::TrustBackedAssetsConvertedConcreteId<AssetsPalletLocation, Balance>;
+
 /// Means for transacting the native currency on this chain.
 pub type LocalAssetTransactor = CurrencyAdapter<
 	// Use this currency:
@@ -109,12 +113,7 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteId<
-		AssetIdForTrustBackedAssets,
-		Balance,
-		AsPrefixedGeneralIndex<AssetsPalletLocation, AssetIdForTrustBackedAssets, JustTry>,
-		JustTry,
-	>,
+	TrustBackedAssetsConvertedConcreteId,
 	// Convert an XCM MultiLocation into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):

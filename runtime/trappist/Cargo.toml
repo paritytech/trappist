@@ -70,6 +70,7 @@ pallet-utility = { workspace = true }
 pallet-treasury = { workspace = true }
 
 # Cumulus dependencies
+assets-common = { workspace = true }
 cumulus-pallet-aura-ext = { workspace = true }
 cumulus-pallet-dmp-queue = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
@@ -156,6 +157,7 @@ std = [
 	"pallet-uniques/std",
 	"pallet-utility/std",
 	"pallet-xcm/std",
+	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
