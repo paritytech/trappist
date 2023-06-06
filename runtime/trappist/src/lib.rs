@@ -362,7 +362,7 @@ impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = AssetBalance;
 	type AssetId = AssetIdForTrustBackedAssets;
-	type AssetIdParameter = codec::Compact<AssetIdForTrustBackedAssets>;
+	type AssetIdParameter = parity_scale_codec::Compact<AssetIdForTrustBackedAssets>;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
