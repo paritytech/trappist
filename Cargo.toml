@@ -149,6 +149,7 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/c
 cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40" }
 
 # Cumulus runtime dependencies
+assets-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
 cumulus-pallet-dmp-queue = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
