@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{constants::fee::default_fee_per_second, AllPalletsWithSystem};
+use crate::{AllPalletsWithSystem};
 
 use super::{
 	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
@@ -192,11 +192,6 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
-	pub XUsdPerSecond: (AssetId, u128, u128) = (
-		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1))).into(),
-		default_fee_per_second() * 10,
-		0
-	);
 }
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
@@ -239,7 +234,6 @@ impl xcm_executor::Config for XcmConfig {
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type Trader = (
-		FixedRateOfFungible<XUsdPerSecond, ()>,
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;

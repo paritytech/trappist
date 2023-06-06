@@ -70,6 +70,7 @@ pallet-utility = { git = "https://github.com/paritytech/substrate", default-feat
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 
 # Cumulus dependencies
+assets-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
 cumulus-pallet-aura-ext = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
 cumulus-pallet-dmp-queue = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.40", default-features = false }
@@ -156,6 +157,7 @@ std = [
 	"pallet-uniques/std",
 	"pallet-utility/std",
 	"pallet-xcm/std",
+	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
