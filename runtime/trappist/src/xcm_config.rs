@@ -113,12 +113,7 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteId<
-		AssetIdForTrustBackedAssets,
-		Balance,
-		AsPrefixedGeneralIndex<AssetsPalletLocation, AssetIdForTrustBackedAssets, JustTry>,
-		JustTry,
-	>,
+	TrustBackedAssetsConvertedConcreteId,
 	// Convert an XCM MultiLocation into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):

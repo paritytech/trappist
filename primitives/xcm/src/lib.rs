@@ -6,7 +6,7 @@ use frame_support::{
 	weights::Weight,
 };
 use sp_runtime::DispatchResult;
-use sp_std::{borrow::Borrow, marker::PhantomData, vec::Vec};
+use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::{
 	latest::{
 		AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
