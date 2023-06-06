@@ -39,11 +39,11 @@ pub mod fee {
 	};
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
-	
+
 	pub use sp_runtime::Perbill;
 	use sp_runtime::SaturatedConversion;
 
-use crate::impls::WeightCoefficientCalc;
+	use crate::impls::WeightCoefficientCalc;
 
 	/// The block saturation level. Fees will be updates based on this value.
 	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);
@@ -63,8 +63,10 @@ use crate::impls::WeightCoefficientCalc;
 		type Balance = Balance;
 
 		fn weight_to_fee(weight: &Weight) -> Self::Balance {
-			let ref_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> = RefTimeToFee::polynomial();
-			let proof_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> = ProofSizeToFee::polynomial();
+			let ref_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> =
+				RefTimeToFee::polynomial();
+			let proof_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> =
+				ProofSizeToFee::polynomial();
 
 			let ref_fee: Balance = ref_poly.iter().fold(0, |acc, term| {
 				term.saturating_eval(acc, Balance::saturated_from(weight.ref_time()))
@@ -78,7 +80,7 @@ use crate::impls::WeightCoefficientCalc;
 			ref_fee.max(proof_fee)
 		}
 	}
-	
+
 	pub struct RefTimeToFee;
 	impl WeightToFeePolynomial for RefTimeToFee {
 		type Balance = Balance;
