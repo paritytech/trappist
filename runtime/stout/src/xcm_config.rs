@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{AllPalletsWithSystem};
+use crate::AllPalletsWithSystem;
 
 use super::{
 	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
@@ -233,9 +233,8 @@ impl xcm_executor::Config for XcmConfig {
 	type IsTeleporter = (); // Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	type Trader = (
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
-	);
+	type Trader =
+		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;

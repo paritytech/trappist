@@ -14,8 +14,8 @@
 // limitations under the License.
 
 use crate::{
-	constants::fee::{WeightToFee}, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
-	AllPalletsWithSystem, 
+	constants::fee::WeightToFee, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
+	AllPalletsWithSystem,
 };
 
 use super::{
@@ -46,11 +46,11 @@ use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter,
-	IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents, WeightInfoBounds,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, IsConcrete,
+	MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	WeightInfoBounds,
 };
 use xcm_executor::XcmExecutor;
 
@@ -89,7 +89,6 @@ pub type LocationToAccountId = (
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
 );
-
 
 /// `AssetId/Balancer` converter for `TrustBackedAssets`
 pub type TrustBackedAssetsConvertedConcreteId =
@@ -270,9 +269,8 @@ impl xcm_executor::Config for XcmConfig {
 		RuntimeCall,
 		MaxInstructions,
 	>;
-	type Trader = (
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
-	);
+	type Trader = UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>;
+
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = TrappistDropAssets<
 		AssetIdForTrustBackedAssets,

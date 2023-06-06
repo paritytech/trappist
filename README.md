@@ -56,13 +56,7 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 Use the following command to build the Trappist collator binary:
 
 ```bash 
-cargo b -r --features with-trappist-runtime
-cargo b -r --no-default-features --features with-stout-runtime --target-dir target_stout
-```
-
-Alternatively, run:
-```bash  
-./scripts/build_runtimes.sh
+cargo build --release
 ```
 
 ### XCM Playground via Zombienet

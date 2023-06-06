@@ -34,12 +34,16 @@ pub mod currency {
 /// Fee-related.
 pub mod fee {
 	use frame_support::weights::{
-		constants::{ExtrinsicBaseWeight},
-		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+		constants::ExtrinsicBaseWeight, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	};
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
+	
 	pub use sp_runtime::Perbill;
+	use sp_runtime::SaturatedConversion;
+
+use crate::impls::WeightCoefficientCalc;
 
 	/// The block saturation level. Fees will be updates based on this value.
 	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);
@@ -55,13 +59,52 @@ pub mod fee {
 	///   - Setting it to `0` will essentially disable the weight fee.
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 	pub struct WeightToFee;
-	impl WeightToFeePolynomial for WeightToFee {
+	impl frame_support::weights::WeightToFee for WeightToFee {
+		type Balance = Balance;
+
+		fn weight_to_fee(weight: &Weight) -> Self::Balance {
+			let ref_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> = RefTimeToFee::polynomial();
+			let proof_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> = ProofSizeToFee::polynomial();
+
+			let ref_fee: Balance = ref_poly.iter().fold(0, |acc, term| {
+				term.saturating_eval(acc, Balance::saturated_from(weight.ref_time()))
+			});
+
+			let proof_fee: Balance = proof_poly.iter().fold(0, |acc, term| {
+				term.saturating_eval(acc, Balance::saturated_from(weight.ref_time()))
+			});
+
+			// Take the maximum instead of the sum to charge by the more scarce resource.
+			ref_fee.max(proof_fee)
+		}
+	}
+	
+	pub struct RefTimeToFee;
+	impl WeightToFeePolynomial for RefTimeToFee {
 		type Balance = Balance;
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 			// in Kusama, extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT:
 			// in Statemine, we map to 1/10 of that, or 1/100 CENT
 			let p = super::currency::CENTS;
 			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+			smallvec![WeightToFeeCoefficient {
+				degree: 1,
+				negative: false,
+				coeff_frac: Perbill::from_rational(p % q, q),
+				coeff_integer: p / q,
+			}]
+		}
+	}
+
+	/// Maps the proof size component of `Weight` to a fee.
+	pub struct ProofSizeToFee;
+	impl WeightToFeePolynomial for ProofSizeToFee {
+		type Balance = Balance;
+		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+			// Map 10kb proof to 1 CENT.
+			let p = super::currency::CENTS;
+			let q = 10_000;
+
 			smallvec![WeightToFeeCoefficient {
 				degree: 1,
 				negative: false,
