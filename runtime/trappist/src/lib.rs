@@ -30,12 +30,10 @@ use frame_support::{
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
 		EqualPrivilegeOnly,
 	},
-	weights::{
-		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
-		ConstantMultiplier, Weight,
-	},
+	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 	PalletId,
 };
+pub use frame_system::Call as SystemCall;
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
@@ -48,10 +46,8 @@ pub use parachains_common::{
 	Header, Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT,
 	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
-
-use impls::{LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
-
-use polkadot_runtime_common::{prod_or_fast, BlockHashCount, SlowAdjustingFeeUpdate};
+pub use polkadot_runtime_common::BlockHashCount;
+use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
 #[cfg(any(feature = "std", test))]
@@ -69,8 +65,10 @@ use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
 
 use constants::{currency::*, fee::WeightToFee};
-use impls::DealWithFees;
+use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
+
+use crate::weights::{block_weights::BlockExecutionWeight, extrinsic_weights::ExtrinsicBaseWeight};
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -106,6 +104,8 @@ pub type SignedExtra = (
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
 	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+/// The payload being signed in transactions.
+pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
@@ -1128,7 +1128,6 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
 
-			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
 		}
 	}

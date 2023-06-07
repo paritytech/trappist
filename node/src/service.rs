@@ -69,7 +69,7 @@ type HostFunctions = sp_io::SubstrateHostFunctions;
 type HostFunctions =
 	(sp_io::SubstrateHostFunctions, frame_benchmarking::benchmarking::HostFunctions);
 
-type ParachainClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
+pub type ParachainClient<RuntimeApi> = TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 
 type ParachainBackend = TFullBackend<Block>;
 
@@ -106,10 +106,7 @@ impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
 	}
 }
 
-/// Starts a `ServiceBuilder` for a full service.
-///
-/// Use this macro if you don't actually need the full service, but just the builder in order to
-/// be able to perform chain operations.
+/// Creates a new partial node.
 pub fn new_partial<RuntimeApi, BIQ>(
 	config: &Configuration,
 	build_import_queue: BIQ,

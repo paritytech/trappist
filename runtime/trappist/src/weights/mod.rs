@@ -3,7 +3,9 @@ use xcm_primitives::DropAssetsWeigher;
 
 use crate::Runtime;
 
-mod trappist_runtime_benchmarks;
+pub mod block_weights;
+pub mod extrinsic_weights;
+pub mod trappist_runtime_benchmarks;
 pub mod xcm;
 
 pub struct TrappistDropAssetsWeigher();
