@@ -1139,21 +1139,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cozy-chess"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0aa2dcdbe66b10019af0f81ee4f404ca12c1d24e56f47e7f2588954f8bfa306"
-dependencies = [
- "cozy-chess-types",
-]
-
-[[package]]
-name = "cozy-chess-types"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f4a557c6659b8705d301732f473c9a61659c740ffda3e3485e79d1d4b7a1e12"
-
-[[package]]
 name = "cpp_demangle"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5639,26 +5624,6 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-treasury",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-chess"
-version = "4.0.0-dev"
-source = "git+https://github.com/SubstrateChess/pallet-chess.git?branch=polkadot-v0.9.37#ebd727358e5ec87747d7b02adea0ea78b2c5e77f"
-dependencies = [
- "cozy-chess",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-assets",
- "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -12225,7 +12190,6 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
- "pallet-chess",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-contracts",

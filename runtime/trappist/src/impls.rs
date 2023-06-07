@@ -82,7 +82,6 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 			RuntimeCall::Dex(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
 			RuntimeCall::Treasury(_) => false,
-			RuntimeCall::Chess(_) => false,
 			RuntimeCall::Contracts(_) => false,
 			RuntimeCall::Uniques(_) => false,
 			RuntimeCall::AssetRegistry(_) => false,
