@@ -4,6 +4,7 @@ use frame_support::{
 	sp_runtime::{SaturatedConversion, Saturating},
 	traits::{fungibles::Inspect, Currency},
 };
+#[cfg(not(test))]
 use sp_runtime::DispatchResult;
 use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::latest::{

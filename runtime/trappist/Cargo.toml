@@ -15,7 +15,7 @@ substrate-wasm-builder = { workspace = true }
 
 [dependencies]
 hex-literal = { workspace = true, optional = true }
-parity-scale-codec = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["derive"] }
 log = { workspace = true, default-features = false }
 scale-info = { workspace = true }
 serde = { workspace = true, optional = true }
@@ -35,10 +35,11 @@ sp-session = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
+sp-weights = { workspace = true }
 
 ## Substrate FRAME Dependencies
-frame-benchmarking = { workspace = true, optional = true}
-frame-try-runtime = { workspace = true, optional = true}
+frame-benchmarking = { workspace = true, optional = true }
+frame-try-runtime = { workspace = true, optional = true }
 frame-executive = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -101,7 +102,7 @@ pallet-dex = { workspace = true }
 pallet-dex-rpc-runtime-api = { workspace = true }
 
 # Trappist Pallets
-pallet-asset-registry = {workspace = true }
+pallet-asset-registry = { workspace = true }
 trappist-runtime-benchmarks = { workspace = true }
 pallet-lockdown-mode = { workspace = true }
 
@@ -124,6 +125,7 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"sp-weights/std",
 	"frame-executive/std",
 	"frame-support/std",
 	"frame-system/std",

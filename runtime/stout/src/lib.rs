@@ -68,12 +68,14 @@ pub use parachains_common::{
 };
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
+pub use frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
 // Polkadot imports
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
-use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
+pub use polkadot_runtime_common::BlockHashCount;
+use polkadot_runtime_common::SlowAdjustingFeeUpdate;
 use xcm::latest::prelude::BodyId;
 
 pub const MICROUNIT: Balance = 1_000_000;
@@ -100,6 +102,8 @@ pub type SignedExtra = (
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
 	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+/// The payload being signed in transactions.
+pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
@@ -832,7 +836,6 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
 
-			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
 		}
 	}
