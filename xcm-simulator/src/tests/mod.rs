@@ -12,6 +12,10 @@ mod misc;
 mod xcm_asset_trap;
 mod xcm_use_cases;
 
+const ASSET_RESERVE_PARA_ID: u32 = 1000;
+const TRAPPIST_PARA_ID: u32 = 1836;
+const STOUT_PARA_ID: u32 = 3000;
+
 static INIT: Once = Once::new();
 fn init_tracing() {
 	INIT.call_once(|| {
@@ -49,7 +53,12 @@ fn create_derivative_asset_on_trappist(
 	admin: trappist::AccountId,
 	min_balance: trappist::Balance,
 ) -> DispatchResult {
-	trappist::Assets::create(trappist::RuntimeOrigin::signed(ALICE), id.into(), admin.into(), min_balance)
+	trappist::Assets::create(
+		trappist::RuntimeOrigin::signed(ALICE),
+		id.into(),
+		admin.into(),
+		min_balance,
+	)
 }
 
 fn mint_asset_on_asset_reserve(

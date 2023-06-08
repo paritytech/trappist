@@ -13,7 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{impls::ToAuthor, weights::TrappistDropAssetsWeigher};
+use crate::{
+	constants::fee::default_fee_per_second, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
+};
+
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -38,14 +41,16 @@ use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 
+pub use xcm_executor::traits::Convert;
+
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, IsConcrete,
-	LocationInverter, NativeAsset, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
-	WeightInfoBounds,
+	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
+	FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents, WeightInfoBounds,
 };
 use xcm_executor::XcmExecutor;
 
@@ -196,6 +201,7 @@ pub type Barrier = DenyThenTry<
 		AllowTopLevelPaidExecutionFrom<Everything>,
 		// Parent and its exec plurality get free execution
 		AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+		AllowUnpaidExecutionFrom<Rockmine>,
 		// Expected responses are OK.
 		AllowKnownQueryResponses<PolkadotXcm>,
 		// Subscriptions for version tracking are OK.
@@ -209,6 +215,11 @@ parameter_types! {
 	// Rockmine's Assets pallet index
 	pub RockmineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+
+	pub RUsdPerSecond: (xcm::v1::AssetId, u128) = (
+			MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
+			default_fee_per_second() * 10
+		);
 }
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
@@ -221,6 +232,7 @@ fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 			.zip(loc.interior().iter())
 			.all(|(prefix_junction, junction)| prefix_junction == junction)
 }
+
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
 	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
@@ -254,7 +266,10 @@ impl xcm_executor::Config for XcmConfig {
 		RuntimeCall,
 		MaxInstructions,
 	>;
-	type Trader = UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>;
+	type Trader = (
+		FixedRateOfFungible<RUsdPerSecond, ()>,
+		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
+	);
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = TrappistDropAssets<
 		AssetId,
