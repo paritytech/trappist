@@ -1,4 +1,6 @@
-// Copyright (C) 2021 Parity Technologies (UK) Ltd.
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
