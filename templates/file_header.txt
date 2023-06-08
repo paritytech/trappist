@@ -14,21 +14,3 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-use tempfile::tempdir;
-
-mod common;
-
-#[tokio::test]
-#[cfg(unix)]
-#[ignore]
-async fn running_the_node_works_and_can_be_interrupted() {
-	use nix::sys::signal::Signal::{SIGINT, SIGTERM};
-
-	let base_dir = tempdir().expect("could not create a temp dir");
-
-	let args = &["--", "--dev"];
-
-	common::run_node_for_a_while(base_dir.path(), args, SIGINT).await;
-	common::run_node_for_a_while(base_dir.path(), args, SIGTERM).await;
-}
