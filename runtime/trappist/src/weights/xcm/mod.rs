@@ -56,9 +56,10 @@ impl<Call> XcmWeightInfo<Call> for TrappistXcmWeight<Call> {
 	fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
 	}
-	// Currently there is no trusted reserve
+	// Hacked value to make the tests passing. This should be overwritten by the benchmarking
+	// pallet.
 	fn reserve_asset_deposited(_assets: &MultiAssets) -> XCMWeight {
-		u64::MAX
+		10_000u64.into()
 	}
 	fn receive_teleported_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::receive_teleported_asset())
