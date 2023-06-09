@@ -1,27 +1,26 @@
-use crate::*;
-use frame_support::{
-	pallet_prelude::{DispatchResult, DispatchResultWithPostInfo},
-	traits::{GenesisBuild,PalletInfoAccess}, assert_ok, log,
-};
-use std::{
-	sync::Once,
-	time::{SystemTime, UNIX_EPOCH},
-};
-use cumulus_primitives_core::ParaId;
 use codec::Encode;
-use sp_runtime::AccountId32;
+use cumulus_primitives_core::ParaId;
+use frame_support::{
+	assert_ok, log,
+	pallet_prelude::{DispatchResult, DispatchResultWithPostInfo},
+	traits::{GenesisBuild, PalletInfoAccess},
+};
 pub use parachains_common::{AccountId, AssetId, Balance, Index};
+pub use polkadot_runtime_common::paras_sudo_wrapper;
+use sp_runtime::AccountId32;
+use std::sync::Once;
 use trappist_runtime::xcm_config::Convert;
 use xcm::prelude::*;
-pub use polkadot_runtime_common::paras_sudo_wrapper;
 
 pub(crate) mod asset_reserve;
 pub(crate) mod stout;
 pub(crate) mod trappist;
 
-const ASSET_RESERVE_PARA_ID: u32 = 1000;
-const TRAPPIST_PARA_ID: u32 = 1836;
-const STOUT_PARA_ID: u32 = 3000;
+pub const INITIAL_BALANCE: u128 = 1_000_000_000_000_000;
+
+pub const ASSET_RESERVE_PARA_ID: u32 = 1000;
+pub const TRAPPIST_PARA_ID: u32 = 1836;
+pub const STOUT_PARA_ID: u32 = 3000;
 
 pub const ALICE: AccountId32 = AccountId32::new([
 	212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133,
@@ -60,7 +59,11 @@ pub fn assert_balance(actual: u128, expected: u128, fees: u128) {
 }
 
 pub fn sovereign_account(para_id: u32) -> AccountId {
-	trappist_runtime::xcm_config::LocationToAccountId::convert_ref(MultiLocation::new(1, X1(Parachain(para_id)))).unwrap()
+	trappist_runtime::xcm_config::LocationToAccountId::convert_ref(MultiLocation::new(
+		1,
+		X1(Parachain(para_id)),
+	))
+	.unwrap()
 }
 
 pub fn create_asset_on_asset_reserve(
@@ -111,25 +114,6 @@ pub fn output_events<Runtime: frame_system::Config>() {
 		log::trace!(target: TARGET, "{:?}", event)
 	}
 }
-
- pub fn paras_sudo_wrapper_sudo_queue_downward_xcm<RuntimeCall: Encode>(call: RuntimeCall, para_id: u32) {
-	let sudo_queue_downward_xcm =
-		rococo_runtime::RuntimeCall::ParasSudoWrapper(paras_sudo_wrapper::Call::<
-			rococo_runtime::Runtime,
-		>::sudo_queue_downward_xcm {
-			id: ParaId::new(para_id),
-			xcm: Box::new(VersionedXcm::V2(Xcm(vec![Transact {
-				origin_type: OriginKind::Superuser,
-				require_weight_at_most: 10000000000u64,
-				call: call.encode().into(),
-			}]))),
-		});
-
-	assert_ok!(rococo_runtime::Sudo::sudo(
-		rococo_runtime::RuntimeOrigin::signed(ALICE),
-		Box::new(sudo_queue_downward_xcm),
-	));
-} 
 
 pub fn register_reserve_asset_on_trappist(
 	origin: trappist_runtime::AccountId,

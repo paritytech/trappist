@@ -1,8 +1,5 @@
 use super::*;
-use sp_runtime::AccountId32;
 
-
-const INITIAL_BALANCE: u128 = 1_000_000_000_000_000;
 pub const ASSET_RESERVE_PARA_ID: u32 = 1_000;
 
 pub(crate) fn new_ext(para_id: u32) -> sp_io::TestExternalities {
