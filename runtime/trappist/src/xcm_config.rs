@@ -216,6 +216,9 @@ parameter_types! {
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
 		default_fee_per_second() * 10
 	);
+	/// Roc = 7 RUSD
+	pub RocPerSecond: (AssetId, u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70);
+
 }
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
@@ -242,6 +245,12 @@ impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
 	}
 }
 
+pub type Trader = (
+	FixedRateOfFungible<RUsdPerSecond, ()>,
+	FixedRateOfFungible<RocPerSecond, ()>,
+	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
+);
+
 //--
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
@@ -261,10 +270,7 @@ impl xcm_executor::Config for XcmConfig {
 		RuntimeCall,
 		MaxInstructions,
 	>;
-	type Trader = (
-		FixedRateOfFungible<RUsdPerSecond, ()>,
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
-	);
+	type Trader = Trader;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = TrappistDropAssets<
 		AssetId,
