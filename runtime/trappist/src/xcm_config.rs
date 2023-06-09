@@ -15,7 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{impls::ToAuthor, weights::TrappistDropAssetsWeigher};
+use crate::{
+	constants::fee::default_fee_per_second, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
+};
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -43,7 +45,7 @@ use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds,
+	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
 	FungiblesAdapter, IsConcrete, LocationInverter, NativeAsset, ParentAsSuperuser, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
@@ -217,7 +219,7 @@ parameter_types! {
 		default_fee_per_second() * 10
 	);
 	/// Roc = 7 RUSD
-	pub RocPerSecond: (AssetId, u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70);
+	pub RocPerSecond: (xcm::v1::AssetId, u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70);
 
 }
 
@@ -245,13 +247,14 @@ impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
 	}
 }
 
-pub type Trader = (
+pub type Traders = (
+	// RUSD
 	FixedRateOfFungible<RUsdPerSecond, ()>,
+	// Roc
 	FixedRateOfFungible<RocPerSecond, ()>,
+	// Everything else
 	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 );
-
-//--
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
 
@@ -270,7 +273,7 @@ impl xcm_executor::Config for XcmConfig {
 		RuntimeCall,
 		MaxInstructions,
 	>;
-	type Trader = Trader;
+	type Trader = Traders;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = TrappistDropAssets<
 		AssetId,
