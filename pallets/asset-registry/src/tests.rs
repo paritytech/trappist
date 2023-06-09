@@ -108,7 +108,7 @@ mod register_reserve_assest {
 			parents: 1,
 			interior: X2(Parachain(2000), AccountKey20 { network: Any, key: [0; 20] }),
 		};
-		
+
 		new_test_ext().execute_with(|| {
 			assert_ok!(AssetRegistry::register_reserve_asset(
 				RuntimeOrigin::root(),
