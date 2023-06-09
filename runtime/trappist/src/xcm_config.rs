@@ -1,4 +1,6 @@
-// Copyright (C) 2022 Parity Technologies (UK) Ltd.
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -216,9 +218,12 @@ parameter_types! {
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 
 	pub RUsdPerSecond: (xcm::v1::AssetId, u128) = (
-			MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
-			default_fee_per_second() * 10
-		);
+		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
+		default_fee_per_second() * 10
+	);
+	/// Roc = 7 RUSD
+	pub RocPerSecond: (AssetId, u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70);
+
 }
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
@@ -246,6 +251,9 @@ impl<T: Get<MultiLocation>> FilterAssetLocation for ReserveAssetsFrom<T> {
 	}
 }
 
+pub type FixedRateOfFungibles =
+	(FixedRateOfFungible<RUsdPerSecond, ()>, FixedRateOfFungible<RocPerSecond, ()>);
+
 //--
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
@@ -260,14 +268,13 @@ impl xcm_executor::Config for XcmConfig {
 	type IsTeleporter = (); // Teleporting is disabled.
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
-	/* type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>; */
 	type Weigher = WeightInfoBounds<
 		crate::weights::xcm::TrappistXcmWeight<RuntimeCall>,
 		RuntimeCall,
 		MaxInstructions,
 	>;
 	type Trader = (
-		FixedRateOfFungible<RUsdPerSecond, ()>,
+		FixedRateOfFungibles,
 		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 	);
 	type ResponseHandler = PolkadotXcm;
