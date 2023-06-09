@@ -39,8 +39,8 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	use xcm::latest::{
-		Junction::{GeneralIndex, PalletInstance, Parachain},
-		Junctions, MultiLocation,
+		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance},
+		MultiLocation,
 	};
 
 	#[pallet::pallet]
@@ -113,16 +113,7 @@ pub mod pallet {
 			);
 
 			// verify MultiLocation is valid
-			ensure!(
-				matches!(
-					asset_multi_location,
-					MultiLocation {
-						parents: 1,
-						interior: Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_))
-					}
-				),
-				Error::<T>::WrongMultiLocation
-			);
+			ensure!(Self::valid_location(&asset_multi_location), Error::<T>::WrongMultiLocation);
 
 			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
@@ -150,6 +141,33 @@ pub mod pallet {
 
 			Self::deposit_event(Event::ReserveAssetUnregistered { asset_id, asset_multi_location });
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		fn valid_location(location: &MultiLocation) -> bool {
+			let (split_multilocation, last_junction) = location.clone().split_last_interior();
+
+			if let Some(junction) = last_junction {
+				match junction {
+					AccountId32 { .. } | AccountKey20 { .. } => true,
+					GeneralIndex(_) => {
+						let penultimate = split_multilocation.last();
+						if let Some(junction) = penultimate {
+							match junction {
+								PalletInstance(_) => true,
+								_ => false,
+							}
+						} else {
+							false
+						}
+					},
+					PalletInstance(_) => true,
+					_ => false,
+				}
+			} else {
+				false
+			}
 		}
 	}
 
