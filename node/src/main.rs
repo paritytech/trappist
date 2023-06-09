@@ -15,6 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Trappist Node CLI.
+
 #![warn(missing_docs)]
 #![warn(unused_extern_crates)]
 

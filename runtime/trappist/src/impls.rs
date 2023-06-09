@@ -78,17 +78,17 @@ where
 pub struct RuntimeBlackListedCalls;
 impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	fn contains(call: &RuntimeCall) -> bool {
-		match call {
-			RuntimeCall::Balances(_) => false,
-			RuntimeCall::Assets(_) => false,
-			RuntimeCall::Dex(_) => false,
-			RuntimeCall::PolkadotXcm(_) => false,
-			RuntimeCall::Treasury(_) => false,
-			RuntimeCall::Contracts(_) => false,
-			RuntimeCall::Uniques(_) => false,
-			RuntimeCall::AssetRegistry(_) => false,
-			_ => true,
-		}
+		!matches!(
+			call,
+			RuntimeCall::Balances(_) |
+				RuntimeCall::Assets(_) |
+				RuntimeCall::Dex(_) |
+				RuntimeCall::PolkadotXcm(_) |
+				RuntimeCall::Treasury(_) |
+				RuntimeCall::Contracts(_) |
+				RuntimeCall::Uniques(_) |
+				RuntimeCall::AssetRegistry(_)
+		)
 	}
 }
 
