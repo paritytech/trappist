@@ -113,7 +113,10 @@ pub mod pallet {
 			);
 
 			// verify MultiLocation is valid
-			ensure!(Self::valid_location(&asset_multi_location), Error::<T>::WrongMultiLocation);
+			ensure!(
+				Self::valid_asset_location(&asset_multi_location),
+				Error::<T>::WrongMultiLocation
+			);
 
 			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
@@ -145,7 +148,9 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn valid_location(location: &MultiLocation) -> bool {
+		//Validates that the location points to an asset (Native, Frame based, Erc20) as described
+		// in the xcm-format:  https://github.com/paritytech/xcm-format#concrete-identifiers
+		fn valid_asset_location(location: &MultiLocation) -> bool {
 			let (split_multilocation, last_junction) = location.clone().split_last_interior();
 
 			if let Some(junction) = last_junction {
