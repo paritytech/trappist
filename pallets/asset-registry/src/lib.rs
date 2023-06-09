@@ -38,11 +38,9 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, traits::tokens::fungibles::Inspect};
 	use frame_system::pallet_prelude::*;
 
-	use xcm::{
-		latest::{
-			Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance},
-			MultiLocation,
-		},
+	use xcm::latest::{
+		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance},
+		MultiLocation,
 	};
 
 	#[pallet::pallet]
