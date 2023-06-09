@@ -255,8 +255,6 @@ mod tests {
 				WeightLimit::Unlimited,
 			));
 
-			println!("Asset {:?}", <pallet_assets::Pallet<statemine_runtime::Runtime> as pallet_assets::Config>::Asset::get(xUSD).unwrap());
-
 			assert_eq!(statemine_runtime::Assets::balance(xUSD, &trappist_sovereign_account), AMOUNT);
 		});
 

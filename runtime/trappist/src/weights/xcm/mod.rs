@@ -57,7 +57,7 @@ impl<Call> XcmWeightInfo<Call> for TrappistXcmWeight<Call> {
 	}
 	// Currently there is no trusted reserve
 	fn reserve_asset_deposited(_assets: &MultiAssets) -> XCMWeight {
-		u64::MAX
+		100000_u64.into()
 	}
 	fn receive_teleported_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::receive_teleported_asset())
