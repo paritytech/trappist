@@ -114,11 +114,11 @@ fn testnet_genesis(
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts.into_iter().map(|k| (k, 1 << 60)).collect(),
 		},
 		parachain_info: stout_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: stout_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
@@ -146,7 +146,7 @@ fn testnet_genesis(
 		},
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
-			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 		dex: Default::default(),

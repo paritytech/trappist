@@ -167,11 +167,11 @@ pub fn testnet_genesis(
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts.into_iter().map(|k| (k, 1 << 60)).collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
@@ -202,7 +202,7 @@ pub fn testnet_genesis(
 		},
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
-			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
@@ -276,32 +276,25 @@ fn trappist_live_genesis(
 		balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
-				.cloned()
-				.chain(std::iter::once(root_key.clone()))
-				.map(|k| {
-					if k == root_key {
-						(k, 1_000_000_000_000_000_000)
-					} else {
-						(k, 1_500_000_000_000_000_000)
-					}
-				})
+				.map(|x| (x.clone(), 1_500_000_000_000_000_000))
+				.chain(std::iter::once((root_key.clone(), 1_000_000_000_000_000_000)))
 				.collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
 		democracy: Default::default(),
 		session: SessionConfig {
 			keys: invulnerables
-				.iter()
+				.into_iter()
 				.map(|(acc, aura)| {
 					(
-						acc.clone(),                // account id
-						acc.clone(),                // validator id
-						session_keys(aura.clone()), // session keys
+						acc.clone(),        // account id
+						acc,                // validator id
+						session_keys(aura), // session keys
 					)
 				})
 				.collect(),
@@ -319,7 +312,7 @@ fn trappist_live_genesis(
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
 			// We set the endowed accounts with balance as members of the council.
-			members: endowed_accounts.iter().map(|x| x.clone()).collect::<Vec<_>>(),
+			members: endowed_accounts,
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),

@@ -22,7 +22,7 @@ use crate::Runtime;
 use frame_support::weights::Weight;
 use pallet_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
 use pallet_xcm_benchmarks_generic::WeightInfo as XcmGeneric;
-use sp_std::{cmp, prelude::*};
+use sp_std::cmp;
 use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},
 	DoubleEncoded,
@@ -37,8 +37,7 @@ const MAX_ASSETS: u32 = 100;
 impl WeighMultiAssets for MultiAssetFilter {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
 		let weight = match self {
-			Self::Definite(assets) =>
-				weight.saturating_mul(assets.inner().into_iter().count() as u64),
+			Self::Definite(assets) => weight.saturating_mul(assets.inner().iter().count() as u64),
 			Self::Wild(_) => weight.saturating_mul(MAX_ASSETS as u64),
 		};
 		weight.ref_time()
@@ -47,7 +46,7 @@ impl WeighMultiAssets for MultiAssetFilter {
 
 impl WeighMultiAssets for MultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
-		weight.saturating_mul(self.inner().into_iter().count() as u64).ref_time()
+		weight.saturating_mul(self.inner().iter().count() as u64).ref_time()
 	}
 }
 
@@ -119,7 +118,7 @@ impl<Call> XcmWeightInfo<Call> for TrappistXcmWeight<Call> {
 		_dest: &MultiLocation,
 	) -> XCMWeight {
 		// Hardcoded till the XCM pallet is fixed
-		let hardcoded_weight = Weight::from_ref_time(1_000_000_000 as u64).ref_time();
+		let hardcoded_weight = Weight::from_ref_time(1_000_000_000).ref_time();
 		let weight = assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::deposit_asset());
 		cmp::min(hardcoded_weight, weight)
 	}
@@ -147,7 +146,7 @@ impl<Call> XcmWeightInfo<Call> for TrappistXcmWeight<Call> {
 		_xcm: &Xcm<()>,
 	) -> XCMWeight {
 		// Hardcoded till the XCM pallet is fixed
-		let hardcoded_weight = Weight::from_ref_time(200_000_000 as u64).ref_time();
+		let hardcoded_weight = Weight::from_ref_time(200_000_000).ref_time();
 		let weight = assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::initiate_teleport());
 		cmp::min(hardcoded_weight, weight)
 	}

@@ -67,7 +67,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			LockdownModeStatus::<T>::put(&self.initial_status);
+			LockdownModeStatus::<T>::put(self.initial_status);
 		}
 	}
 
@@ -149,11 +149,7 @@ pub mod pallet {
 
 	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
 		fn contains(call: &T::RuntimeCall) -> bool {
-			if LockdownModeStatus::<T>::get() {
-				T::BlackListedCalls::contains(call)
-			} else {
-				return true
-			}
+			!LockdownModeStatus::<T>::get() || T::BlackListedCalls::contains(call)
 		}
 	}
 
