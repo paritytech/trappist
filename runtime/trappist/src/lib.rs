@@ -76,7 +76,7 @@ pub use parachains_common::{
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 
 use xcm_config::{
-	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
+	CollatorSelectionUpdateOrigin, RelayLocation, SelfReserve, TrustBackedAssetsConvertedConcreteId,
 };
 
 // Polkadot imports
