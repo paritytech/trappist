@@ -90,7 +90,10 @@ mod register_reserve_assest {
 		};
 		let erc20_ethereum_sm_asset = MultiLocation {
 			parents: 1,
-			interior: X2(Parachain(2000), AccountKey20 { network: Some(Ethereum { chain_id: 56 }), key: [0; 20] }),
+			interior: X2(
+				Parachain(2000),
+				AccountKey20 { network: Some(Ethereum { chain_id: 56 }), key: [0; 20] },
+			),
 		};
 
 		new_test_ext().execute_with(|| {
