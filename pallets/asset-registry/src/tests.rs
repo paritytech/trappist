@@ -85,12 +85,12 @@ mod register_reserve_assest {
 			interior: X3(
 				Parachain(1000),
 				PalletInstance(2),
-				AccountId32 { network: Any, id: [0; 32] },
+				AccountId32 { network: Some(Rococo), id: [0; 32] },
 			),
 		};
 		let erc20_ethereum_sm_asset = MultiLocation {
 			parents: 1,
-			interior: X2(Parachain(2000), AccountKey20 { network: Any, key: [0; 20] }),
+			interior: X2(Parachain(2000), AccountKey20 { network: Some(Ethereum { chain_id: 56 }), key: [0; 20] }),
 		};
 
 		new_test_ext().execute_with(|| {
