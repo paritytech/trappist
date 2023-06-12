@@ -42,6 +42,9 @@ pub mod fee {
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
 	pub use sp_runtime::Perbill;
+	use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
+
+	use crate::constants::currency::CENTS;
 
 	/// The block saturation level. Fees will be updates based on this value.
 	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);
@@ -62,7 +65,7 @@ pub mod fee {
 		fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 			// in Kusama, extrinsic base weight (smallest non-zero weight) is mapped to 1/10 CENT:
 			// in Statemine, we map to 1/10 of that, or 1/100 CENT
-			let p = super::currency::CENTS;
+			let p = CENTS;
 			let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 			smallvec![WeightToFeeCoefficient {
 				degree: 1,
@@ -71,5 +74,15 @@ pub mod fee {
 				coeff_integer: p / q,
 			}]
 		}
+	}
+
+	pub fn base_tx_fee() -> Balance {
+		CENTS / 10
+	}
+
+	pub fn default_fee_per_second() -> u128 {
+		let base_weight = Balance::from(ExtrinsicBaseWeight::get().ref_time());
+		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
+		base_tx_per_second * base_tx_fee()
 	}
 }
