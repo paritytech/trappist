@@ -712,37 +712,41 @@ where
 	<<AuraId as AppKey>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
 {
-	let client2 = client.clone();
+	let aura_verifier = {
+		let client = client.clone();
 
-	let aura_verifier = move || {
-		let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client2).unwrap();
+		move || {
+			let slot_duration =
+				cumulus_client_consensus_aura::slot_duration(client.as_ref()).unwrap();
 
-		Box::new(
-			cumulus_client_consensus_aura::build_verifier::<<AuraId as AppKey>::Pair, _, _, _>(
-				cumulus_client_consensus_aura::BuildVerifierParams {
-					client: client2.clone(),
-					create_inherent_data_providers: move |_, _| async move {
-						let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+			Box::new(cumulus_client_consensus_aura::build_verifier::<
+				<AuraId as AppKey>::Pair,
+				_,
+				_,
+				_,
+			>(cumulus_client_consensus_aura::BuildVerifierParams {
+				client,
+				create_inherent_data_providers: move |_, _| async move {
+					let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
-						let slot =
+					let slot =
 							sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
 								*timestamp,
 								slot_duration,
 							);
 
-						Ok((slot, timestamp))
-					},
-					telemetry: telemetry_handle,
+					Ok((slot, timestamp))
 				},
-			),
-		) as Box<_>
+				telemetry: telemetry_handle,
+			})) as Box<_>
+		}
 	};
 
 	let relay_chain_verifier =
-		Box::new(RelayChainVerifier::new(client.clone(), |_, _| async { Ok(()) })) as Box<_>;
+		Box::new(RelayChainVerifier::new(client.clone(), |_, _| async { Ok(()) }));
 
 	let verifier = Verifier {
-		client: client.clone(),
+		client,
 		relay_chain_verifier,
 		aura_verifier: BuildOnAccess::Uninitialized(Some(Box::new(aura_verifier))),
 		_phantom: PhantomData,
