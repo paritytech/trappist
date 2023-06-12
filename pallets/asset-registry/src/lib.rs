@@ -22,8 +22,8 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	use xcm::latest::{
-		Junction::{GeneralIndex, PalletInstance, Parachain},
-		Junctions, MultiLocation,
+		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance},
+		MultiLocation,
 	};
 
 	#[pallet::pallet]
@@ -97,13 +97,7 @@ pub mod pallet {
 
 			// verify MultiLocation is valid
 			ensure!(
-				matches!(
-					asset_multi_location,
-					MultiLocation {
-						parents: 1,
-						interior: Junctions::X3(Parachain(_), PalletInstance(_), GeneralIndex(_))
-					}
-				),
+				Self::valid_asset_location(&asset_multi_location),
 				Error::<T>::WrongMultiLocation
 			);
 
@@ -134,6 +128,31 @@ pub mod pallet {
 
 			Self::deposit_event(Event::ReserveAssetUnregistered { asset_id, asset_multi_location });
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		//Validates that the location points to an asset (Native, Frame based, Erc20) as described
+		// in the xcm-format:  https://github.com/paritytech/xcm-format#concrete-identifiers
+		fn valid_asset_location(location: &MultiLocation) -> bool {
+			let (split_multilocation, last_junction) = location.clone().split_last_interior();
+
+			let check = matches!(
+				last_junction,
+				Some(AccountId32 { .. }) |
+					Some(AccountKey20 { .. }) |
+					Some(PalletInstance(_)) |
+					None
+			);
+
+			check |
+				match last_junction {
+					Some(GeneralIndex(_)) => {
+						let penultimate = split_multilocation.last();
+						matches!(penultimate, Some(PalletInstance(_)))
+					},
+					_ => false,
+				}
 		}
 	}
 
