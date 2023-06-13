@@ -715,6 +715,7 @@ mod benches {
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
 		[pallet_lockdown_mode, LockdownMode]
+		[pallet_preimage, Preimage]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]
