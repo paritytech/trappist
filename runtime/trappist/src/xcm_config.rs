@@ -14,7 +14,9 @@
 // limitations under the License.
 
 use crate::{
-	constants::fee::WeightToFee, impls::ToAuthor, weights::TrappistDropAssetsWeigher,
+	constants::fee::{default_fee_per_second, WeightToFee},
+	impls::ToAuthor,
+	weights::TrappistDropAssetsWeigher,
 	AllPalletsWithSystem,
 };
 
@@ -46,10 +48,10 @@ use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
-	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents, WeightInfoBounds,
+	FixedRateOfFungible, FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking,
+	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
 };
 use xcm_executor::XcmExecutor;
 
@@ -218,6 +220,14 @@ parameter_types! {
 	// Rockmine's Assets pallet index
 	pub RockmineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+
+	pub RUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
+		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
+		default_fee_per_second() * 10,
+		0u128
+	);
+	/// Roc = 7 RUSD
+	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
 }
 
 //- From PR https://github.com/paritytech/cumulus/pull/936
@@ -244,7 +254,14 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 	}
 }
 
-//--
+pub type Traders = (
+	// RUSD
+	FixedRateOfFungible<RUsdPerSecond, ()>,
+	// Roc
+	FixedRateOfFungible<RocPerSecond, ()>,
+	// Everything else
+	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
+);
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
 
@@ -262,8 +279,7 @@ impl xcm_executor::Config for XcmConfig {
 		RuntimeCall,
 		MaxInstructions,
 	>;
-	type Trader = UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>;
-
+	type Trader = Traders;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = TrappistDropAssets<
 		AssetIdForTrustBackedAssets,
