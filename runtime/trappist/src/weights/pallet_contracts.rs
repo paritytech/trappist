@@ -48,7 +48,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions for `pallet_contracts`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_contracts::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> pallet_contracts::weights::WeightInfo for WeightInfo<T> {
 	// Storage: Contracts DeletionQueue (r:1 w:0)
 	fn on_process_deletion_queue_batch() -> Weight {
 		// Minimum execution time: 2_978 nanoseconds.

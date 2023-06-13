@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use crate::{
-	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
+	constants::currency::deposit, weights, Balance, Balances, RandomnessCollectiveFlip, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, Timestamp,
 };
 use frame_support::{
@@ -24,10 +24,7 @@ use frame_support::{
 	traits::{ConstBool, ConstU32, Nothing},
 	weights::Weight,
 };
-use pallet_contracts::{
-	weights::{SubstrateWeight, WeightInfo},
-	Config, DefaultAddressGenerator, Frame, Schedule,
-};
+use pallet_contracts::{weights::WeightInfo, Config, DefaultAddressGenerator, Frame, Schedule};
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
@@ -62,15 +59,15 @@ impl Config for Runtime {
 	/// change because that would break already deployed contracts. The `Call` structure itself
 	/// is not allowed to change the indices of existing pallets, too.
 	type CallFilter = Nothing;
-	type DepositPerItem = DepositPerItem;
-	type DepositPerByte = DepositPerByte;
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
-	type WeightInfo = SubstrateWeight<Self>;
+	type WeightInfo = weights::pallet_contracts::WeightInfo<Self>;
 	type ChainExtension = ();
-	type DeletionQueueDepth = DeletionQueueDepth;
-	type DeletionWeightLimit = DeletionWeightLimit;
 	type Schedule = MySchedule;
 	type CallStack = [Frame<Self>; 31];
+	type DeletionQueueDepth = DeletionQueueDepth;
+	type DeletionWeightLimit = DeletionWeightLimit;
+	type DepositPerByte = DepositPerByte;
+	type DepositPerItem = DepositPerItem;
 	type AddressGenerator = DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;
