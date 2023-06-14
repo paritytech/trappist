@@ -124,7 +124,7 @@ where
 	fn saturating_eval(&self, mut result: Balance, x: Balance) -> Balance {
 		let power = x.saturating_pow(self.degree.into());
 
-		let frac = self.coeff_frac * power; // Overflow safe.
+		let frac = self.coeff_frac * power; // Overflow safe since coeff_frac is strictly less than 1.
 		let integer = self.coeff_integer.saturating_mul(power);
 		// Do not add them together here to avoid an underflow.
 

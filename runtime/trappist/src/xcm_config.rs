@@ -220,7 +220,6 @@ parameter_types! {
 	// Rockmine's Assets pallet index
 	pub RockmineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
-
 	pub RUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
 		default_fee_per_second() * 10,

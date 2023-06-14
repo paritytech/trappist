@@ -69,20 +69,20 @@ pub mod fee {
 		type Balance = Balance;
 
 		fn weight_to_fee(weight: &Weight) -> Self::Balance {
-			let ref_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> =
-				RefTimeToFee::polynomial();
-			let proof_poly: smallvec::SmallVec<[WeightToFeeCoefficient<Balance>; 4]> =
-				ProofSizeToFee::polynomial();
+			let ref_time = Balance::saturated_from(weight.ref_time());
+			let proof_size = Balance::saturated_from(weight.proof_size());
+
+			let ref_polynomial = RefTimeToFee::polynomial();
+			let proof_polynomial = ProofSizeToFee::polynomial();
 
 			// Get fee amount from ref_time based on the RefTime polynomial
-			let ref_fee: Balance = ref_poly.iter().fold(0, |acc, term| {
-				term.saturating_eval(acc, Balance::saturated_from(weight.ref_time()))
-			});
+			let ref_fee: Balance =
+				ref_polynomial.iter().fold(0, |acc, term| term.saturating_eval(acc, ref_time));
 
 			// Get fee amount from proof_size based on the ProofSize polynomial
-			let proof_fee: Balance = proof_poly.iter().fold(0, |acc, term| {
-				term.saturating_eval(acc, Balance::saturated_from(weight.proof_size()))
-			});
+			let proof_fee: Balance = proof_polynomial
+				.iter()
+				.fold(0, |acc, term| term.saturating_eval(acc, proof_size));
 
 			// Take the maximum instead of the sum to charge by the more scarce resource.
 			ref_fee.max(proof_fee)
