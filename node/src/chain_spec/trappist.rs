@@ -1,3 +1,20 @@
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use crate::chain_spec::{
 	get_account_id_from_seed, get_collator_keys_from_seed, Extensions, SAFE_XCM_VERSION,
 };
@@ -150,11 +167,11 @@ pub fn testnet_genesis(
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts.into_iter().map(|k| (k, 1 << 60)).collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
@@ -185,7 +202,7 @@ pub fn testnet_genesis(
 		},
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
-			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
@@ -259,32 +276,25 @@ fn trappist_live_genesis(
 		balances: BalancesConfig {
 			balances: endowed_accounts
 				.iter()
-				.cloned()
-				.chain(std::iter::once(root_key.clone()))
-				.map(|k| {
-					if k == root_key {
-						(k, 1_000_000_000_000_000_000)
-					} else {
-						(k, 1_500_000_000_000_000_000)
-					}
-				})
+				.map(|x| (x.clone(), 1_500_000_000_000_000_000))
+				.chain(std::iter::once((root_key.clone(), 1_000_000_000_000_000_000)))
 				.collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
 		democracy: Default::default(),
 		session: SessionConfig {
 			keys: invulnerables
-				.iter()
+				.into_iter()
 				.map(|(acc, aura)| {
 					(
-						acc.clone(),                // account id
-						acc.clone(),                // validator id
-						session_keys(aura.clone()), // session keys
+						acc.clone(),        // account id
+						acc,                // validator id
+						session_keys(aura), // session keys
 					)
 				})
 				.collect(),
@@ -302,7 +312,7 @@ fn trappist_live_genesis(
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
 			// We set the endowed accounts with balance as members of the council.
-			members: endowed_accounts.iter().map(|x| x.clone()).collect::<Vec<_>>(),
+			members: endowed_accounts,
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),

@@ -1,4 +1,6 @@
-// Copyright (C) 2021 Parity Technologies (UK) Ltd.
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +35,6 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
-	use super::currency::CENTS;
 	use frame_support::weights::{
 		constants::{ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
 		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -41,6 +42,8 @@ pub mod fee {
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
 	pub use sp_runtime::Perbill;
+
+	use super::currency::CENTS;
 
 	/// The block saturation level. Fees will be updates based on this value.
 	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);

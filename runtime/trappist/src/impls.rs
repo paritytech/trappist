@@ -1,4 +1,6 @@
-// Copyright (C) 2021 Parity Technologies (UK) Ltd.
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,18 +79,17 @@ where
 pub struct RuntimeBlackListedCalls;
 impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	fn contains(call: &RuntimeCall) -> bool {
-		match call {
-			RuntimeCall::Balances(_) => false,
-			RuntimeCall::Assets(_) => false,
-			RuntimeCall::Dex(_) => false,
-			RuntimeCall::PolkadotXcm(_) => false,
-			RuntimeCall::Treasury(_) => false,
-			RuntimeCall::Chess(_) => false,
-			RuntimeCall::Contracts(_) => false,
-			RuntimeCall::Uniques(_) => false,
-			RuntimeCall::AssetRegistry(_) => false,
-			_ => true,
-		}
+		!matches!(
+			call,
+			RuntimeCall::Balances(_) |
+				RuntimeCall::Assets(_) |
+				RuntimeCall::Dex(_) |
+				RuntimeCall::PolkadotXcm(_) |
+				RuntimeCall::Treasury(_) |
+				RuntimeCall::Contracts(_) |
+				RuntimeCall::Uniques(_) |
+				RuntimeCall::AssetRegistry(_)
+		)
 	}
 }
 
