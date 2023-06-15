@@ -77,7 +77,7 @@ pub use parachains_common::{
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 
 use xcm_config::{
-	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
+	CollatorSelectionUpdateOrigin, RelayLocation, SelfReserve, TrustBackedAssetsConvertedConcreteId,
 };
 
 // Polkadot imports
@@ -743,6 +743,7 @@ mod benches {
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
 		[pallet_lockdown_mode, LockdownMode]
+		[pallet_preimage, Preimage]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
 		[pallet_dex, Dex]
@@ -1137,7 +1138,7 @@ impl_runtime_apis! {
 
 				fn claimable_asset() -> Result<(MultiLocation, MultiLocation, MultiAssets), BenchmarkError> {
 					let origin = RelayLocation::get();
-					let assets: MultiAssets = (Concrete(RelayLocation::get()), 1_000 * UNITS).into();
+					let assets: MultiAssets = (Concrete(SelfReserve::get()), 1_000 * UNITS).into();
 					let ticket = MultiLocation { parents: 0, interior: Here };
 					Ok((origin, ticket, assets))
 				}
