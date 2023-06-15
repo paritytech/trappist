@@ -1,3 +1,20 @@
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use crate::chain_spec::{
 	get_account_id_from_seed, get_collator_keys_from_seed, Extensions, SAFE_XCM_VERSION,
 };
@@ -97,11 +114,11 @@ fn testnet_genesis(
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts.into_iter().map(|k| (k, 1 << 60)).collect(),
 		},
 		parachain_info: stout_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: stout_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
 			..Default::default()
 		},
@@ -129,7 +146,7 @@ fn testnet_genesis(
 		},
 		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		council: CouncilConfig {
-			members: invulnerables.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
 		dex: Default::default(),

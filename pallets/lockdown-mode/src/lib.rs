@@ -1,3 +1,20 @@
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 /// Edit this file to define custom logic or remove it if it is not needed.
@@ -49,7 +66,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			LockdownModeStatus::<T>::put(&self.initial_status);
+			LockdownModeStatus::<T>::put(self.initial_status);
 		}
 	}
 
@@ -131,11 +148,7 @@ pub mod pallet {
 
 	impl<T: Config> Contains<T::RuntimeCall> for Pallet<T> {
 		fn contains(call: &T::RuntimeCall) -> bool {
-			if LockdownModeStatus::<T>::get() {
-				T::BlackListedCalls::contains(call)
-			} else {
-				return true
-			}
+			!LockdownModeStatus::<T>::get() || T::BlackListedCalls::contains(call)
 		}
 	}
 

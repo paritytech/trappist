@@ -1,18 +1,19 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
-// This file is part of Cumulus.
+// This file is part of Trappist.
 
-// Cumulus is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Copyright (C) Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
 
-// Cumulus is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Cumulus.  If not, see <http://www.gnu.org/licenses/>.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_aura::{AuraConsensus, BuildAuraConsensusParams, SlotProportion};
@@ -711,37 +712,41 @@ where
 	<<AuraId as AppKey>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
 {
-	let client2 = client.clone();
+	let aura_verifier = {
+		let client = client.clone();
 
-	let aura_verifier = move || {
-		let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client2).unwrap();
+		move || {
+			let slot_duration =
+				cumulus_client_consensus_aura::slot_duration(client.as_ref()).unwrap();
 
-		Box::new(
-			cumulus_client_consensus_aura::build_verifier::<<AuraId as AppKey>::Pair, _, _, _>(
-				cumulus_client_consensus_aura::BuildVerifierParams {
-					client: client2.clone(),
-					create_inherent_data_providers: move |_, _| async move {
-						let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+			Box::new(cumulus_client_consensus_aura::build_verifier::<
+				<AuraId as AppKey>::Pair,
+				_,
+				_,
+				_,
+			>(cumulus_client_consensus_aura::BuildVerifierParams {
+				client,
+				create_inherent_data_providers: move |_, _| async move {
+					let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
-						let slot =
+					let slot =
 							sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
 								*timestamp,
 								slot_duration,
 							);
 
-						Ok((slot, timestamp))
-					},
-					telemetry: telemetry_handle,
+					Ok((slot, timestamp))
 				},
-			),
-		) as Box<_>
+				telemetry: telemetry_handle,
+			})) as Box<_>
+		}
 	};
 
 	let relay_chain_verifier =
-		Box::new(RelayChainVerifier::new(client.clone(), |_, _| async { Ok(()) })) as Box<_>;
+		Box::new(RelayChainVerifier::new(client.clone(), |_, _| async { Ok(()) }));
 
 	let verifier = Verifier {
-		client: client.clone(),
+		client,
 		relay_chain_verifier,
 		aura_verifier: BuildOnAccess::Uninitialized(Some(Box::new(aura_verifier))),
 		_phantom: PhantomData,
