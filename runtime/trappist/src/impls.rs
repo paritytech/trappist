@@ -22,10 +22,11 @@ use super::*;
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 use frame_support::{
 	traits::{Contains, Currency, Imbalance, OnUnbalanced},
-	weights::Weight,
+	weights::{Weight, WeightToFeeCoefficient},
 };
 pub use log;
-use sp_runtime::DispatchResult;
+use sp_arithmetic::traits::{BaseArithmetic, Unsigned};
+use sp_runtime::{DispatchResult, SaturatedConversion};
 
 use sp_std::marker::PhantomData;
 
@@ -112,6 +113,34 @@ impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
 	}
 }
+
+pub trait WeightCoefficientCalc<Balance> {
+	fn saturating_eval(&self, result: Balance, x: Balance) -> Balance;
+}
+
+impl<Balance> WeightCoefficientCalc<Balance> for WeightToFeeCoefficient<Balance>
+where
+	Balance: BaseArithmetic + From<u32> + Copy + Unsigned + SaturatedConversion,
+{
+	fn saturating_eval(&self, mut result: Balance, x: Balance) -> Balance {
+		let power = x.saturating_pow(self.degree.into());
+
+		let frac = self.coeff_frac * power; // Overflow safe since coeff_frac is strictly less than 1.
+		let integer = self.coeff_integer.saturating_mul(power);
+		// Do not add them together here to avoid an underflow.
+
+		if self.negative {
+			result = result.saturating_sub(frac);
+			result = result.saturating_sub(integer);
+		} else {
+			result = result.saturating_add(frac);
+			result = result.saturating_add(integer);
+		}
+
+		result
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
