@@ -1,5 +1,5 @@
 # This file is sourced from https://github.com/paritytech/polkadot/blob/master/scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile
-FROM docker.io/paritytech/ci-linux:production as builder
+FROM docker.io/paritytech/ci-linux:1.68.2-bullseye-slim as builder
 
 WORKDIR /trappist
 COPY . /trappist
@@ -14,7 +14,7 @@ RUN cargo build --release
 #   --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/PEER_ID
 #
 # with the appropriate ip and ID for both Alice and Bob
-FROM debian:paritytech/ci-linux:1.68.2-bullseye-slim as collator
+FROM debian:bullseye-slim as collator
 RUN apt-get update && apt-get install jq curl bash -y && \
     curl -sSo /wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
     chmod +x /wait-for-it.sh && \
@@ -33,13 +33,13 @@ HEALTHCHECK --interval=300s --timeout=75s --start-period=30s --retries=3 \
 # the runtime stage is normally built once, cached, and ignored, but can be
 # specified with the --target build flag. This just preserves one of the builder's
 # outputs, which can then be moved into a volume at runtime
-FROM debian:paritytech/ci-linux:1.68.2-bullseye-slim as runtime
+FROM debian:bullseye-slim as runtime
 COPY --from=builder \
     /trappist/target/release/wbuild/trappist-runtime/trappist_runtime.wasm \
     /var/opt/
 CMD ["cp", "-v", "/var/opt/trappist_runtime.wasm", "/runtime/"]
 
-FROM debian:paritytech/ci-linux:1.68.2-bullseye-slim
+FROM debian:bullseye-slim
 COPY --from=builder \
     /trappist/target/release/trappist-node /usr/bin
 
