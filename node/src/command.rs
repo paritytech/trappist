@@ -135,6 +135,7 @@ impl RuntimeResolver for PathBuf {
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
+		"" => Box::new(chain_spec::trappist::trappist_live_config()),
 		"dev" | "trappist-dev" => Box::new(chain_spec::trappist::development_config()),
 		"stout-dev" => unimplemented!("stout-dev chain spec is not available yet"),
 		"trappist-local" => Box::new(chain_spec::trappist::trappist_local_testnet_config()),
