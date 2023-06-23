@@ -115,5 +115,5 @@ runtime-benchmarks = [
 ]
 try-runtime = [
 	"trappist-runtime/try-runtime",
-	"stout-runtime/try-runtime"
+	"try-runtime-cli/try-runtime"
 ]
