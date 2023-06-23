@@ -215,6 +215,10 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
+	type FreezeIdentifier = ();
+	type HoldIdentifier = ();
+	type MaxHolds = ConstU32<0>;
+	type MaxFreezes = ConstU32<0>;
 }
 
 parameter_types! {
@@ -384,6 +388,8 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
+	//TODO: Add proper value
+	type MaxProposalWeight = ();
 }
 
 type EnsureRootOrHalfCouncil = EitherOfDiverse<
@@ -602,6 +608,13 @@ impl_runtime_apis! {
 		fn metadata() -> OpaqueMetadata {
 			OpaqueMetadata::new(Runtime::metadata().into())
 		}
+		fn metadata_at_version(version: u32) -> Option<OpaqueMetadata> {
+			Runtime::metadata_at_version(version)
+		}
+
+		fn metadata_versions() -> sp_std::vec::Vec<u32> {
+			Runtime::metadata_versions()
+		}
 	}
 
 	impl sp_block_builder::BlockBuilder<Block> for Runtime {
@@ -738,7 +751,7 @@ impl_runtime_apis! {
 				storage_deposit_limit,
 				input_data,
 				contracts::CONTRACTS_DEBUG_OUTPUT,
-				pallet_contracts::Determinism::Deterministic,
+				pallet_contracts::Determinism::Enforced,
 			)
 		}
 

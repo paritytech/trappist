@@ -59,7 +59,7 @@ sp-keystore = { workspace = true, features = [ "std" ] }
 sc-chain-spec = { workspace = true }
 sc-rpc = { workspace = true }
 sc-tracing = { workspace = true }
-sc-network-sync = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sc-network-sync = { workspace = true }
 sp-offchain = { workspace = true, features = [ "std" ] }
 sp-api = { workspace = true, features = [ "std" ] }
 sp-consensus-aura = { workspace = true, features = [ "std" ] }

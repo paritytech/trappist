@@ -292,6 +292,8 @@ impl pallet_xcm::Config for Runtime {
 	type SovereignAccountOf = ();
 	type TrustedLockers = ();
 	type UniversalLocation = UniversalLocation;
+	//TODO: Add proper value
+	type AdminOrigin = ();
 	// TODO: pallet-xcm weights
 	type WeightInfo = pallet_xcm::TestWeightInfo;
 	#[cfg(feature = "runtime-benchmarks")]
