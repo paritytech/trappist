@@ -3,11 +3,6 @@ description: |
   This action sets up a worker for use in other actions. It installs the
   necessary dependencies for building the project.
 
-inputs:
-  rust-components:
-    description: Comma-separated list of components to be additionally installed for a new rust toolchain
-    required: false
-
 runs:
   using: "composite"
 

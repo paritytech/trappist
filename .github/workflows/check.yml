@@ -18,8 +18,6 @@ jobs:
 
       - name: Setup worker
         uses: "./.github/templates/setup-worker"
-        with:
-          rust-components: rustfmt
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -42,28 +40,22 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-release
+          key: ${{ runner.os }}-cargo-release-0_9_37-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-0_9_37
 
-      - name: Check Build Trappist Runtime
+      - name: Check Build Trappist node
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release
+          SKIP_WASM_BUILD=1 cargo check --release --locked
 
   test:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      # Tests with benchmarks require a lot of disk space
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: true
-          dotnet: true
-          haskell: false
-          large-packages: false
-          swap-storage: false
-
       - uses: actions/checkout@v3
+
+      # Tests with benchmarks require a lot of disk space
+      - name: Free Disk Space
+        uses: "./.github/templates/free-space"
 
       - name: Setup worker
         uses: "./.github/templates/setup-worker"
@@ -77,9 +69,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-debug
+          key: ${{ runner.os }}-cargo-debug-0_9_37-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-debug-0_9_37
 
-      - name: Run tests
+      - name: Run Trappist tests
         run: |
-          cargo test --features runtime-benchmarks --jobs 1
+          cargo test --workspace --exclude stout-runtime --no-default-features --features trappist/trappist-runtime,std,runtime-benchmarks --locked --jobs 1

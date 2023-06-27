@@ -100,7 +100,7 @@ pub fn stout_local_testnet_config() -> ChainSpec {
 }
 
 /// Configure initial storage state for FRAME modules.
-fn testnet_genesis(
+pub fn testnet_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,

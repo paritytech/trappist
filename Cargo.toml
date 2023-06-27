@@ -6,7 +6,6 @@ members = [
 	"primitives/xcm",
 ]
 exclude = [
-	"contracts",
 	"xcm-simulator"
 ]
 
