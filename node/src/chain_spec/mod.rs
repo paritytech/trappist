@@ -21,7 +21,10 @@ use serde::{Deserialize, Serialize};
 use sp_core::{Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
+#[cfg(feature = "stout-runtime")]
 pub mod stout;
+
+#[cfg(feature = "trappist-runtime")]
 pub mod trappist;
 
 /// The default XCM version to set in genesis config.

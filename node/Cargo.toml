@@ -7,7 +7,6 @@ license = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 edition = { workspace = true }
-default-run = "trappist-node"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -26,8 +25,8 @@ log = { workspace = true }
 serde = { workspace = true }
 
 # Local Dependencies
-trappist-runtime = { workspace = true }
-stout-runtime = { workspace = true }
+trappist-runtime = { workspace = true, optional = true }
+stout-runtime = { workspace = true, optional = true }
 jsonrpsee = { workspace = true, features = ["server"] }
 
 # External Dependencies
@@ -107,13 +106,13 @@ wait-timeout = { workspace = true }
 polkadot-cli = { workspace = true }
 
 [features]
-default = []
+default = ["trappist-runtime", "stout-runtime"]
 runtime-benchmarks = [
-	"trappist-runtime/runtime-benchmarks",
-	"stout-runtime/runtime-benchmarks",
+	"trappist-runtime?/runtime-benchmarks",
+	"stout-runtime?/runtime-benchmarks",
 	"polkadot-cli/runtime-benchmarks"
 ]
 try-runtime = [
-	"trappist-runtime/try-runtime",
+	"trappist-runtime?/try-runtime",
 	"try-runtime-cli/try-runtime"
 ]

@@ -19,7 +19,7 @@
 
 use std::sync::Arc;
 
-use parachains_common::{AccountId, Balance, Block, Index as Nonce};
+use parachains_common::{AccountId, AssetId, Balance, Block, Index as Nonce};
 use sc_client_api::AuxStore;
 pub use sc_rpc::{DenyUnsafe, SubscriptionTaskExecutor};
 use sc_transaction_pool_api::TransactionPool;
@@ -56,12 +56,7 @@ where
 	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: BlockBuilder<Block>,
-	C::Api: pallet_dex_rpc::DexRuntimeApi<
-		trappist_runtime::opaque::Block,
-		trappist_runtime::AssetId,
-		trappist_runtime::Balance,
-		trappist_runtime::AssetBalance,
-	>,
+	C::Api: pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>,
 	P: TransactionPool + Sync + Send + 'static,
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
 	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,

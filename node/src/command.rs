@@ -15,12 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-	benchmarking::{inherent_benchmark_data, RemarkBuilder},
-	chain_spec,
-	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, Block, StoutRuntimeExecutor, TrappistRuntimeExecutor},
-};
+use std::{net::SocketAddr, path::PathBuf};
+
 use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
@@ -34,18 +30,26 @@ use sc_cli::{
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as BlockT};
-use std::{net::SocketAddr, path::PathBuf};
+
+use crate::{
+	benchmarking::{inherent_benchmark_data, RemarkBuilder},
+	chain_spec,
+	cli::{Cli, RelayChainCli, Subcommand},
+	service::{new_partial, Block},
+};
 
 /// Dispatches the code to the currently selected runtime.
 macro_rules! dispatch_runtime {
 	($runtime:expr, |$alias: ident| $code:expr) => {
 		match $runtime {
+			#[cfg(feature = "trappist-runtime")]
 			Runtime::Trappist => {
 				#[allow(unused_imports)]
 				use trappist_runtime as $alias;
 
 				$code
 			},
+			#[cfg(feature = "stout-runtime")]
 			Runtime::Stout => {
 				#[allow(unused_imports)]
 				use stout_runtime as $alias;
@@ -86,23 +90,43 @@ macro_rules! construct_async_run {
 
 /// Helper enum that is used for better distinction of different parachain/runtime configuration
 /// (it is based/calculated on ChainSpec's ID attribute)
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq)]
 enum Runtime {
-	#[default]
+	#[cfg(feature = "trappist-runtime")]
 	Trappist,
+	#[cfg(feature = "stout-runtime")]
 	Stout,
+}
+
+#[cfg(feature = "trappist-runtime")]
+impl Default for Runtime {
+	fn default() -> Self {
+		Runtime::Trappist
+	}
+}
+
+#[cfg(all(feature = "stout-runtime", not(feature = "trappist-runtime")))]
+impl Default for Runtime {
+	fn default() -> Self {
+		Runtime::Stout
+	}
 }
 
 impl From<&str> for Runtime {
 	fn from(value: &str) -> Self {
+		#[cfg(feature = "trappist-runtime")]
 		if value.starts_with("trappist") {
-			Runtime::Trappist
-		} else if value.starts_with("stout") {
-			Runtime::Stout
-		} else {
-			log::warn!("No specific runtime was recognized for ChainSpec's id: '{value}', so `Trappist` will be used as default.");
-			Runtime::default()
+			return Runtime::Trappist
 		}
+
+		#[cfg(feature = "stout-runtime")]
+		if value.starts_with("stout") {
+			return Runtime::Stout
+		}
+
+		let fallback = Runtime::default();
+		log::warn!("No specific runtime was recognized for ChainSpec's id: '{value}', so `{fallback:?}` will be used as default.");
+		fallback
 	}
 }
 
@@ -135,20 +159,25 @@ impl RuntimeResolver for PathBuf {
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
-		"" => Box::new(chain_spec::trappist::trappist_live_config()),
+		#[cfg(feature = "trappist-runtime")]
 		"dev" | "trappist-dev" => Box::new(chain_spec::trappist::development_config()),
-		"stout-dev" => unimplemented!("stout-dev chain spec is not available yet"),
+		#[cfg(feature = "trappist-runtime")]
 		"trappist-local" => Box::new(chain_spec::trappist::trappist_local_testnet_config()),
-		"stout-local" => Box::new(chain_spec::stout::stout_local_testnet_config()),
 		// Live chain spec for Rococo - Trappist]
-		"trappist-rococo" => Box::new(chain_spec::trappist::trappist_live_config()),
+		#[cfg(feature = "trappist-runtime")]
+		"" | "trappist-rococo" => Box::new(chain_spec::trappist::trappist_live_config()),
+		#[cfg(feature = "stout-runtime")]
+		"stout-dev" => unimplemented!("stout-dev chain spec is not available yet"),
+		#[cfg(feature = "stout-runtime")]
+		"stout-local" => Box::new(chain_spec::stout::stout_local_testnet_config()),
 		// -- Loading a specific spec from disk
 		path => {
 			let path: PathBuf = path.into();
 			match path.runtime() {
+				#[cfg(feature = "trappist-runtime")]
+				Runtime::Trappist => Box::new(chain_spec::trappist::ChainSpec::from_json_file(path)?),
+				#[cfg(feature = "stout-runtime")]
 				Runtime::Stout => Box::new(chain_spec::stout::ChainSpec::from_json_file(path)?),
-				Runtime::Trappist =>
-					Box::new(chain_spec::trappist::ChainSpec::from_json_file(path)?),
 			}
 		},
 	})
@@ -313,8 +342,10 @@ pub fn run() -> Result<()> {
 						}
 
 						match config.chain_spec.runtime() {
-							Runtime::Trappist => cmd.run::<Block, TrappistRuntimeExecutor>(config),
-							Runtime::Stout => cmd.run::<Block, StoutRuntimeExecutor>(config),
+							#[cfg(feature = "trappist-runtime")]
+							Runtime::Trappist => cmd.run::<Block, crate::service::TrappistRuntimeExecutor>(config),
+							#[cfg(feature = "stout-runtime")]
+							Runtime::Stout => cmd.run::<Block, crate::service::StoutRuntimeExecutor>(config),
 						}
 					},
 					BenchmarkCmd::Block(cmd) => {
@@ -590,16 +621,22 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 #[cfg(test)]
 mod tests {
+	use cumulus_primitives_core::ParaId;
+	use std::path::PathBuf;
+
+	use parachains_common::{AccountId, AuraId};
+	use sc_chain_spec::{
+		ChainSpec, ChainSpecExtension, ChainSpecGroup, ChainType, Extension, GenericChainSpec,
+	};
+	use serde::{Deserialize, Serialize};
+	use sp_core::sr25519;
+	use tempfile::TempDir;
+
 	use crate::{
 		chain_spec::{get_account_id_from_seed, get_collator_keys_from_seed},
 		command::{Runtime, RuntimeResolver},
 	};
-	use parachains_common::AuraId;
-	use sc_chain_spec::{ChainSpec, ChainSpecExtension, ChainSpecGroup, ChainType, Extension};
-	use serde::{Deserialize, Serialize};
-	use sp_core::sr25519;
-	use std::path::PathBuf;
-	use tempfile::TempDir;
+
 	#[derive(
 		Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension, Default,
 	)]
@@ -619,41 +656,23 @@ mod tests {
 		pub attribute_z: u32,
 	}
 
-	fn store_configuration(dir: &TempDir, spec: Box<dyn ChainSpec>) -> PathBuf {
-		let raw_output = true;
-		let json = sc_service::chain_ops::build_spec(&*spec, raw_output)
-			.expect("Failed to build json string");
-		let mut cfg_file_path = dir.path().to_path_buf();
-		cfg_file_path.push(spec.id());
-		cfg_file_path.set_extension("json");
-		std::fs::write(&cfg_file_path, json).expect("Failed to write to json file");
-		cfg_file_path
-	}
-
-	pub type DummyChainSpec<E> = sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, E>;
-
-	pub fn create_default_with_extensions<E: Extension>(
+	pub fn create_default_with_extensions<G: 'static + Send + Sync, E: Extension>(
 		id: &str,
 		extension: E,
-	) -> DummyChainSpec<E> {
-		DummyChainSpec::from_genesis(
+		constructor: fn(Vec<(AccountId, AuraId)>, AccountId, Vec<AccountId>, ParaId) -> G,
+	) -> GenericChainSpec<G, E> {
+		GenericChainSpec::<G, E>::from_genesis(
 			"Dummy local testnet",
 			id,
 			ChainType::Local,
 			move || {
-				crate::chain_spec::trappist::testnet_genesis(
-					vec![
-						(
-							get_account_id_from_seed::<sr25519::Public>("Alice"),
-							get_collator_keys_from_seed::<AuraId>("Alice"),
-						),
-						(
-							get_account_id_from_seed::<sr25519::Public>("Bob"),
-							get_collator_keys_from_seed::<AuraId>("Bob"),
-						),
-					],
+				constructor(
+					vec![(
+						get_account_id_from_seed::<sr25519::Public>("Alice"),
+						get_collator_keys_from_seed::<AuraId>("Alice"),
+					)],
 					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
+					Vec::new(),
 					1000.into(),
 				)
 			},
@@ -666,38 +685,64 @@ mod tests {
 		)
 	}
 
-	#[test]
-	fn test_resolve_runtime_for_different_configuration_files() {
+	fn assert_resolved_runtime(runtime: Runtime, specs: Vec<Box<dyn ChainSpec>>) {
+		fn store_configuration(dir: &TempDir, spec: Box<dyn ChainSpec>) -> PathBuf {
+			let raw_output = true;
+			let json = sc_service::chain_ops::build_spec(&*spec, raw_output)
+				.expect("Failed to build json string");
+			let mut cfg_file_path = dir.path().to_path_buf();
+			cfg_file_path.push(spec.id());
+			cfg_file_path.set_extension("json");
+			std::fs::write(&cfg_file_path, json).expect("Failed to write to json file");
+			cfg_file_path
+		}
+
 		let temp_dir = tempfile::tempdir().expect("Failed to access tempdir");
 
-		let path = store_configuration(
-			&temp_dir,
-			Box::new(create_default_with_extensions("trappist-1", Extensions1::default())),
-		);
-		assert_eq!(Runtime::Trappist, path.runtime());
+		specs.into_iter().for_each(|spec| {
+			let path = store_configuration(&temp_dir, spec);
+			assert_eq!(runtime, path.runtime());
+		});
+	}
 
-		let path = store_configuration(
-			&temp_dir,
-			Box::new(create_default_with_extensions("trappist-2", Extensions2::default())),
-		);
-		assert_eq!(Runtime::Trappist, path.runtime());
+	#[test]
+	#[cfg(feature = "trappist-runtime")]
+	fn test_resolve_trappist_runtime_for_different_configuration_files() {
+		assert_resolved_runtime(
+			Runtime::Trappist,
+			vec![
+				Box::new(create_default_with_extensions::<trappist_runtime::GenesisConfig, _>(
+					"trappist-1",
+					Extensions1::default(),
+					crate::chain_spec::trappist::testnet_genesis,
+				)),
+				Box::new(create_default_with_extensions::<trappist_runtime::GenesisConfig, _>(
+					"trappist-2",
+					Extensions2::default(),
+					crate::chain_spec::trappist::testnet_genesis,
+				)),
+				Box::new(crate::chain_spec::trappist::trappist_local_testnet_config()),
+			],
+		)
+	}
 
-		let path = store_configuration(
-			&temp_dir,
-			Box::new(create_default_with_extensions("stout-1", Extensions1::default())),
-		);
-		assert_eq!(Runtime::Stout, path.runtime());
-
-		let path = store_configuration(
-			&temp_dir,
-			Box::new(create_default_with_extensions("stout-2", Extensions2::default())),
-		);
-		assert_eq!(Runtime::Stout, path.runtime());
-
-		let path = store_configuration(
-			&temp_dir,
-			Box::new(crate::chain_spec::trappist::trappist_local_testnet_config()),
-		);
-		assert_eq!(Runtime::Trappist, path.runtime());
+	#[test]
+	#[cfg(feature = "stout-runtime")]
+	fn test_resolve_stout_runtime_for_different_configuration_files() {
+		assert_resolved_runtime(
+			Runtime::Stout,
+			vec![
+				Box::new(create_default_with_extensions(
+					"stout-1",
+					Extensions1::default(),
+					crate::chain_spec::stout::testnet_genesis,
+				)),
+				Box::new(create_default_with_extensions(
+					"stout-2",
+					Extensions2::default(),
+					crate::chain_spec::stout::testnet_genesis,
+				)),
+			],
+		)
 	}
 }

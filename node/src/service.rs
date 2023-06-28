@@ -15,11 +15,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::{marker::PhantomData, sync::Arc, time::Duration};
+
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_aura::{AuraConsensus, BuildAuraConsensusParams, SlotProportion};
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainCandidate, ParachainConsensus,
 };
+use cumulus_client_consensus_relay_chain::Verifier as RelayChainVerifier;
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	build_relay_chain_interface, prepare_node_config, start_collator, start_full_node,
@@ -30,18 +33,12 @@ use cumulus_primitives_core::{
 	ParaId,
 };
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
-use parity_scale_codec::Codec;
-use sp_core::Pair;
-
+use futures::lock::Mutex;
 use jsonrpsee::RpcModule;
-
-use crate::rpc;
 pub use parachains_common::{
 	AccountId, AssetId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
 };
-
-use cumulus_client_consensus_relay_chain::Verifier as RelayChainVerifier;
-use futures::lock::Mutex;
+use parity_scale_codec::Codec;
 use sc_consensus::{
 	import_queue::{BasicQueue, Verifier as VerifierT},
 	BlockImportParams, ImportQueue,
@@ -54,14 +51,16 @@ use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerH
 use sp_api::{ApiExt, ConstructRuntimeApi};
 use sp_consensus::CacheKeyId;
 use sp_consensus_aura::AuraApi;
+use sp_core::Pair;
 use sp_keystore::SyncCryptoStorePtr;
 use sp_runtime::{
 	app_crypto::AppKey,
 	generic::BlockId,
 	traits::{BlakeTwo256, Header as HeaderT},
 };
-use std::{marker::PhantomData, sync::Arc, time::Duration};
 use substrate_prometheus_endpoint::Registry;
+
+use crate::rpc;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 type HostFunctions = sp_io::SubstrateHostFunctions;
@@ -78,8 +77,10 @@ type ParachainBlockImport<RuntimeApi> =
 	TParachainBlockImport<Block, Arc<ParachainClient<RuntimeApi>>, ParachainBackend>;
 
 /// Native Stout executor instance.
+#[cfg(feature = "stout-runtime")]
 pub struct StoutRuntimeExecutor;
 
+#[cfg(feature = "stout-runtime")]
 impl sc_executor::NativeExecutionDispatch for StoutRuntimeExecutor {
 	type ExtendHostFunctions = ();
 
@@ -92,9 +93,11 @@ impl sc_executor::NativeExecutionDispatch for StoutRuntimeExecutor {
 	}
 }
 
-// Native Trappist executor instance.
+/// Native Trappist executor instance.
+#[cfg(feature = "trappist-runtime")]
 pub struct TrappistRuntimeExecutor;
 
+#[cfg(feature = "trappist-runtime")]
 impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 

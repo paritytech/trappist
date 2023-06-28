@@ -41,6 +41,7 @@ impl<RuntimeApi> RemarkBuilder<RuntimeApi> {
 	}
 }
 
+#[cfg(feature = "trappist-runtime")]
 impl frame_benchmarking_cli::ExtrinsicBuilder for RemarkBuilder<trappist_runtime::RuntimeApi> {
 	fn pallet(&self) -> &str {
 		"system"
@@ -104,6 +105,7 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for RemarkBuilder<trappist_runtime
 	}
 }
 
+#[cfg(feature = "stout-runtime")]
 impl frame_benchmarking_cli::ExtrinsicBuilder for RemarkBuilder<stout_runtime::RuntimeApi> {
 	fn pallet(&self) -> &str {
 		"system"
