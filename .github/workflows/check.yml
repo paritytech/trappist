@@ -49,6 +49,9 @@ jobs:
       - name: Check Build Trappist node
         run: |
           SKIP_WASM_BUILD=1 cargo check --release --locked
+      - name: Check try-runtime feature
+        run: |
+          cargo check --locked --features try-runtime --all
 
   test:
     needs: lint
