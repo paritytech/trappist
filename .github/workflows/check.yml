@@ -10,6 +10,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  POLKA_VERSION: 0.9.37
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -40,8 +43,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-release-0_9_37-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-release-0_9_37
+          key: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}
 
       - name: Check Build Trappist node
         run: |
@@ -69,8 +72,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-debug-0_9_37-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-debug-0_9_37
+          key: ${{ runner.os }}-cargo-debug-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-debug-${{ env.POLKA_VERSION }}
 
       - name: Run Trappist tests
         run: |
