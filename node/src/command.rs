@@ -17,7 +17,6 @@
 
 use std::{net::SocketAddr, path::PathBuf};
 
-use crate::service::{StoutRuntimeExecutor, TrappistRuntimeExecutor};
 use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
@@ -38,6 +37,9 @@ use crate::{
 	cli::{Cli, RelayChainCli, Subcommand},
 	service::{new_partial, Block},
 };
+
+#[cfg(not(feature = "try-runtime"))]
+use crate::service::{StoutRuntimeExecutor, TrappistRuntimeExecutor};
 
 /// Dispatches the code to the currently selected runtime.
 macro_rules! dispatch_runtime {
