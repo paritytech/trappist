@@ -38,9 +38,6 @@ use crate::{
 	service::{new_partial, Block},
 };
 
-#[cfg(not(feature = "try-runtime"))]
-use crate::service::{StoutRuntimeExecutor, TrappistRuntimeExecutor};
-
 /// Dispatches the code to the currently selected runtime.
 macro_rules! dispatch_runtime {
 	($runtime:expr, |$alias: ident| $code:expr) => {
@@ -407,9 +404,11 @@ pub fn run() -> Result<()> {
 
 			match runner.config().chain_spec.runtime() {
 				Runtime::Trappist => runner.async_run(|_| {
+					use crate::service::TrappistRuntimeExecutor;
 					Ok((cmd.run::<Block, HostFunctionsOf<TrappistRuntimeExecutor>>(), task_manager))
 				}),
 				Runtime::Stout => runner.async_run(|_| {
+					use crate::service::StoutRuntimeExecutor;
 					Ok((cmd.run::<Block, HostFunctionsOf<StoutRuntimeExecutor>>(), task_manager))
 				}),
 			}
