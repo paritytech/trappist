@@ -35,7 +35,7 @@ use crate::{
 	benchmarking::{inherent_benchmark_data, RemarkBuilder},
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, Block},
+	service::{new_partial, Block, RuntimeExecutor},
 };
 
 /// Dispatches the code to the currently selected runtime.
@@ -58,14 +58,17 @@ macro_rules! dispatch_runtime {
 			},
 		}
 	};
+	($runtime:expr, $code:expr) => {
+		dispatch_runtime!($runtime, |rt| $code)
+	};
 }
 
 /// Generates boilerplate code for constructing partial node for the runtimes that are supported
 /// by the benchmarks.
 macro_rules! construct_partial {
-	($config:expr, |$partial:ident| $code:expr) => {
-		dispatch_runtime!($config.chain_spec.runtime(), |rt| {
-			let $partial = new_partial::<rt::RuntimeApi, _>(
+	($config:expr, |$partial:ident, $runtime:ident| $code:expr) => {
+		dispatch_runtime!($config.chain_spec.runtime(), |$runtime| {
+			let $partial = new_partial::<$runtime::RuntimeApi, _>(
 				&$config,
 				crate::service::aura_build_import_queue::<_, AuraId>,
 			)?;
@@ -73,18 +76,24 @@ macro_rules! construct_partial {
 			$code
 		})
 	};
+	($config:expr, |$partial:ident| $code:expr) => {
+		construct_partial!($config, |$partial, rt| $code)
+	};
 }
 
 /// Generates boilerplate code for async run on partial node.
 macro_rules! construct_async_run {
-	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
+	(|$components:ident, $cli:ident, $cmd:ident, $config:ident, $runtime:ident| $( $code:tt )* ) => {{
 		let runner = $cli.create_runner($cmd)?;
-		construct_partial!(runner.config(), |$components| {
+		construct_partial!(runner.config(), |$components, $runtime| {
 			runner.async_run(|$config| {
 				let task_manager = $components.task_manager;
 				{ $( $code )* }.map(|v| (v, task_manager))
 			})
 		})
+	}};
+	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
+		construct_async_run!(|$components, $cli, $cmd, $config, rt| { $( $code )* })
 	}};
 }
 
@@ -163,7 +172,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		"dev" | "trappist-dev" => Box::new(chain_spec::trappist::development_config()),
 		#[cfg(feature = "trappist-runtime")]
 		"trappist-local" => Box::new(chain_spec::trappist::trappist_local_testnet_config()),
-		// Live chain spec for Rococo - Trappist]
+		// Live chain spec for Rococo - Trappist
 		#[cfg(feature = "trappist-runtime")]
 		"" | "trappist-rococo" => Box::new(chain_spec::trappist::trappist_live_config()),
 		#[cfg(feature = "stout-runtime")]
@@ -341,12 +350,9 @@ pub fn run() -> Result<()> {
 								.into())
 						}
 
-						match config.chain_spec.runtime() {
-							#[cfg(feature = "trappist-runtime")]
-							Runtime::Trappist => cmd.run::<Block, crate::service::TrappistRuntimeExecutor>(config),
-							#[cfg(feature = "stout-runtime")]
-							Runtime::Stout => cmd.run::<Block, crate::service::StoutRuntimeExecutor>(config),
-						}
+						dispatch_runtime!(config.chain_spec.runtime(), |runtime| {
+							cmd.run::<Block, RuntimeExecutor<runtime::Runtime>>(config)
+						})
 					},
 					BenchmarkCmd::Block(cmd) => {
 						construct_partial!(config, |partial| cmd.run(partial.client))
@@ -390,28 +396,16 @@ pub fn run() -> Result<()> {
 		},
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
-			// grab the task manager.
-			let runner = cli.create_runner(cmd)?;
-			let registry = &runner.config().prometheus_config.as_ref().map(|cfg| &cfg.registry);
-			let task_manager =
-				sc_service::TaskManager::new(runner.config().tokio_handle.clone(), *registry)
-					.map_err(|e| format!("Error: {:?}", e))?;
 			use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
+
 			type HostFunctionsOf<E> = ExtendedHostFunctions<
 				sp_io::SubstrateHostFunctions,
 				<E as NativeExecutionDispatch>::ExtendHostFunctions,
 			>;
 
-			match runner.config().chain_spec.runtime() {
-				Runtime::Trappist => runner.async_run(|_| {
-					use crate::service::TrappistRuntimeExecutor;
-					Ok((cmd.run::<Block, HostFunctionsOf<TrappistRuntimeExecutor>>(), task_manager))
-				}),
-				Runtime::Stout => runner.async_run(|_| {
-					use crate::service::StoutRuntimeExecutor;
-					Ok((cmd.run::<Block, HostFunctionsOf<StoutRuntimeExecutor>>(), task_manager))
-				}),
-			}
+			construct_async_run!(|components, cli, cmd, _config, runtime| {
+				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>>())
+			})
 		},
 		#[cfg(not(feature = "try-runtime"))]
 		Some(Subcommand::TryRuntime) => Err("Try-runtime was not enabled when building the node. \
@@ -623,9 +617,9 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 #[cfg(test)]
 mod tests {
-	use cumulus_primitives_core::ParaId;
 	use std::path::PathBuf;
 
+	use cumulus_primitives_core::ParaId;
 	use parachains_common::{AccountId, AuraId};
 	use sc_chain_spec::{
 		ChainSpec, ChainSpecExtension, ChainSpecGroup, ChainType, Extension, GenericChainSpec,
