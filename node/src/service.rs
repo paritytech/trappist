@@ -76,29 +76,11 @@ type ParachainBackend = TFullBackend<Block>;
 type ParachainBlockImport<RuntimeApi> =
 	TParachainBlockImport<Block, Arc<ParachainClient<RuntimeApi>>, ParachainBackend>;
 
-/// Native Stout executor instance.
-#[cfg(feature = "stout-runtime")]
-pub struct StoutRuntimeExecutor;
-
-#[cfg(feature = "stout-runtime")]
-impl sc_executor::NativeExecutionDispatch for StoutRuntimeExecutor {
-	type ExtendHostFunctions = ();
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		stout_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		stout_runtime::native_version()
-	}
-}
-
-/// Native Trappist executor instance.
-#[cfg(feature = "trappist-runtime")]
-pub struct TrappistRuntimeExecutor;
+/// Generic executor instance.
+pub struct RuntimeExecutor<Runtime>(PhantomData<Runtime>);
 
 #[cfg(feature = "trappist-runtime")]
-impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
+impl sc_executor::NativeExecutionDispatch for RuntimeExecutor<trappist_runtime::Runtime> {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
@@ -107,6 +89,19 @@ impl sc_executor::NativeExecutionDispatch for TrappistRuntimeExecutor {
 
 	fn native_version() -> sc_executor::NativeVersion {
 		trappist_runtime::native_version()
+	}
+}
+
+#[cfg(feature = "stout-runtime")]
+impl sc_executor::NativeExecutionDispatch for RuntimeExecutor<stout_runtime::Runtime> {
+	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		stout_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> sc_executor::NativeVersion {
+		stout_runtime::native_version()
 	}
 }
 
