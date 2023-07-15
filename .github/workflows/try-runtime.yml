@@ -29,7 +29,7 @@ jobs:
           key: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}
 
-      - run: 
+      - run: |
           echo "Found label runtime_migration. Running tests"
           export RUST_LOG=remote-ext=debug,runtime=debug
           echo "---------- Running try-runtime for Trappist ----------"
