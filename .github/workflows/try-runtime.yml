@@ -17,7 +17,8 @@ jobs:
         uses: "./.github/templates/setup-worker"
 
       - name: Cache Build artefacts
-        uses: actions/cache@v3
+        uses: actions/cache/restore@v3
+        id: cargo-cache
         with:
           path: |
             ~/.cargo/bin/
