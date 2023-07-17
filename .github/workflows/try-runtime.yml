@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - '*'
+    paths-ignore:
+      - '**'
   pull_request:
     types:
       - labeled
