@@ -1,4 +1,4 @@
-name: Run try-runtime on storage migration label
+name: Test storage migration
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - labeled
 
 jobs:
-  run_if_label_matches:
+  try_runtime:
     if: github.event.label.name == 'migration'
     runs-on: ubuntu-latest
     steps:
