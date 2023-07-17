@@ -38,7 +38,6 @@ jobs:
           echo "Found label runtime_migration. Running tests"
           export RUST_LOG=remote-ext=debug,runtime=debug
           echo "---------- Running try-runtime for Trappist ----------"
-          cargo build --locked --release -p trappist-runtime
           cargo run --locked --release --features try-runtime try-runtime \
               --runtime ./target/release/wbuild/trappist-runtime/target/wasm32-unknown-unknown/release/trappist_runtime.wasm \
               -lruntime=debug \
