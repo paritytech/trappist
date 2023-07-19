@@ -3,6 +3,8 @@ name: Test storage migration
 on:
   pull_request:
     types: [labeled, synchronize]
+  push:
+    branches: '*'
 
 jobs:
   try_runtime:
