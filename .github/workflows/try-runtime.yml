@@ -1,14 +1,8 @@
 name: Test storage migration
 
 on:
-  push:
-    branches:
-      - '*'
-    paths-ignore:
-      - '**'
   pull_request:
-    types:
-      - labeled
+    types: [labeled, synchronize]
 
 jobs:
   try_runtime:
@@ -38,7 +32,7 @@ jobs:
           echo "Found label runtime_migration. Running tests"
           export RUST_LOG=remote-ext=debug,runtime=debug
           echo "---------- Running try-runtime for Trappist ----------"
-          cargo run --locked --release --features try-runtime try-runtime \
+          cargo run -p trappist --locked --release --no-default-features --features trappist/trappist-runtime,try-runtime try-runtime \
               --runtime ./target/release/wbuild/trappist-runtime/target/wasm32-unknown-unknown/release/trappist_runtime.wasm \
               -lruntime=debug \
               --chain=trappist-dev \
