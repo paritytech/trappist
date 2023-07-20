@@ -129,7 +129,6 @@ where
 			Block,
 			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
 		> + sp_offchain::OffchainWorkerApi<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ sp_block_builder::BlockBuilder<Block>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	BIQ: FnOnce(
@@ -235,7 +234,6 @@ where
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	RB: Fn(Arc<ParachainClient<RuntimeApi>>) -> Result<jsonrpsee::RpcModule<()>, sc_service::Error>,
@@ -536,7 +534,6 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppKey>::Pair as Pair>::Public>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	<<AuraId as AppKey>::Pair as Pair>::Signature:
@@ -699,7 +696,6 @@ where
 			StateBackend = sc_client_api::StateBackendFor<ParachainBackend, Block>,
 		> + sp_offchain::OffchainWorkerApi<Block>
 		+ sp_block_builder::BlockBuilder<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppKey>::Pair as Pair>::Public>,
 	sc_client_api::StateBackendFor<ParachainBackend, Block>: sp_api::StateBackend<BlakeTwo256>,
 	<<AuraId as AppKey>::Pair as Pair>::Signature:

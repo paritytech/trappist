@@ -5810,19 +5810,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-dex-rpc"
-version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.37#4a1588fa80cf9ad777601020c2680227c5c450ec"
-dependencies = [
- "jsonrpsee",
- "pallet-dex-rpc-runtime-api",
- "parity-scale-codec",
- "sp-api",
- "sp-blockchain",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
 source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.37#4a1588fa80cf9ad777601020c2680227c5c450ec"
@@ -11411,7 +11398,6 @@ dependencies = [
  "pallet-contracts",
  "pallet-contracts-primitives",
  "pallet-dex",
- "pallet-dex-rpc-runtime-api",
  "pallet-identity",
  "pallet-multisig",
  "pallet-preimage",
@@ -12145,7 +12131,6 @@ dependencies = [
  "log",
  "nix 0.25.1",
  "pallet-asset-tx-payment",
- "pallet-dex-rpc",
  "pallet-transaction-payment-rpc",
  "parachains-common",
  "parity-scale-codec",

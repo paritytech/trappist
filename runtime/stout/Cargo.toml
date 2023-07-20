@@ -96,7 +96,6 @@ pallet-xcm-benchmarks = { workspace = true, optional = true }
 
 # External Pallets
 pallet-dex = { workspace = true }
-pallet-dex-rpc-runtime-api = { workspace = true }
 
 [features]
 default = ["std"]
@@ -131,7 +130,6 @@ std = [
     "pallet-contracts/std",
     "pallet-contracts-primitives/std",
 	"pallet-dex/std",
-	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-multisig/std",
     "pallet-randomness-collective-flip/std",
