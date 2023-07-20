@@ -61,7 +61,7 @@ Add `pallet-assets`, `pallet-asset-registry` and `xcm-primitives` to the depende
 version = "4.0.0-dev"
 default-features = false
 git = "https://github.com/paritytech/substrate.git"
-branch = "polkadot-v0.9.40"
+branch = "polkadot-v0.9.42"
 
 [dependencies.pallet-asset-registry]
 version = "0.0.1"

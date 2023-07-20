@@ -101,7 +101,6 @@ pallet-xcm-benchmarks = { workspace = true, optional = true }
 # External Pallets
 pallet-dex = { workspace = true }
 pallet-dex-rpc-runtime-api = { workspace = true }
-pallet-chess = { workspace = true }
 
 # Trappist Pallets
 pallet-asset-registry = {workspace = true }
@@ -136,7 +135,6 @@ std = [
     "pallet-aura/std",
     "pallet-authorship/std",
     "pallet-balances/std",
-	"pallet-chess/std",
     "pallet-collator-selection/std",
     "pallet-collective/std",
     "pallet-contracts/std",
