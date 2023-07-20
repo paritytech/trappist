@@ -1,5 +1,5 @@
 name: Test storage migration
-# Test storage migration on PRs with label "migration"
+# Test storage migration using try-runtume on PRs with label "migration"
 
 on:
   pull_request:
