@@ -36,10 +36,11 @@ sp-session = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
+sp-weights = { workspace = true }
 
 ## Substrate FRAME Dependencies
-frame-benchmarking = { workspace = true, optional = true}
-frame-try-runtime = { workspace = true, optional = true}
+frame-benchmarking = { workspace = true, optional = true }
+frame-try-runtime = { workspace = true, optional = true }
 frame-executive = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -126,10 +127,12 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"sp-weights/std",
 	"frame-executive/std",
 	"frame-support/std",
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
+	"frame-try-runtime?/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
     "pallet-aura/std",
@@ -187,6 +190,7 @@ runtime-benchmarks = [
 	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-registry/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"trappist-runtime-benchmarks/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
@@ -207,6 +211,39 @@ runtime-benchmarks = [
 	"pallet-xcm-benchmarks/runtime-benchmarks",
 ]
 try-runtime = [
-	"frame-try-runtime",
+	"frame-try-runtime/try-runtime",
 	"frame-executive/try-runtime",
+	"frame-system/try-runtime",
+	"frame-support/try-runtime",
+	"pallet-assets/try-runtime",
+	"pallet-asset-registry/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-collator-selection/try-runtime",
+	"pallet-collective/try-runtime",
+	"pallet-contracts/try-runtime",
+	"pallet-democracy/try-runtime",
+	"pallet-dex/try-runtime",
+	"pallet-identity/try-runtime",
+	"pallet-lockdown-mode/try-runtime",
+	"pallet-multisig/try-runtime",
+	"pallet-scheduler/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-treasury/try-runtime",
+	"pallet-uniques/try-runtime",
+	"pallet-utility/try-runtime",
+	"pallet-xcm/try-runtime",
+	"cumulus-pallet-xcmp-queue/try-runtime",
+	"cumulus-pallet-parachain-system/try-runtime",
+	"pallet-insecure-randomness-collective-flip/try-runtime",
+	"parachain-info/try-runtime",
+	"pallet-authorship/try-runtime",
+	"pallet-session/try-runtime",
+	"pallet-aura/try-runtime",
+	"cumulus-pallet-aura-ext/try-runtime",
+	"cumulus-pallet-xcm/try-runtime",
+	"cumulus-pallet-dmp-queue/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+	"pallet-preimage/try-runtime",
+	"pallet-sudo/try-runtime",
+	"pallet-asset-tx-payment/try-runtime",
 ]

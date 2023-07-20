@@ -6026,7 +6026,6 @@ dependencies = [
 [[package]]
 name = "pallet-dex"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.42#cdef9497cb2b986b7de541a32457be39dbee5c16"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6040,7 +6039,6 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.42#cdef9497cb2b986b7de541a32457be39dbee5c16"
 dependencies = [
  "jsonrpsee",
  "pallet-dex-rpc-runtime-api",
@@ -6053,7 +6051,6 @@ dependencies = [
 [[package]]
 name = "pallet-dex-rpc-runtime-api"
 version = "0.0.1"
-source = "git+https://github.com/paritytech/substrate-dex.git?branch=polkadot-v0.9.42#cdef9497cb2b986b7de541a32457be39dbee5c16"
 dependencies = [
  "pallet-dex",
  "parity-scale-codec",
@@ -12646,11 +12643,13 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-system",
  "futures",
  "hex-literal 0.3.4",
  "jsonrpsee",
  "log",
  "nix 0.25.1",
+ "pallet-asset-tx-payment",
  "pallet-dex-rpc",
  "pallet-transaction-payment-rpc",
  "parachains-common",
@@ -12665,7 +12664,6 @@ dependencies = [
  "sc-consensus",
  "sc-executor",
  "sc-network",
- "sc-network-common",
  "sc-network-sync",
  "sc-rpc",
  "sc-service",
@@ -12681,7 +12679,9 @@ dependencies = [
  "sp-consensus",
  "sp-consensus-aura",
  "sp-core",
+ "sp-inherents",
  "sp-io",
+ "sp-keyring",
  "sp-keystore",
  "sp-offchain",
  "sp-runtime",
@@ -12778,6 +12778,7 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
+ "sp-weights",
  "substrate-wasm-builder",
  "trappist-runtime-benchmarks",
  "xcm",
@@ -12884,6 +12885,7 @@ dependencies = [
  "async-trait",
  "clap",
  "frame-remote-externalities",
+ "frame-try-runtime",
  "hex",
  "log",
  "parity-scale-codec",

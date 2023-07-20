@@ -124,7 +124,6 @@ pub mod pallet {
 			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
 
 			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
-
 			Ok(())
 		}
 

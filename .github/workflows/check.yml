@@ -10,6 +10,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  POLKA_VERSION: 0.9.42
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -18,8 +21,6 @@ jobs:
 
       - name: Setup worker
         uses: "./.github/templates/setup-worker"
-        with:
-          rust-components: rustfmt
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -42,27 +43,22 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}
 
-      - name: Check Build Trappist Runtime
+      - name: Check Build Trappist node
         run: |
-          SKIP_WASM_BUILD=1 cargo check --release
+          SKIP_WASM_BUILD=1 cargo check --release --locked
 
   test:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      # Tests with benchmarks require a lot of disk space
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: false
-          swap-storage: false
-
       - uses: actions/checkout@v3
+
+      # Tests with benchmarks require a lot of disk space
+      - name: Free Disk Space
+        uses: "./.github/templates/free-space"
 
       - name: Setup worker
         uses: "./.github/templates/setup-worker"
@@ -76,8 +72,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-debug-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-debug-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-debug-${{ env.POLKA_VERSION }}
 
-      - name: Run tests
+      - name: Run Trappist tests
         run: |
-          cargo test --features runtime-benchmarks --locked --jobs 1
+          cargo test --workspace --exclude stout-runtime --no-default-features --features trappist/trappist-runtime,std,runtime-benchmarks --locked --jobs 1

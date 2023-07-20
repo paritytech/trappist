@@ -1,0 +1,23 @@
+name: free-space
+description: |
+  This action frees up disk space on the runner.
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Remove Android library
+      shell: bash
+      run: sudo rm -rf /usr/local/lib/android
+
+    - name: Remove .NET runtime
+      shell: bash
+      run: sudo rm -rf /usr/share/dotnet
+
+    - name: Remove CodeQL
+      shell: bash
+      run: sudo rm -rf /opt/hostedtoolcache/CodeQL
+
+    - name: Removes cached Docker images
+      shell: bash
+      run: sudo docker image prune --all --force

@@ -18,10 +18,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	sp_runtime::SaturatedConversion,
+	sp_runtime::{SaturatedConversion},
 	traits::{fungibles::Inspect, Currency},
 	weights::Weight,
 };
+
+#[cfg(not(test))]
 use sp_runtime::DispatchResult;
 use sp_std::{borrow::Borrow, marker::PhantomData};
 use xcm::{
@@ -118,7 +120,6 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 		AccountId,
 		Weigher,
 	> where
-	AssetId: Clone,
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 	AssetsPallet: Inspect<AccountId, AssetId = AssetId>,
 	BalancesPallet: Currency<AccountId>,
