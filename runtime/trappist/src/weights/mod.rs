@@ -16,8 +16,8 @@
 // limitations under the License.
 
 use ::trappist_runtime_benchmarks::WeightInfo;
+use frame_support::weights::Weight;
 use xcm_primitives::DropAssetsWeigher;
-use frame_support::{weights::Weight};
 
 use crate::Runtime;
 

@@ -24,8 +24,8 @@ use cumulus_client_consensus_common::{
 };
 use cumulus_client_consensus_relay_chain::Verifier as RelayChainVerifier;
 use cumulus_client_service::{
-	build_network,build_relay_chain_interface, prepare_node_config, start_collator, start_full_node,
-	StartCollatorParams, StartFullNodeParams, BuildNetworkParams
+	build_network, build_relay_chain_interface, prepare_node_config, start_collator,
+	start_full_node, BuildNetworkParams, StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::{
 	relay_chain::{Hash as PHash, PersistedValidationData},
@@ -35,7 +35,8 @@ use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use futures::lock::Mutex;
 use jsonrpsee::RpcModule;
 pub use parachains_common::{
-	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, BlockNumber, Hash, Header, Index as Nonce,
+	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, BlockNumber, Hash, Header,
+	Index as Nonce,
 };
 use parity_scale_codec::Codec;
 use sc_consensus::{
@@ -43,8 +44,8 @@ use sc_consensus::{
 	BlockImportParams, ImportQueue,
 };
 use sc_executor::WasmExecutor;
-use sc_network_sync::SyncingService;
 use sc_network::NetworkBlock;
+use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_api::{ApiExt, ConstructRuntimeApi};
@@ -286,7 +287,6 @@ where
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
 
-
 	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
 		build_network(BuildNetworkParams {
 			parachain_config: &parachain_config,
@@ -314,7 +314,6 @@ where
 			rpc::create_full(deps, backend_for_rpc.clone()).map_err(Into::into)
 		})
 	};
-
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		rpc_builder,
@@ -352,8 +351,8 @@ where
 	let relay_chain_slot_duration = Duration::from_secs(6);
 
 	let overseer_handle = relay_chain_interface
-	.overseer_handle()
-	.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
+		.overseer_handle()
+		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
 	if validator {
 		let parachain_consensus = build_consensus(

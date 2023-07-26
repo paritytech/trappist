@@ -23,6 +23,7 @@
 extern crate frame_benchmarking;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use cumulus_primitives_core::{BodyId as CumulusBodyId, MultiAsset};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -42,9 +43,9 @@ use frame_system::{
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
-	impls::AssetsToBlockAuthor, opaque, AccountId, AuraId, Balance, BlockNumber, Hash,
-	Header, Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT,
-	MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION, AssetIdForTrustBackedAssets
+	impls::AssetsToBlockAuthor, opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
+	BlockNumber, Hash, Header, Index, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS,
+	MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
@@ -54,12 +55,11 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Percent, Perbill, Permill,
+	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
 use sp_std::prelude::*;
 use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
-use cumulus_primitives_core::{BodyId as CumulusBodyId, MultiAsset};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -68,7 +68,9 @@ use sp_version::NativeVersion;
 
 use constants::{currency::*, fee::WeightToFee};
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
-use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation, SelfReserve, TrustBackedAssetsConvertedConcreteId};
+use xcm_config::{
+	CollatorSelectionUpdateOrigin, RelayLocation, SelfReserve, TrustBackedAssetsConvertedConcreteId,
+};
 
 use crate::weights::{block_weights::BlockExecutionWeight, extrinsic_weights::ExtrinsicBaseWeight};
 
@@ -81,7 +83,6 @@ mod contracts;
 pub mod impls;
 mod weights;
 pub mod xcm_config;
-
 
 pub const MICROUNIT: Balance = 1_000_000;
 

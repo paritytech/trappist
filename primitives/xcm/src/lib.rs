@@ -18,7 +18,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	sp_runtime::{SaturatedConversion},
+	sp_runtime::SaturatedConversion,
 	traits::{fungibles::Inspect, Currency},
 	weights::Weight,
 };

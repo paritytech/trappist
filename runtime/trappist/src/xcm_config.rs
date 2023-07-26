@@ -16,13 +16,15 @@
 // limitations under the License.
 
 use crate::{
-	constants::fee::{WeightToFee, default_fee_per_second}, impls::ToAuthor, weights,
+	constants::fee::{default_fee_per_second, WeightToFee},
+	impls::ToAuthor,
+	weights,
 	weights::TrappistDropAssetsWeigher,
 };
 
 use super::{
-	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, XcmpQueue, AllPalletsWithSystem
+	AccountId, AllPalletsWithSystem, AssetRegistry, Assets, Balance, Balances, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -49,10 +51,10 @@ use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
 	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, ParentAsSuperuser,
+	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
 	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents, WeightInfoBounds, NoChecking
+	UsingComponents, WeightInfoBounds,
 };
 use xcm_executor::XcmExecutor;
 

@@ -37,15 +37,13 @@ pub mod currency {
 pub mod fee {
 	use frame_support::weights::{
 		constants::{ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
-		Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+		FeePolynomial, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	};
 	use polkadot_core_primitives::Balance;
 	use smallvec::smallvec;
 
 	pub use sp_runtime::Perbill;
-	use sp_runtime::SaturatedConversion;
-
-	use crate::impls::WeightCoefficientCalc;
 
 	use super::currency::CENTS;
 
@@ -71,23 +69,11 @@ pub mod fee {
 		type Balance = Balance;
 
 		fn weight_to_fee(weight: &Weight) -> Self::Balance {
-			let ref_time = Balance::saturated_from(weight.ref_time());
-			let proof_size = Balance::saturated_from(weight.proof_size());
-
-			let ref_polynomial = RefTimeToFee::polynomial();
-			let proof_polynomial = ProofSizeToFee::polynomial();
-
-			// Get fee amount from ref_time based on the RefTime polynomial
-			let ref_fee: Balance =
-				ref_polynomial.iter().fold(0, |acc, term| term.saturating_eval(acc, ref_time));
-
-			// Get fee amount from proof_size based on the ProofSize polynomial
-			let proof_fee: Balance = proof_polynomial
-				.iter()
-				.fold(0, |acc, term| term.saturating_eval(acc, proof_size));
+			let ref_time: FeePolynomial<Balance> = RefTimeToFee::polynomial().into();
+			let proof_size: FeePolynomial<Balance> = ProofSizeToFee::polynomial().into();
 
 			// Take the maximum instead of the sum to charge by the more scarce resource.
-			ref_fee.max(proof_fee)
+			ref_time.eval(weight.ref_time()).max(proof_size.eval(weight.proof_size()))
 		}
 	}
 
