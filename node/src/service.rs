@@ -31,19 +31,18 @@ use cumulus_primitives_core::{
 	relay_chain::{Hash as PHash, PersistedValidationData},
 	ParaId,
 };
-use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
+use cumulus_relay_chain_interface::RelayChainInterface;
 use futures::lock::Mutex;
 use jsonrpsee::RpcModule;
 pub use parachains_common::{
-	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, BlockNumber, Hash, Header,
-	Index as Nonce,
+	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, Header, Index as Nonce,
 };
 use parity_scale_codec::Codec;
 use sc_consensus::{
 	import_queue::{BasicQueue, Verifier as VerifierT},
 	BlockImportParams, ImportQueue,
 };
-use sc_executor::WasmExecutor;
+use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::NetworkBlock;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
@@ -54,7 +53,6 @@ use sp_core::Pair;
 use sp_keystore::KeystorePtr;
 use sp_runtime::{
 	app_crypto::AppCrypto,
-	generic::BlockId,
 	traits::{BlakeTwo256, Header as HeaderT},
 };
 use substrate_prometheus_endpoint::Registry;
@@ -153,13 +151,17 @@ where
 		})
 		.transpose()?;
 
-	let executor = sc_executor::WasmExecutor::<HostFunctions>::new(
-		config.wasm_method,
-		config.default_heap_pages,
-		config.max_runtime_instances,
-		None,
-		config.runtime_cache_size,
-	);
+	let heap_pages = config.default_heap_pages.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| {
+		HeapAllocStrategy::Static { extra_pages: h as u32 }
+	});
+
+	let executor = WasmExecutor::<HostFunctions>::builder()
+		.with_execution_method(config.wasm_method)
+		.with_max_runtime_instances(config.max_runtime_instances)
+		.with_runtime_cache_size(config.runtime_cache_size)
+		.with_onchain_heap_alloc_strategy(heap_pages)
+		.with_offchain_heap_alloc_strategy(heap_pages)
+		.build();
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -279,7 +281,7 @@ where
 		hwbench.clone(),
 	)
 	.await
-	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
+	.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
 	let force_authoring = parachain_config.force_authoring;
 	let validator = parachain_config.role.is_authority();

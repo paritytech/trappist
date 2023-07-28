@@ -23,7 +23,6 @@
 extern crate frame_benchmarking;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-use cumulus_primitives_core::{BodyId as CumulusBodyId, MultiAsset};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -51,6 +50,8 @@ pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstU8, OpaqueMetadata};
+#[cfg(any(feature = "std", test))]
+pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
@@ -58,18 +59,15 @@ use sp_runtime::{
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
 use sp_std::prelude::*;
-use sp_version::RuntimeVersion;
-use xcm::latest::prelude::BodyId;
-
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
+use sp_version::RuntimeVersion;
+use xcm::latest::prelude::BodyId;
 
 use constants::{currency::*, fee::WeightToFee};
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 use xcm_config::{
-	CollatorSelectionUpdateOrigin, RelayLocation, SelfReserve, TrustBackedAssetsConvertedConcreteId,
+	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
 };
 
 use crate::weights::{block_weights::BlockExecutionWeight, extrinsic_weights::ExtrinsicBaseWeight};
@@ -924,7 +922,7 @@ impl_runtime_apis! {
 				},
 				// collect pallet_assets (TrustBackedAssets)
 				convert::<_, _, _, _, TrustBackedAssetsConvertedConcreteId>(
-					Assets::account_balances(account.clone())
+					Assets::account_balances(account)
 						.iter()
 						.filter(|(_, balance)| balance > &0)
 				)?
@@ -1039,7 +1037,7 @@ impl_runtime_apis! {
 			list_benchmarks!(list, extra);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
-			return (list, storage_info)
+			(list, storage_info)
 		}
 
 		fn dispatch_benchmark(
@@ -1074,7 +1072,6 @@ impl_runtime_apis! {
 								id: Concrete(GeneralIndex(i as u128).into()),
 								fun: Fungible(fungibles_amount * i as u128),
 							}
-							.into()
 						})
 						.chain(core::iter::once(MultiAsset { id: Concrete(Here.into()), fun: Fungible(u128::MAX) }))
 						.chain((0..holding_non_fungibles).map(|i| MultiAsset {
@@ -1096,7 +1093,6 @@ impl_runtime_apis! {
 					RelayLocation::get(),
 					MultiAsset { fun: Fungible(1 * UNITS), id: Concrete(RelayLocation::get()) },
 				));
-				pub const TrustedReserve: Option<(MultiLocation, MultiAsset)> = None;
 				pub const CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
 
 			}
@@ -1106,7 +1102,6 @@ impl_runtime_apis! {
 
 				type CheckedAccount = CheckedAccount;
 				type TrustedTeleporter = TrustedTeleporter;
-				type TrustedReserve = TrustedReserve;
 
 				fn get_multi_asset() -> MultiAsset {
 					MultiAsset {
@@ -1127,7 +1122,7 @@ impl_runtime_apis! {
 					Err(BenchmarkError::Skip)
 				}
 
-				fn universal_alias() -> Result<Junction, BenchmarkError> {
+				fn universal_alias() -> Result<(MultiLocation, Junction), BenchmarkError> {
 					Err(BenchmarkError::Skip)
 				}
 
@@ -1149,6 +1144,11 @@ impl_runtime_apis! {
 				fn unlockable_asset() -> Result<(MultiLocation, MultiLocation, MultiAsset), BenchmarkError> {
 					Err(BenchmarkError::Skip)
 				}
+
+				fn export_message_origin_and_destination(
+				) -> Result<(MultiLocation, NetworkId, InteriorMultiLocation), BenchmarkError> {
+					Err(BenchmarkError::Skip)
+				}
 			}
 
 
@@ -1168,7 +1168,7 @@ impl_runtime_apis! {
 				type DropAssets = TrappistDropAssets<TrappistAssetId, AssetRegistry, Assets, Balances, (), AccountId, TrappistDropAssetsWeigher>;
 
 				fn register_asset(asset_id: Self::AssetId, location: MultiLocation) {
-					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(&location, asset_id);
+					pallet_asset_registry::AssetMultiLocationId::<Runtime>::insert(location, asset_id);
 					pallet_asset_registry::AssetIdMultiLocation::<Runtime>::insert(asset_id, location);
 				}
 			}

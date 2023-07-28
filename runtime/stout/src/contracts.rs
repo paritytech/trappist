@@ -15,21 +15,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, Timestamp,
-};
 use frame_support::{
 	parameter_types,
 	traits::{ConstU32, Nothing},
-	weights::Weight,
 };
 use pallet_contracts::{
-	weights::{SubstrateWeight, WeightInfo},
-	Config, DefaultAddressGenerator, Frame, Schedule,
+	weights::SubstrateWeight, Config, DefaultAddressGenerator, Frame, Schedule,
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_core::ConstBool;
+
+use crate::{
+	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
+	RuntimeCall, RuntimeEvent, Timestamp,
+};
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
@@ -55,14 +54,14 @@ impl Config for Runtime {
 	/// change because that would break already deployed contracts. The `Call` structure itself
 	/// is not allowed to change the indices of existing pallets, too.
 	type CallFilter = Nothing;
-	type DepositPerItem = DepositPerItem;
-	type DepositPerByte = DepositPerByte;
-	type DefaultDepositLimit = DefaultDepositLimit;
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = SubstrateWeight<Self>;
 	type ChainExtension = ();
 	type Schedule = MySchedule;
 	type CallStack = [Frame<Self>; 5];
+	type DepositPerByte = DepositPerByte;
+	type DefaultDepositLimit = DefaultDepositLimit;
+	type DepositPerItem = DepositPerItem;
 	type AddressGenerator = DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 123 * 1024 }>;
 	type MaxStorageKeyLen = ConstU32<128>;

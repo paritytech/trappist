@@ -18,17 +18,16 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
-use super::*;
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 use frame_support::{
 	traits::{Contains, Currency, Imbalance, OnUnbalanced},
-	weights::{Weight, WeightToFeeCoefficient},
+	weights::Weight,
 };
 pub use log;
-use sp_arithmetic::traits::{BaseArithmetic, Unsigned};
-use sp_runtime::{DispatchResult, SaturatedConversion};
-
+use sp_runtime::DispatchResult;
 use sp_std::marker::PhantomData;
+
+use super::*;
 
 /// Type alias to conveniently refer to the `Currency::NegativeImbalance` associated type.
 pub type NegativeImbalance<T> = <pallet_balances::Pallet<T> as Currency<
@@ -114,36 +113,8 @@ impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 	}
 }
 
-pub trait WeightCoefficientCalc<Balance> {
-	fn saturating_eval(&self, result: Balance, x: Balance) -> Balance;
-}
-
-impl<Balance> WeightCoefficientCalc<Balance> for WeightToFeeCoefficient<Balance>
-where
-	Balance: BaseArithmetic + From<u32> + Copy + Unsigned + SaturatedConversion,
-{
-	fn saturating_eval(&self, mut result: Balance, x: Balance) -> Balance {
-		let power = x.saturating_pow(self.degree.into());
-
-		let frac = self.coeff_frac * power; // Overflow safe since coeff_frac is strictly less than 1.
-		let integer = self.coeff_integer.saturating_mul(power);
-		// Do not add them together here to avoid an underflow.
-
-		if self.negative {
-			result = result.saturating_sub(frac);
-			result = result.saturating_sub(integer);
-		} else {
-			result = result.saturating_add(frac);
-			result = result.saturating_add(integer);
-		}
-
-		result
-	}
-}
-
 #[cfg(test)]
 mod tests {
-	use super::*;
 	use frame_support::{
 		parameter_types,
 		traits::{FindAuthor, ValidatorRegistration},
@@ -159,11 +130,13 @@ mod tests {
 		Perbill, Permill,
 	};
 
+	use super::*;
+
 	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 	type Block = frame_system::mocking::MockBlock<Test>;
 	const TEST_ACCOUNT: AccountId = AccountId::new([1; 32]);
 
-	frame_support::construct_runtime!(
+	construct_runtime!(
 		pub enum Test where
 			Block = Block,
 			NodeBlock = Block,
@@ -185,10 +158,12 @@ mod tests {
 
 	impl frame_system::Config for Test {
 		type BaseCallFilter = frame_support::traits::Everything;
+		type BlockWeights = ();
+		type BlockLength = BlockLength;
 		type RuntimeOrigin = RuntimeOrigin;
+		type RuntimeCall = RuntimeCall;
 		type Index = u64;
 		type BlockNumber = u64;
-		type RuntimeCall = RuntimeCall;
 		type Hash = H256;
 		type Hashing = BlakeTwo256;
 		type AccountId = AccountId;
@@ -196,8 +171,6 @@ mod tests {
 		type Header = Header;
 		type RuntimeEvent = RuntimeEvent;
 		type BlockHashCount = BlockHashCount;
-		type BlockLength = BlockLength;
-		type BlockWeights = ();
 		type DbWeight = ();
 		type Version = ();
 		type PalletInfo = PalletInfo;
@@ -207,19 +180,23 @@ mod tests {
 		type SystemWeightInfo = ();
 		type SS58Prefix = ();
 		type OnSetCode = ();
-		type MaxConsumers = frame_support::traits::ConstU32<16>;
+		type MaxConsumers = ConstU32<16>;
 	}
 
 	impl pallet_balances::Config for Test {
-		type Balance = u64;
 		type RuntimeEvent = RuntimeEvent;
-		type DustRemoval = ();
-		type ExistentialDeposit = ();
-		type AccountStore = System;
-		type MaxLocks = ();
 		type WeightInfo = ();
-		type MaxReserves = MaxReserves;
+		type Balance = u64;
+		type DustRemoval = ();
+		type ExistentialDeposit = ConstU64<1>;
+		type AccountStore = System;
 		type ReserveIdentifier = [u8; 8];
+		type HoldIdentifier = ();
+		type FreezeIdentifier = ();
+		type MaxLocks = ();
+		type MaxReserves = MaxReserves;
+		type MaxHolds = ConstU32<0>;
+		type MaxFreezes = ConstU32<0>;
 	}
 
 	pub struct OneAuthor;
@@ -254,10 +231,10 @@ mod tests {
 		type MaxCandidates = MaxCandidates;
 		type MinCandidates = MinCandidates;
 		type MaxInvulnerables = MaxInvulnerables;
+		type KickThreshold = ();
 		type ValidatorId = <Self as frame_system::Config>::AccountId;
 		type ValidatorIdOf = IdentityCollator;
 		type ValidatorRegistration = IsRegistered;
-		type KickThreshold = ();
 		type WeightInfo = ();
 	}
 
@@ -287,7 +264,6 @@ mod tests {
 	}
 
 	impl pallet_treasury::Config for Test {
-		type PalletId = TreasuryPalletId;
 		type Currency = pallet_balances::Pallet<Test>;
 		type ApproveOrigin = EnsureRoot<AccountId>;
 		type RejectOrigin = EnsureRoot<AccountId>;
@@ -298,6 +274,7 @@ mod tests {
 		type ProposalBondMaximum = ();
 		type SpendPeriod = ConstU64<2>;
 		type Burn = Burn;
+		type PalletId = TreasuryPalletId;
 		type BurnDestination = (); // Just gets burned.
 		type WeightInfo = ();
 		type SpendFunds = ();
@@ -320,14 +297,14 @@ mod tests {
 			let fee = Balances::issue(100);
 			let tip = Balances::issue(30);
 
-			assert_eq!(Treasury::pot(), 0);
+			assert_eq!(Balances::free_balance(Treasury::account_id()), 0);
 
 			DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
 
 			// Author should get 20% of the fee + the 100% of the tip. (50)
 			assert_eq!(Balances::free_balance(CollatorSelection::account_id()), 50);
 			// Treasury should get 80% of the fee. (80)
-			assert_eq!(Treasury::pot(), 80);
+			assert_eq!(Balances::free_balance(Treasury::account_id()), 80);
 		});
 	}
 }

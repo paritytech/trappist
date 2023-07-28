@@ -15,8 +15,8 @@ substrate-wasm-builder = { workspace = true }
 
 [dependencies]
 hex-literal = { workspace = true, optional = true }
-parity-scale-codec = { workspace = true, features = [ "derive" ] }
-log = { workspace = true, default-features = false }
+parity-scale-codec = { workspace = true, features = ["derive"] }
+log = { workspace = true }
 scale-info = { workspace = true }
 serde = { workspace = true, optional = true }
 smallvec = { workspace = true }
@@ -104,7 +104,7 @@ pallet-dex = { workspace = true }
 pallet-dex-rpc-runtime-api = { workspace = true }
 
 # Trappist Pallets
-pallet-asset-registry = {workspace = true }
+pallet-asset-registry = { workspace = true }
 trappist-runtime-benchmarks = { workspace = true }
 pallet-lockdown-mode = { workspace = true }
 
@@ -135,13 +135,13 @@ std = [
 	"frame-try-runtime?/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
-    "pallet-aura/std",
-    "pallet-authorship/std",
-    "pallet-balances/std",
-    "pallet-collator-selection/std",
-    "pallet-collective/std",
-    "pallet-contracts/std",
-    "pallet-contracts-primitives/std",
+	"pallet-aura/std",
+	"pallet-authorship/std",
+	"pallet-balances/std",
+	"pallet-collator-selection/std",
+	"pallet-collective/std",
+	"pallet-contracts/std",
+	"pallet-contracts-primitives/std",
 	"pallet-democracy/std",
 	"pallet-dex/std",
 	"pallet-dex-rpc-runtime-api/std",
@@ -149,13 +149,13 @@ std = [
 	"pallet-lockdown-mode/std",
 	"pallet-preimage/std",
 	"pallet-multisig/std",
-    "pallet-insecure-randomness-collective-flip/std",
-    "pallet-scheduler/std",
-    "pallet-session/std",
-    "pallet-sudo/std",
-    "pallet-timestamp/std",
-    "pallet-transaction-payment-rpc-runtime-api/std",
-    "pallet-transaction-payment/std",
+	"pallet-insecure-randomness-collective-flip/std",
+	"pallet-scheduler/std",
+	"pallet-session/std",
+	"pallet-sudo/std",
+	"pallet-timestamp/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-uniques/std",
 	"pallet-utility/std",
@@ -209,6 +209,7 @@ runtime-benchmarks = [
 	"cumulus-pallet-session-benchmarking/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"pallet-xcm-benchmarks/runtime-benchmarks",
+	"assets-common/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime/try-runtime",

@@ -60,10 +60,6 @@ pub mod fee {
 	/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
 	///   - Setting it to `0` will essentially disable the weight fee.
 	///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
-	///
-	/// TODO: Once the runtime is upgraded to polkadot v0.9.42 or above refactor this using
-	/// the FeePolynomial struct that already includes the methods to make this calculations
-	/// and remove the custom WeightCoefficientCalc inside ./trappist/src/impls.rs
 	pub struct WeightToFee;
 	impl frame_support::weights::WeightToFee for WeightToFee {
 		type Balance = Balance;

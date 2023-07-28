@@ -89,7 +89,7 @@ mod register_reserve_assest {
 	}
 
 	#[test]
-	fn valid_locations_succced() {
+	fn valid_locations_succeed() {
 		let native_frame_based_currency =
 			MultiLocation { parents: 1, interior: X2(Parachain(1000), PalletInstance(1)) };
 		let multiasset_pallet_instance = MultiLocation {
@@ -111,10 +111,6 @@ mod register_reserve_assest {
 				Parachain(2000),
 				AccountKey20 { network: Some(Ethereum { chain_id: 56 }), key: [0; 20] },
 			),
-		};
-		let erc20_ethereum_sm_asset = MultiLocation {
-			parents: 1,
-			interior: X2(Parachain(2000), AccountKey20 { network: Any, key: [0; 20] }),
 		};
 
 		new_test_ext().execute_with(|| {

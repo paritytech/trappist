@@ -26,14 +26,14 @@ benchmarks! {
 		let origin = MultiLocation::default();
 		let asset_id = 1;
 		let location: MultiLocation = Parachain(asset_id).into();
-		T::register_asset(asset_id.into(), location.clone());
+		T::register_asset(asset_id.into(), location);
 		let asset = MultiAsset { id: XcmAssetId::Concrete(location), fun: Fungibility::Fungible(100) };
 	} : {
 		T::DropAssets::drop_assets(
 			&origin,
 			asset.into(),
 			&XcmContext {
-				origin: Some(origin.clone()),
+				origin: Some(origin),
 				message_hash: [0; 32],
 				topic: None,
 			},
@@ -50,7 +50,7 @@ benchmarks! {
 			&origin,
 			asset.into(),
 			&XcmContext {
-				origin: Some(origin.clone()),
+				origin: Some(origin),
 				message_hash: [0; 32],
 				topic: None,
 			},
@@ -65,7 +65,7 @@ benchmarks! {
 			&origin,
 			asset.into(),
 			&XcmContext {
-				origin: Some(origin.clone()),
+				origin: Some(origin),
 				message_hash: [0; 32],
 				topic: None,
 			},

@@ -34,7 +34,7 @@ benchmarks! {
 			parents: 1,
 			interior: Junctions::X3(Parachain(Default::default()), PalletInstance(Default::default()), GeneralIndex(Default::default()))
 		};
-	}: _(RawOrigin::Root, asset_id, asset_multi_location.clone())
+	}: _(RawOrigin::Root, asset_id, asset_multi_location)
 	verify {
 		assert_eq!(AssetIdMultiLocation::<T>::get(asset_id), Some(asset_multi_location));
 	}
@@ -45,7 +45,7 @@ benchmarks! {
 			parents: 1,
 			interior: Junctions::X3(Parachain(Default::default()), PalletInstance(Default::default()), GeneralIndex(Default::default()))
 		};
-		assert_ok!(AssetRegistry::<T>::register_reserve_asset(RawOrigin::Root.into(), asset_id, asset_multi_location.clone()));
+		assert_ok!(AssetRegistry::<T>::register_reserve_asset(RawOrigin::Root.into(), asset_id, asset_multi_location));
 		assert!(AssetIdMultiLocation::<T>::contains_key(asset_id));
 	}: _(RawOrigin::Root, asset_id)
 	verify {

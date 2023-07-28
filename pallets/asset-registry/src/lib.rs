@@ -119,9 +119,9 @@ pub mod pallet {
 			);
 
 			// register asset_id => asset_multi_location
-			AssetIdMultiLocation::<T>::insert(asset_id, &asset_multi_location);
+			AssetIdMultiLocation::<T>::insert(asset_id, asset_multi_location);
 			// register asset_multi_location => asset_id
-			AssetMultiLocationId::<T>::insert(&asset_multi_location, asset_id);
+			AssetMultiLocationId::<T>::insert(asset_multi_location, asset_id);
 
 			Self::deposit_event(Event::ReserveAssetRegistered { asset_id, asset_multi_location });
 			Ok(())
@@ -140,7 +140,7 @@ pub mod pallet {
 				AssetIdMultiLocation::<T>::mutate_exists(asset_id, Option::take)
 					.ok_or(Error::<T>::AssetIsNotRegistered)?;
 			// remove asset_multi_location => asset_id
-			AssetMultiLocationId::<T>::remove(&asset_multi_location);
+			AssetMultiLocationId::<T>::remove(asset_multi_location);
 
 			Self::deposit_event(Event::ReserveAssetUnregistered { asset_id, asset_multi_location });
 			Ok(())
@@ -151,7 +151,7 @@ pub mod pallet {
 		//Validates that the location points to an asset (Native, Frame based, Erc20) as described
 		// in the xcm-format:  https://github.com/paritytech/xcm-format#concrete-identifiers
 		fn valid_asset_location(location: &MultiLocation) -> bool {
-			let (split_multilocation, last_junction) = location.clone().split_last_interior();
+			let (split_multilocation, last_junction) = location.split_last_interior();
 
 			let check = matches!(
 				last_junction,

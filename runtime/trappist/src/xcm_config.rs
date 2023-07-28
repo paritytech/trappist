@@ -15,6 +15,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use frame_support::{
+	match_types, parameter_types,
+	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+	weights::Weight,
+};
+use frame_system::EnsureRoot;
+// use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
+use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
+use parachains_common::{
+	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
+	AssetIdForTrustBackedAssets,
+};
+use polkadot_parachain::primitives::Sibling;
+use sp_core::ConstU32;
+use sp_std::marker::PhantomData;
+use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
+use xcm_builder::{
+	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
+	FixedRateOfFungible, FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking,
+	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
+	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
+};
+use xcm_executor::{traits::JustTry, XcmExecutor};
+
+use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
+
 use crate::{
 	constants::fee::{default_fee_per_second, WeightToFee},
 	impls::ToAuthor,
@@ -26,37 +54,6 @@ use super::{
 	AccountId, AllPalletsWithSystem, AssetRegistry, Assets, Balance, Balances, ParachainInfo,
 	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, XcmpQueue,
 };
-use frame_support::{
-	match_types, parameter_types,
-	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
-	weights::Weight,
-};
-use frame_system::EnsureRoot;
-use sp_core::ConstU32;
-use sp_std::marker::PhantomData;
-
-use parachains_common::{
-	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
-	AssetIdForTrustBackedAssets,
-};
-use xcm_executor::traits::JustTry;
-use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
-
-// use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
-use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use polkadot_parachain::primitives::Sibling;
-use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
-
-use xcm_builder::{
-	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents, WeightInfoBounds,
-};
-use xcm_executor::XcmExecutor;
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
@@ -274,7 +271,9 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
-	type IsTeleporter = (); // Teleporting is disabled.
+	type IsTeleporter = ();
+	type UniversalLocation = UniversalLocation;
+	// Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<
 		crate::weights::xcm::TrappistXcmWeight<RuntimeCall>,
@@ -292,18 +291,17 @@ impl xcm_executor::Config for XcmConfig {
 		AccountId,
 		TrappistDropAssetsWeigher,
 	>;
+	type AssetLocker = ();
+	type AssetExchanger = ();
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	type AssetExchanger = ();
-	type AssetLocker = ();
-	type CallDispatcher = RuntimeCall;
-	type FeeManager = ();
-	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
-	type MessageExporter = ();
 	type PalletInstancesInfo = AllPalletsWithSystem;
-	type SafeCallFilter = ();
+	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
+	type FeeManager = ();
+	type MessageExporter = ();
 	type UniversalAliases = Nothing;
-	type UniversalLocation = UniversalLocation;
+	type CallDispatcher = RuntimeCall;
+	type SafeCallFilter = Everything;
 }
 
 /// Converts a local signed origin into an XCM multilocation.
