@@ -64,7 +64,7 @@ parameter_types! {
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	pub CheckAccount: (AccountId, MintLocation) = (PolkadotXcm::check_account(), MintLocation::Local);
-	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
+	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const MaxAssetsIntoHolding: u32 = 64;
 	pub UniversalLocation: InteriorMultiLocation = (
@@ -121,8 +121,8 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	AccountId,
 	// We don't track any teleports of `Assets`.
 	NoChecking,
-	// We don't track any teleports of `Assets`.
-	(),
+	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait bounds.
+	PlaceholderAccount,
 >;
 
 /// Means for transacting reserved fungible assets.
@@ -144,8 +144,8 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	AccountId,
 	// We don't track any teleports of `Assets`.
 	NoChecking,
-	// We don't track any teleports of `Assets`.
-	(),
+	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait bounds.
+	PlaceholderAccount,
 >;
 
 /// Means for transacting assets on this chain.
