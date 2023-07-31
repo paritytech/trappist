@@ -35,7 +35,7 @@ Possible errors returned by the dispatchable calls are:
 
 - `LockdownModeAlreadyActivated`: The lockdown mode is already activated.
 - `LockdownModeAlreadyDeactivated`: The lockdown mode is already deactivated.
-  
+
 Please note that any failure to suspend or resume XCM execution in the `on_idle` hook is not treated as a fatal error that stops the function execution. Instead, it is recorded as an event `FailedToSuspendIdleXcmExecution` or `FailedToResumeIdleXcmExecution`, respectively, and the function continues its execution.
 
 The lockdown mode can serve as a crucial tool in system maintenance or in case of emergency, when it's necessary to restrict system operation and ensure the system's security and stability.

@@ -56,19 +56,31 @@ pub trait WeightInfo {
 /// Weight functions for `pallet_lockdown_mode`.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	// Storage: lockdownMode lockdownModeStatus (r:1 w:1)
-	// Storage: XcmpQueue QueueSuspended (r:0 w:1)
+	/// Storage: LockdownMode LockdownModeStatus (r:1 w:1)
+	/// Proof: LockdownMode LockdownModeStatus (max_values: Some(1), max_size: Some(1), added: 496, mode: MaxEncodedLen)
+	/// Storage: XcmpQueue QueueSuspended (r:0 w:1)
+	/// Proof Skipped: XcmpQueue QueueSuspended (max_values: Some(1), max_size: None, mode: Measured)
 	fn activate_lockdown_mode() -> Weight {
-		// Minimum execution time: 18_000 nanoseconds.
-		Weight::from_ref_time(19_000_000)
+		// Proof Size summary in bytes:
+		//  Measured:  `100`
+		//  Estimated: `1586`
+		// Minimum execution time: 69_552_000 picoseconds.
+		Weight::from_parts(75_364_000, 0)
+			.saturating_add(Weight::from_parts(0, 1586))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
-	// Storage: lockdownMode lockdownModeStatus (r:1 w:1)
-	// Storage: XcmpQueue QueueSuspended (r:0 w:1)
+	/// Storage: LockdownMode LockdownModeStatus (r:1 w:1)
+	/// Proof: LockdownMode LockdownModeStatus (max_values: Some(1), max_size: Some(1), added: 496, mode: MaxEncodedLen)
+	/// Storage: XcmpQueue QueueSuspended (r:0 w:1)
+	/// Proof Skipped: XcmpQueue QueueSuspended (max_values: Some(1), max_size: None, mode: Measured)
 	fn deactivate_lockdown_mode() -> Weight {
-		// Minimum execution time: 20_000 nanoseconds.
-		Weight::from_ref_time(21_000_000)
+		// Proof Size summary in bytes:
+		//  Measured:  `100`
+		//  Estimated: `1586`
+		// Minimum execution time: 42_162_000 picoseconds.
+		Weight::from_parts(43_321_000, 0)
+			.saturating_add(Weight::from_parts(0, 1586))
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}

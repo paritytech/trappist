@@ -79,11 +79,9 @@ You can also run:
 ```bash
 # To start Trappist and Stout together
 ./zombienet-linux -p native spawn ./zombienet/full_network.toml
-
 # To only run stout
 ./zombienet-linux -p native spawn ./zombienet/stout_rococo.toml
 ```
-
 ### Integration Tests
 [parachains-integration-tests](https://github.com/paritytech/parachains-integration-tests) is a tool meant for XCM message execution in a locally spawned network. Tests are written as YAML files and converted into [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
@@ -101,5 +99,4 @@ cd xcm-simulator && cargo test --release tests::; cd ..
 ```
 
 ## License
-
 Trappist is licensed under [Apache 2](LICENSE).

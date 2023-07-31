@@ -49,7 +49,6 @@ pub mod pallet {
 	use sp_std::vec::Vec;
 	use xcm_primitives::PauseXcmExecution;
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::genesis_config]

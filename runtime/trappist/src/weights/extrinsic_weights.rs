@@ -16,8 +16,8 @@
 // limitations under the License.
 
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-06-13 (Y/M/D)
-//! HOSTNAME: `runner--ss9ysm1-project-647-concurrent-0`, CPU: `Intel(R) Xeon(R) CPU @ 2.60GHz`
+//! DATE: 2023-07-29 (Y/M/D)
+//! HOSTNAME: `kalan-x1x`, CPU: `12th Gen Intel(R) Core(TM) i7-12800H`
 //!
 //! SHORT-NAME: `extrinsic`, LONG-NAME: `ExtrinsicBase`, RUNTIME: `Trappist Development`
 //! WARMUPS: `10`, REPEAT: `100`
@@ -25,15 +25,13 @@
 //! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   ./target/production/trappist-node
+//   target/debug/trappist-node
 //   benchmark
 //   overhead
-//   --chain=trappist-dev
-//   --execution=wasm
+//   --chain
+//   dev
 //   --wasm-execution=compiled
 //   --weight-path=./runtime/trappist/src/weights/
-//   --warmup=10
-//   --repeat=100
 //   --header=./templates/file_header.txt
 
 use sp_core::parameter_types;
@@ -54,7 +52,7 @@ parameter_types! {
 	///   95th: 115_522
 	///   75th: 115_050
 	pub const ExtrinsicBaseWeight: Weight =
-		Weight::from_ref_time(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(114_781));
+		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(114_781), 0);
 }
 
 #[cfg(test)]

@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use ::trappist_runtime_benchmarks::WeightInfo;
+use frame_support::weights::Weight;
 use xcm_primitives::DropAssetsWeigher;
 
 use crate::Runtime;
@@ -47,15 +48,15 @@ pub mod xcm;
 
 pub struct TrappistDropAssetsWeigher();
 impl DropAssetsWeigher for TrappistDropAssetsWeigher {
-	fn fungible() -> u64 {
-		trappist_runtime_benchmarks::WeightInfo::<Runtime>::drop_assets_fungible().ref_time()
+	fn fungible() -> Weight {
+		trappist_runtime_benchmarks::WeightInfo::<Runtime>::drop_assets_fungible()
 	}
 
-	fn native() -> u64 {
-		trappist_runtime_benchmarks::WeightInfo::<Runtime>::drop_assets_native().ref_time()
+	fn native() -> Weight {
+		trappist_runtime_benchmarks::WeightInfo::<Runtime>::drop_assets_native()
 	}
 
-	fn default() -> u64 {
-		trappist_runtime_benchmarks::WeightInfo::<Runtime>::drop_assets_default().ref_time()
+	fn default() -> Weight {
+		trappist_runtime_benchmarks::WeightInfo::<Runtime>::drop_assets_default()
 	}
 }
