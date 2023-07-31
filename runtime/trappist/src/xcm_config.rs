@@ -105,7 +105,7 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We don't track any teleports of `Balances`.
+	// We keep track of in/out teleports. (Needed to teleport HOP to AH)
 	CheckAccount,
 >;
 
@@ -122,7 +122,7 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// We don't track any teleports of `Assets`.
 	NoChecking,
 	// We don't track any teleports of `Assets`.
-	CheckingAccount,
+	(),
 >;
 
 /// Means for transacting reserved fungible assets.
@@ -145,7 +145,7 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	// We don't track any teleports of `Assets`.
 	NoChecking,
 	// We don't track any teleports of `Assets`.
-	CheckingAccount,
+	(),
 >;
 
 /// Means for transacting assets on this chain.
