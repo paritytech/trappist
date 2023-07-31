@@ -121,7 +121,8 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	AccountId,
 	// We don't track any teleports of `Assets`.
 	NoChecking,
-	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait bounds.
+	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait
+	// bounds.
 	PlaceholderAccount,
 >;
 
@@ -144,7 +145,8 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	AccountId,
 	// We don't track any teleports of `Assets`.
 	NoChecking,
-	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait bounds.
+	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait
+	// bounds.
 	PlaceholderAccount,
 >;
 
