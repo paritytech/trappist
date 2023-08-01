@@ -48,12 +48,13 @@ use polkadot_parachain::primitives::Sibling;
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 
 use xcm_builder::{
-	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
+	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
 	FixedRateOfFungible, FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking,
 	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
+	WithComputedOrigin,
 };
 use xcm_executor::XcmExecutor;
 
@@ -190,6 +191,7 @@ match_types! {
 		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
 	};
 }
+
 match_types! {
 	pub type ParentOrSiblings: impl Contains<MultiLocation> = {
 		MultiLocation { parents: 1, interior: Here } |
@@ -202,17 +204,47 @@ match_types! {
 	};
 }
 
+match_types! {
+	pub type ParentOrParentsPlurality: impl Contains<MultiLocation> = {
+		MultiLocation { parents: 1, interior: Here } |
+		MultiLocation { parents: 1, interior: X1(Plurality { .. }) }
+	};
+}
+
+// pub type Barrier = DenyThenTry<
+// 	DenyReserveTransferToRelayChain,
+// 	(
+// 		TakeWeightCredit,
+// 		AllowTopLevelPaidExecutionFrom<Everything>,
+// 		// Parent and its exec plurality get free execution
+// 		AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+// 		// Expected responses are OK.
+// 		AllowKnownQueryResponses<PolkadotXcm>,
+// 		// Subscriptions for version tracking are OK.
+// 		AllowSubscriptionsFrom<Everything>,
+// 	),
+// >;
+
 pub type Barrier = DenyThenTry<
 	DenyReserveTransferToRelayChain,
 	(
 		TakeWeightCredit,
-		AllowTopLevelPaidExecutionFrom<Everything>,
-		// Parent and its exec plurality get free execution
-		AllowUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
 		// Expected responses are OK.
 		AllowKnownQueryResponses<PolkadotXcm>,
-		// Subscriptions for version tracking are OK.
-		AllowSubscriptionsFrom<Everything>,
+		// Allow XCMs with some computed origins to pass through.
+		WithComputedOrigin<
+			(
+				// If the message is one that immediately attemps to pay for execution, then
+				// allow it.
+				AllowTopLevelPaidExecutionFrom<Everything>,
+				// Parent and its pluralities (i.e. governance bodies) get free execution.
+				AllowExplicitUnpaidExecutionFrom<ParentOrParentsPlurality>,
+				// Subscriptions for version tracking are OK.
+				AllowSubscriptionsFrom<ParentOrSiblings>,
+			),
+			UniversalLocation,
+			ConstU32<8>,
+		>,
 	),
 >;
 
@@ -265,6 +297,7 @@ pub type Traders = (
 );
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
+pub type Teleports = NativeAsset;
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -273,7 +306,7 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
-	type IsTeleporter = (); // Teleporting is disabled.
+	type IsTeleporter = Everything;
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<
 		crate::weights::xcm::TrappistXcmWeight<RuntimeCall>,
