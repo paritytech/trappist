@@ -16,8 +16,8 @@
 // limitations under the License.
 
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
-//! DATE: 2023-07-29 (Y/M/D)
-//! HOSTNAME: `kalan-x1x`, CPU: `12th Gen Intel(R) Core(TM) i7-12800H`
+//! DATE: 2023-07-31 (Y/M/D)
+//! HOSTNAME: `runner-ynta1nyy-project-647-concurrent-0`, CPU: `Intel(R) Xeon(R) CPU @ 2.60GHz`
 //!
 //! SHORT-NAME: `extrinsic`, LONG-NAME: `ExtrinsicBase`, RUNTIME: `Trappist Development`
 //! WARMUPS: `10`, REPEAT: `100`
@@ -25,13 +25,14 @@
 //! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   target/debug/trappist-node
+//   ./target/production/trappist-node
 //   benchmark
 //   overhead
-//   --chain
-//   dev
+//   --chain=trappist-dev
 //   --wasm-execution=compiled
 //   --weight-path=./runtime/trappist/src/weights/
+//   --warmup=10
+//   --repeat=100
 //   --header=./templates/file_header.txt
 
 use sp_core::parameter_types;
@@ -42,17 +43,17 @@ parameter_types! {
 	/// Calculated by multiplying the *Average* with `1.0` and adding `0`.
 	///
 	/// Stats nanoseconds:
-	///   Min, Max: 113_785, 116_329
-	///   Average:  114_781
-	///   Median:   114_738
-	///   Std-Dev:  450.29
+	///   Min, Max: 132_923, 135_653
+	///   Average:  133_542
+	///   Median:   133_415
+	///   Std-Dev:  504.8
 	///
 	/// Percentiles nanoseconds:
-	///   99th: 115_717
-	///   95th: 115_522
-	///   75th: 115_050
+	///   99th: 135_409
+	///   95th: 134_462
+	///   75th: 133_698
 	pub const ExtrinsicBaseWeight: Weight =
-		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(114_781), 0);
+		Weight::from_parts(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(133_542), 0);
 }
 
 #[cfg(test)]
