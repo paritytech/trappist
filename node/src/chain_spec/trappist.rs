@@ -24,7 +24,8 @@ use sc_service::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, GenesisConfig, SessionConfig, SessionKeys, SudoConfig, SystemConfig,
+	CouncilConfig, GenesisConfig, LockdownModeConfig, SessionConfig, SessionKeys, SudoConfig,
+	SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -206,7 +207,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
-		lockdown_mode: Default::default(),
+		lockdown_mode: LockdownModeConfig { initial_status: false },
 	}
 }
 
