@@ -203,6 +203,7 @@ match_types! {
 	};
 }
 
+
 pub type Barrier = DenyThenTry<
 	DenyReserveTransferToRelayChain,
 	(
@@ -232,6 +233,12 @@ parameter_types! {
 	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
 }
 
+parameter_types! {
+	pub const TrappistNative: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(MultiLocation::here()) });
+	pub AssetHubTrustedTeleporter: (MultiAssetFilter, MultiLocation) = (TrappistNative::get(), RockmineLocation::get());
+}
+
+
 //- From PR https://github.com/paritytech/cumulus/pull/936
 fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 	prefix.parent_count() == loc.parent_count() &&
@@ -256,6 +263,7 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 	}
 }
 
+
 pub type Traders = (
 	// RUSD
 	FixedRateOfFungible<RUsdPerSecond, ()>,
@@ -266,6 +274,7 @@ pub type Traders = (
 );
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
+pub type TrustedTeleporters = (xcm_builder::Case<AssetHubTrustedTeleporter>,);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -274,7 +283,7 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
-	type IsTeleporter = Everything;
+	type IsTeleporter = TrustedTeleporters;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<
