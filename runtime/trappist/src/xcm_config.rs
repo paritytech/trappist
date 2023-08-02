@@ -203,7 +203,6 @@ match_types! {
 	};
 }
 
-
 pub type Barrier = DenyThenTry<
 	DenyReserveTransferToRelayChain,
 	(
@@ -238,7 +237,6 @@ parameter_types! {
 	pub AssetHubTrustedTeleporter: (MultiAssetFilter, MultiLocation) = (TrappistNative::get(), RockmineLocation::get());
 }
 
-
 //- From PR https://github.com/paritytech/cumulus/pull/936
 fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
 	prefix.parent_count() == loc.parent_count() &&
@@ -262,7 +260,6 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 			}
 	}
 }
-
 
 pub type Traders = (
 	// RUSD
