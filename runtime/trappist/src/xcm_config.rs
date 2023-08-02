@@ -63,6 +63,7 @@ parameter_types! {
 	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
+	// Be mindful with incoming teleports if you implement this
 	pub CheckAccount: (AccountId, MintLocation) = (PolkadotXcm::check_account(), MintLocation::Local);
 	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
@@ -105,8 +106,8 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We keep track of in/out teleports. (Needed to teleport HOP to AH)
-	CheckAccount,
+	// We don't track any teleports.
+	(),
 >;
 
 /// Means for transacting assets besides the native currency on this chain.
