@@ -105,7 +105,7 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-	// We keep track of in/out teleports. (Needed to teleport HOP to AH)
+	// For the moment we don't keep track of Teleports.
 	(),
 >;
 
