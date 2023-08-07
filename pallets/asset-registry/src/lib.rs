@@ -112,11 +112,11 @@ pub mod pallet {
 				Error::<T>::AssetAlreadyRegistered
 			);
 
-			// verify MultiLocation is valid
-			ensure!(
-				Self::valid_asset_location(&asset_multi_location),
-				Error::<T>::WrongMultiLocation
-			);
+			// // verify MultiLocation is valid
+			// ensure!(
+			// 	Self::valid_asset_location(&asset_multi_location),
+			// 	Error::<T>::WrongMultiLocation
+			// );
 
 			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, asset_multi_location);
