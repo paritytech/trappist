@@ -251,13 +251,14 @@ pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
-		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
-		&prefix == origin &&
-			match asset {
-				MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-					matches_prefix(&prefix, asset_loc),
-				_ => false,
-			}
+		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}, asset: {:?}", prefix, origin, asset);
+		&prefix == origin 
+		// &&
+		// 	match asset {
+		// 		MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
+		// 			matches_prefix(&prefix, asset_loc),
+		// 		_ => false,
+		// 	}
 	}
 }
 
