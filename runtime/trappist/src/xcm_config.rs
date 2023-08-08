@@ -106,7 +106,7 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
-  // We don't track any teleports.
+	// We don't track any teleports.
 	(),
 >;
 
@@ -252,7 +252,7 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}, asset: {:?}", prefix, origin, asset);
-		&prefix == origin 
+		&prefix == origin
 		// &&
 		// 	match asset {
 		// 		MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
