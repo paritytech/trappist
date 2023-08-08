@@ -11900,6 +11900,7 @@ dependencies = [
  "hex-literal",
  "kusama-runtime-constants",
  "log",
+ "pallet-asset-registry",
  "pallet-asset-tx-payment",
  "pallet-assets",
  "pallet-aura",
