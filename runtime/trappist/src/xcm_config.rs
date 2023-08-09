@@ -153,7 +153,7 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 
 /// Means for transacting assets on this chain.
 pub type AssetTransactors =
-	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
+	(LocalAssetTransactor, ReservedFungiblesTransactor/* , LocalFungiblesTransactor*/);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -230,6 +230,7 @@ parameter_types! {
 	);
 	/// Roc = 7 RUSD
 	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
+	pub MockTokenPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(10))).into(), default_fee_per_second() * 1, 0u128);
 }
 
 parameter_types! {
@@ -267,6 +268,8 @@ pub type Traders = (
 	FixedRateOfFungible<RUsdPerSecond, ()>,
 	// Roc
 	FixedRateOfFungible<RocPerSecond, ()>,
+	//Mock Token
+	FixedRateOfFungible<MockTokenPerSecond, ()>,
 	// Everything else
 	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 );

@@ -18,8 +18,8 @@
 use crate::AllPalletsWithSystem;
 
 use super::{
-	AccountId, Assets, Balance, Balances, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
+	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
+	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -41,6 +41,7 @@ use xcm_executor::traits::JustTry;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
+use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
@@ -49,9 +50,11 @@ use xcm_builder::{
 	IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents,
+	UsingComponents,FixedRateOfFungible,
 };
 use xcm_executor::XcmExecutor;
+
+use crate::constants::fee::default_fee_per_second;
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
@@ -67,6 +70,7 @@ parameter_types! {
 		GlobalConsensus(NetworkId::Rococo),
 		Parachain(ParachainInfo::parachain_id().into()),
 	).into();
+	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -122,8 +126,32 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	CheckingAccount,
 >;
 
+/// Means for transacting reserved fungible assets.
+/// AsAssetMultiLocation uses pallet_asset_registry to convert between AssetId and MultiLocation.
+pub type ReservedFungiblesTransactor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	Assets,
+	// Use this currency when it is a registered fungible asset matching the given location or name
+	// Assets not found in AssetRegistry will not be used
+	ConvertedRegisteredAssetId<
+		AssetIdForTrustBackedAssets,
+		Balance,
+		AsAssetMultiLocation<AssetIdForTrustBackedAssets, AssetRegistry>,
+		JustTry,
+	>,
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports of `Assets`.
+	NoChecking,
+	// We don't track any teleports of `Assets`, but a placeholder account is provided due to trait
+	// bounds.
+	PlaceholderAccount,
+>;
+
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (CurrencyTransactor, FungiblesTransactor);
+pub type AssetTransactors = (CurrencyTransactor, ReservedFungiblesTransactor, /*FungiblesTransactor,*/ );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -189,6 +217,22 @@ pub type Barrier = DenyThenTry<
 >;
 
 parameter_types! {
+	pub RockmineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
+	// ALWAYS ensure that the index in PalletInstance stays up-to-date with
+	// Rockmine's Assets pallet index
+	pub RockmineAssetsPalletLocation: MultiLocation =
+		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+	pub RUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
+		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
+		default_fee_per_second() * 10,
+		0u128
+	);
+	/// Roc = 7 RUSD
+	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
+	pub MockTokenPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(10))).into(), default_fee_per_second() * 1, 0u128);
+}
+
+parameter_types! {
 	pub StatemineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
 	// ALWAYS ensure that the index in PalletInstance stays up-to-date with
 	// Statemine's Assets pallet index
@@ -220,6 +264,17 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 	}
 }
 
+pub type Traders = (
+	// RUSD
+	FixedRateOfFungible<RUsdPerSecond, ()>,
+	// Roc
+	FixedRateOfFungible<RocPerSecond, ()>,
+	//Mock Token
+	FixedRateOfFungible<MockTokenPerSecond, ()>,
+	// Everything else
+	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
+);
+
 //--
 
 pub type Reserves = (NativeAsset, ReserveAssetsFrom<StatemineLocation>);
@@ -235,8 +290,7 @@ impl xcm_executor::Config for XcmConfig {
 	type IsTeleporter = (); // Teleporting is disabled.
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	type Trader =
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>;
+	type Trader = Traders;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
