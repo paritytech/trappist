@@ -46,11 +46,11 @@ use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
+	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents,FixedRateOfFungible,
+	UsingComponents,
 };
 use xcm_executor::XcmExecutor;
 
@@ -151,7 +151,8 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 >;
 
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (CurrencyTransactor, ReservedFungiblesTransactor, /*FungiblesTransactor,*/ );
+pub type AssetTransactors =
+	(CurrencyTransactor, ReservedFungiblesTransactor /* FungiblesTransactor, */);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -229,7 +230,7 @@ parameter_types! {
 	);
 	/// Roc = 7 RUSD
 	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
-	pub MockTokenPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(10))).into(), default_fee_per_second() * 1, 0u128);
+	pub HopPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X1(Parachain(1836))).into(), default_fee_per_second() * 1, 0u128);
 }
 
 parameter_types! {
@@ -255,12 +256,14 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
-		&prefix == origin &&
-			match asset {
-				MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-					matches_prefix(&prefix, asset_loc),
-				_ => false,
-			}
+		&prefix == origin
+
+		// &&
+		// 	match asset {
+		// 		MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
+		// 			matches_prefix(&prefix, asset_loc),
+		// 		_ => false,
+		// 	}
 	}
 }
 
@@ -270,7 +273,7 @@ pub type Traders = (
 	// Roc
 	FixedRateOfFungible<RocPerSecond, ()>,
 	//Mock Token
-	FixedRateOfFungible<MockTokenPerSecond, ()>,
+	FixedRateOfFungible<HopPerSecond, ()>,
 	// Everything else
 	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 );
