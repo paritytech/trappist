@@ -16,8 +16,9 @@
 // limitations under the License.
 
 use frame_support::{
+	inherent::Vec,
 	match_types, parameter_types,
-	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
+	traits::{Contains, ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
@@ -152,6 +153,7 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 >;
 
 /// Means for transacting assets on this chain.
+/// TODO: Is LocalFungiblesTransactor needed?
 pub type AssetTransactors =
 	(LocalAssetTransactor, ReservedFungiblesTransactor /* , LocalFungiblesTransactor */);
 
@@ -230,7 +232,11 @@ parameter_types! {
 	);
 	/// Roc = 7 RUSD
 	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
-	pub MockTokenPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(10))).into(), default_fee_per_second() * 1, 0u128);
+	// TODO: How to define this ratio?
+	pub MockTokenPerSecond: (xcm::v3::AssetId, u128, u128) = (
+		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(10))).into(),
+		default_fee_per_second() * 1,
+		0u128);
 }
 
 parameter_types! {
@@ -254,12 +260,30 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}, asset: {:?}", prefix, origin, asset);
 		&prefix == origin
-		// &&
+		// TODO: Check on how to fix assetId location as in foreign assets this does not apply.
+		// Assets being sent from AH but asset_loc is another parachain.
+		//	&&
 		// 	match asset {
 		// 		MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
 		// 			matches_prefix(&prefix, asset_loc),
 		// 		_ => false,
 		// 	}
+	}
+}
+
+pub struct OnlyTeleportNative;
+impl Contains<(MultiLocation, Vec<MultiAsset>)> for OnlyTeleportNative {
+	fn contains(t: &(MultiLocation, Vec<MultiAsset>)) -> bool {
+		if t.1.len() != 1 {
+			return false
+		}
+		let asset = &t.1[0];
+		log::trace!(target: "xcm::OnlyTeleportNative", "Asset to be teleported: {:?}", asset);
+		match asset {
+			MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
+				matches_prefix(&SelfReserve::get(), asset_loc),
+			_ => false,
+		}
 	}
 }
 
@@ -341,7 +365,8 @@ impl pallet_xcm::Config for Runtime {
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type XcmTeleportFilter = Everything;
+	//Only teleport of HOP is allowed
+	type XcmTeleportFilter = OnlyTeleportNative;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = WeightInfoBounds<
 		crate::weights::xcm::TrappistXcmWeight<RuntimeCall>,
