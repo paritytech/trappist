@@ -40,7 +40,7 @@ use xcm_executor::traits::JustTry;
 
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain::primitives::Sibling;
-use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
+use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 
 use xcm_builder::{
@@ -151,8 +151,7 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 >;
 
 /// Means for transacting assets on this chain.
-pub type AssetTransactors =
-	(CurrencyTransactor, ReservedFungiblesTransactor /* FungiblesTransactor, */);
+pub type AssetTransactors = (CurrencyTransactor, ReservedFungiblesTransactor, FungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -230,7 +229,7 @@ parameter_types! {
 	);
 	/// Roc = 7 RUSD
 	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
-	pub HopPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X1(Parachain(1836))).into(), default_fee_per_second() * 1, 0u128);
+	pub HopPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X1(Parachain(1836))).into(), default_fee_per_second() * 10, 0u128);
 }
 
 parameter_types! {
@@ -241,29 +240,12 @@ parameter_types! {
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 }
 
-//- From PR https://github.com/paritytech/cumulus/pull/936
-fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
-	prefix.parent_count() == loc.parent_count() &&
-		loc.len() >= prefix.len() &&
-		prefix
-			.interior()
-			.iter()
-			.zip(loc.interior().iter())
-			.all(|(prefix_junction, junction)| prefix_junction == junction)
-}
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
-	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
+	fn contains(_asset: &MultiAsset, origin: &MultiLocation) -> bool {
 		let prefix = T::get();
 		log::trace!(target: "xcm::AssetsFrom", "prefix: {:?}, origin: {:?}", prefix, origin);
 		&prefix == origin
-
-		// &&
-		// 	match asset {
-		// 		MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-		// 			matches_prefix(&prefix, asset_loc),
-		// 		_ => false,
-		// 	}
 	}
 }
 
@@ -272,7 +254,7 @@ pub type Traders = (
 	FixedRateOfFungible<RUsdPerSecond, ()>,
 	// Roc
 	FixedRateOfFungible<RocPerSecond, ()>,
-	//Mock Token
+	//HOP
 	FixedRateOfFungible<HopPerSecond, ()>,
 	// Everything else
 	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
