@@ -39,7 +39,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	use xcm::latest::{
-		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance},
+		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance, Parachain},
 		MultiLocation,
 	};
 
@@ -112,11 +112,11 @@ pub mod pallet {
 				Error::<T>::AssetAlreadyRegistered
 			);
 
-			// // verify MultiLocation is valid
-			// ensure!(
-			// 	Self::valid_asset_location(&asset_multi_location),
-			// 	Error::<T>::WrongMultiLocation
-			// );
+			// verify MultiLocation is valid
+			ensure!(
+				Self::valid_asset_location(&asset_multi_location),
+				Error::<T>::WrongMultiLocation
+			);
 
 			// register asset_id => asset_multi_location
 			AssetIdMultiLocation::<T>::insert(asset_id, asset_multi_location);
@@ -158,7 +158,7 @@ pub mod pallet {
 				Some(AccountId32 { .. }) |
 					Some(AccountKey20 { .. }) |
 					Some(PalletInstance(_)) |
-					None
+					Some(Parachain(_)) | None
 			);
 
 			check |
