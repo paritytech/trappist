@@ -260,23 +260,14 @@ impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveA
 pub struct OnlyTeleportNative;
 impl Contains<(MultiLocation, Vec<MultiAsset>)> for OnlyTeleportNative {
 	fn contains(t: &(MultiLocation, Vec<MultiAsset>)) -> bool {
-t.1.iter().any(|asset| {
-    log::trace!(target: "xcm::OnlyTeleportNative", "Asset to be teleported: {:?}", asset);
-    match asset {
-        MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-            matches_prefix(&SelfReserve::get(), asset_loc),
-        _ => false,
-    }
-})
-			return false
-		}
-		let asset = &t.1[0];
-		log::trace!(target: "xcm::OnlyTeleportNative", "Asset to be teleported: {:?}", asset);
-		match asset {
-			MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-				matches_prefix(&SelfReserve::get(), asset_loc),
-			_ => false,
-		}
+		t.1.iter().any(|asset| {
+			log::trace!(target: "xcm::OnlyTeleportNative", "Asset to be teleported: {:?}", asset);
+			match asset {
+				MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
+					matches_prefix(&SelfReserve::get(), asset_loc),
+				_ => false,
+			}
+		})
 	}
 }
 
