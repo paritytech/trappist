@@ -238,16 +238,6 @@ parameter_types! {
 	pub AssetHubTrustedTeleporter: (MultiAssetFilter, MultiLocation) = (TrappistNative::get(), RockmineLocation::get());
 }
 
-//- From PR https://github.com/paritytech/cumulus/pull/936
-fn matches_prefix(prefix: &MultiLocation, loc: &MultiLocation) -> bool {
-	prefix.parent_count() == loc.parent_count() &&
-		loc.len() >= prefix.len() &&
-		prefix
-			.interior()
-			.iter()
-			.zip(loc.interior().iter())
-			.all(|(prefix_junction, junction)| prefix_junction == junction)
-}
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
 impl<T: Get<MultiLocation>> ContainsPair<MultiAsset, MultiLocation> for ReserveAssetsFrom<T> {
 	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
@@ -262,10 +252,16 @@ impl Contains<(MultiLocation, Vec<MultiAsset>)> for OnlyTeleportNative {
 	fn contains(t: &(MultiLocation, Vec<MultiAsset>)) -> bool {
 		t.1.iter().any(|asset| {
 			log::trace!(target: "xcm::OnlyTeleportNative", "Asset to be teleported: {:?}", asset);
-			match asset {
-				MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =>
-					matches_prefix(&SelfReserve::get(), asset_loc),
-				_ => false,
+
+			if let MultiAsset { id: xcm::latest::AssetId::Concrete(asset_loc), fun: Fungible(_a) } =
+				asset
+			{
+				match asset_loc {
+					MultiLocation { parents: 0, interior: Here } => true,
+					_ => false,
+				}
+			} else {
+				false
 			}
 		})
 	}
