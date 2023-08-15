@@ -97,6 +97,7 @@ pallet-xcm-benchmarks = { workspace = true, optional = true }
 # External Pallets
 pallet-dex = { workspace = true }
 pallet-dex-rpc-runtime-api = { workspace = true }
+pallet-asset-registry = { workspace = true }
 
 [features]
 default = ["std"]

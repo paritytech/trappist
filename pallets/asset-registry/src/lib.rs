@@ -39,7 +39,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	use xcm::latest::{
-		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance},
+		Junction::{AccountId32, AccountKey20, GeneralIndex, PalletInstance, Parachain},
 		MultiLocation,
 	};
 
@@ -158,7 +158,7 @@ pub mod pallet {
 				Some(AccountId32 { .. }) |
 					Some(AccountKey20 { .. }) |
 					Some(PalletInstance(_)) |
-					None
+					Some(Parachain(_)) | None
 			);
 
 			check |

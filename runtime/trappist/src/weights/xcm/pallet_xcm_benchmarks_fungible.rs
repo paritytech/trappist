@@ -103,7 +103,8 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 500_000_000_000 picoseconds.
-		Weight::from_parts(500_000_000_000, 0)
+		// Extracted from previous implementations. TODO: Benchmark
+		Weight::from_parts(4_848_000, 0)
 	}
 	/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
