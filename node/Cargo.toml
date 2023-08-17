@@ -1,6 +1,6 @@
 [package]
 name = "trappist"
-version = "1.0.0"
+version = "0.9.43"
 description = "A versatile Proof-of-Authority (PoA) Blockchain network."
 authors = { workspace = true }
 license = { workspace = true }
@@ -24,6 +24,7 @@ futures = { workspace = true }
 hex-literal = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 
 # Local Dependencies
 trappist-runtime = { workspace = true, optional = true }
@@ -65,7 +66,6 @@ sp-offchain = { workspace = true, features = ["std"] }
 sp-api = { workspace = true, features = ["std"] }
 sp-consensus-aura = { workspace = true, features = ["std"] }
 sc-sysinfo = { workspace = true }
-sp-serializer = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 try-runtime-cli = { workspace = true, optional = true }
 sc-transaction-pool-api = { workspace = true }

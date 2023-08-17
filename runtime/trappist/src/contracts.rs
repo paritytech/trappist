@@ -19,7 +19,7 @@ use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Nothing},
 };
-use pallet_contracts::{Config, DefaultAddressGenerator, Frame, Schedule};
+use pallet_contracts::{Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule};
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 
 use crate::{
@@ -29,7 +29,7 @@ use crate::{
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
-pub const CONTRACTS_DEBUG_OUTPUT: bool = true;
+pub const CONTRACTS_DEBUG_OUTPUT: DebugInfo = DebugInfo::UnsafeDebug;
 
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
