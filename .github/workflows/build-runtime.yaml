@@ -1,31 +1,71 @@
 name: Build Deterministic Runtimes
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
   srtool:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
-        chain: ["trappist", "stout"]
+        runtime: ["trappist", "stout"]
     steps:
-      - uses: actions/checkout@v3
-      - name: Srtool build
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Cache runtime target dir
+        uses: actions/cache@v3
+        with:
+          path: "${{ github.workspace }}/runtime/${{ matrix.runtime }}/target"
+          key: srtool-target-${{ matrix.runtime }}-${{ github.sha }}
+          restore-keys: |
+            srtool-target-${{ matrix.runtime }}-
+            srtool-target-
+
+      - name: Build ${{ matrix.runtime }} runtime
         id: srtool_build
         uses: chevdor/srtool-actions@v0.7.0
         with:
-          chain: ${{ matrix.chain }}
-      - name: Summary
+          chain: ${{ matrix.runtime }}
+
+      - name: Store srtool digest to disk
         run: |
-          echo Summary:
-          echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
-          cat ${{ matrix.chain }}-srtool-digest.json
-          cp `dirname ${{ steps.srtool_build.outputs.wasm }}`/*.wasm ./
+          echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.runtime }}-srtool-digest.json
+
+      # Manual trigger: add artifacts to run
+      - name: Copy artifacts
+        if: github.event_name != 'release'
+        run: cp `dirname ${{ steps.srtool_build.outputs.wasm }}`/*.wasm ./
       - name: Archive Runtime
+        if: github.event_name != 'release'
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.chain }}-runtime-${{ github.sha }}
+          name: ${{ matrix.runtime }}-runtime-${{ github.sha }}
           path: |
             ${{ matrix.chain }}*.wasm
-            ${{ matrix.chain }}-srtool-digest.json
+            ${{ matrix.runtime }}-srtool-digest.json
+
+      # Release published: add artifacts to release
+      - name: Add artifacts to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          append_body: true
+          body: |
+            ## Runtime: `${{ matrix.runtime }}`
+            ```
+            🏋️ Runtime Size:           ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.size }} bytes
+            🔥 Core Version:           ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.core_version.specName }}-${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.core_version.specVersion }}
+            🎁 Metadata version:       V${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.metadata_version }}
+            🗳️ system.setCode hash:    ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.proposal_hash }}
+            🗳️ authorizeUpgrade hash:  ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.parachain_authorize_upgrade_hash }}
+            🗳️ Blake2-256 hash:        ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.blake2_256 }}
+            📦 IPFS:                   ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.ipfs_hash }}
+            ```
+          files: |
+            ${{ steps.srtool_build.outputs.wasm_compressed }}
+            ${{ matrix.runtime }}-srtool-digest.json
