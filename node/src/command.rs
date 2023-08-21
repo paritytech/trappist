@@ -397,14 +397,19 @@ pub fn run() -> Result<()> {
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
 			use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
+			use try_runtime_cli::block_building_info::timestamp_with_aura_info;
 
 			type HostFunctionsOf<E> = ExtendedHostFunctions<
 				sp_io::SubstrateHostFunctions,
 				<E as NativeExecutionDispatch>::ExtendHostFunctions,
 			>;
 
+			let info_provider = timestamp_with_aura_info(6000);
+
 			construct_async_run!(|components, cli, cmd, _config, runtime| {
-				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>>())
+				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>, _>(Some(
+					info_provider,
+				)))
 			})
 		},
 		#[cfg(not(feature = "try-runtime"))]
