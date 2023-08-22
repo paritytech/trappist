@@ -1,9 +1,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// Edit this file to define custom logic or remove it if it is not needed.
-/// Learn more about FRAME and the core library of Substrate FRAME pallets:
-/// <https://docs.substrate.io/reference/frame-pallets/>
+type BaseXcm<T> = pallet_xcm::Pallet<T>;
 pub use pallet::*;
+use sp_std::boxed::Box;
+pub use xcm::{
+	opaque::latest::prelude::{Junction, Junctions, MultiLocation, OriginKind, Transact},
+	v3::{
+		AssetId, Fungibility,
+		Instruction::{
+			BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw, WithdrawAsset,
+		},
+		MultiAsset, MultiAssetFilter, MultiAssets, Parent, WeightLimit, WildMultiAsset, Xcm,
+	},
+	VersionedMultiAssets, VersionedMultiLocation, VersionedResponse, VersionedXcm,
+};
 
 // #[cfg(test)]
 // mod mock;
@@ -26,38 +36,31 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		//type WeightInfo: ();
-	}
+	pub trait Config: frame_system::Config + pallet_xcm::Config {}
 
 	#[pallet::storage]
 	#[pallet::getter(fn something)]
 	pub type Something<T> = StorageValue<_, u32>;
 
-	#[pallet::event]
-	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	pub enum Event<T: Config> {
-		SomethingStored { something: u32, who: T::AccountId },
-	}
-
-	#[pallet::error]
-	pub enum Error<T> {
-		/// Error names should be descriptive.
-		NoneValue,
-		/// Errors should have helpful documentation associated with them.
-		StorageOverflow,
-	}
-
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
-		pub fn do_something(origin: OriginFor<T>, something: u32) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			<Something<T>>::put(something);
-			Self::deposit_event(Event::SomethingStored { something, who });
-			Ok(())
+		pub fn teleport_foreign_assets(
+			origin: OriginFor<T>,
+			dest: Box<VersionedMultiLocation>,
+			beneficiary: Box<VersionedMultiLocation>,
+			assets: Box<VersionedMultiAssets>,
+			fee_asset_item: u32,
+		) -> DispatchResult {
+			BaseXcm::<T>::teleport_assets(
+			    origin,
+			    dest,
+			    beneficiary,
+			    assets,
+			    fee_asset_item,
+			);
+            Ok(())
 		}
 	}
 }

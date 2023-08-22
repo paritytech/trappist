@@ -20,6 +20,7 @@ frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-xcm = { workspace = true }
+xcm = { workspace = true }
 
 
 [dev-dependencies]
