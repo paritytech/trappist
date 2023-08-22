@@ -1,6 +1,6 @@
 [package]
 name = "trappist"
-version = "0.9.43"
+version = "1.0.0"
 description = "A versatile Proof-of-Authority (PoA) Blockchain network."
 authors = { workspace = true }
 license = { workspace = true }

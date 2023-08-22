@@ -25,7 +25,7 @@ use parachains_common::AuraId;
 use parity_scale_codec::Encode;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
+	NetworkParams, Result, SharedParams, SubstrateCli,
 };
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
@@ -35,8 +35,11 @@ use crate::{
 	benchmarking::{inherent_benchmark_data, RemarkBuilder},
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{new_partial, Block, RuntimeExecutor},
+	service::{new_partial, Block},
 };
+
+#[cfg(feature = "try-runtime")]
+use crate::service::RuntimeExecutor;
 
 /// Dispatches the code to the currently selected runtime.
 macro_rules! dispatch_runtime {
@@ -226,10 +229,6 @@ impl SubstrateCli for Cli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		load_spec(id)
 	}
-
-	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		dispatch_runtime!(chain_spec.runtime(), |runtime| &runtime::VERSION)
-	}
 }
 
 impl SubstrateCli for RelayChainCli {
@@ -265,10 +264,6 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
-	}
-
-	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		polkadot_cli::Cli::native_runtime_version(chain_spec)
 	}
 }
 
@@ -324,11 +319,9 @@ pub fn run() -> Result<()> {
 			})
 		},
 		Some(Subcommand::ExportGenesisState(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|_config| {
+			construct_async_run!(|components, cli, cmd, _config| {
 				let spec = cli.load_spec(&cmd.shared_params.chain.clone().unwrap_or_default())?;
-				let state_version = Cli::native_runtime_version(&spec).state_version();
-				cmd.run::<crate::service::Block>(&*spec, state_version)
+				Ok(async move { cmd.run::<crate::service::Block>(&*spec, &*components.client) })
 			})
 		},
 		Some(Subcommand::ExportGenesisWasm(cmd)) => {
@@ -351,7 +344,7 @@ pub fn run() -> Result<()> {
 						}
 
 						dispatch_runtime!(config.chain_spec.runtime(), |runtime| {
-							cmd.run::<Block, RuntimeExecutor<runtime::Runtime>>(config)
+							cmd.run::<Block, ()>(config)
 						})
 					},
 					BenchmarkCmd::Block(cmd) => {
@@ -445,10 +438,8 @@ pub fn run() -> Result<()> {
 				let parachain_account =
 					AccountIdConversion::<polkadot_primitives::AccountId>::into_account_truncating(&id);
 
-				let state_version = Cli::native_runtime_version(&config.chain_spec).state_version();
-
 				let block: crate::service::Block =
-					generate_genesis_block(&*config.chain_spec, state_version)
+					generate_genesis_block(&*config.chain_spec, sp_runtime::StateVersion::V1)
 						.map_err(|e| format!("{e:?}"))?;
 				let genesis_state = format!("0x{:?}", HexDisplay::from(&block.header().encode()));
 
@@ -700,16 +691,20 @@ mod tests {
 		assert_resolved_runtime(
 			Runtime::Trappist,
 			vec![
-				Box::new(create_default_with_extensions::<trappist_runtime::GenesisConfig, _>(
-					"trappist-1",
-					Extensions1::default(),
-					crate::chain_spec::trappist::testnet_genesis,
-				)),
-				Box::new(create_default_with_extensions::<trappist_runtime::GenesisConfig, _>(
-					"trappist-2",
-					Extensions2::default(),
-					crate::chain_spec::trappist::testnet_genesis,
-				)),
+				Box::new(
+					create_default_with_extensions::<trappist_runtime::RuntimeGenesisConfig, _>(
+						"trappist-1",
+						Extensions1::default(),
+						crate::chain_spec::trappist::testnet_genesis,
+					),
+				),
+				Box::new(
+					create_default_with_extensions::<trappist_runtime::RuntimeGenesisConfig, _>(
+						"trappist-2",
+						Extensions2::default(),
+						crate::chain_spec::trappist::testnet_genesis,
+					),
+				),
 				Box::new(crate::chain_spec::trappist::trappist_local_testnet_config()),
 			],
 		)

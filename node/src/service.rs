@@ -35,7 +35,7 @@ use cumulus_relay_chain_interface::RelayChainInterface;
 use futures::lock::Mutex;
 use jsonrpsee::RpcModule;
 pub use parachains_common::{
-	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, Header, Index as Nonce,
+	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, Header, Nonce,
 };
 use parity_scale_codec::Codec;
 use sc_consensus::{

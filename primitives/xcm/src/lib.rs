@@ -22,7 +22,7 @@ use frame_support::{
 	traits::{fungibles::Inspect, Currency},
 	weights::Weight,
 };
-
+use sp_runtime::traits::MaybeEquivalence;
 #[cfg(not(test))]
 use sp_runtime::DispatchResult;
 use sp_std::{borrow::Borrow, marker::PhantomData};
@@ -33,25 +33,25 @@ use xcm::{
 	v3::XcmContext,
 };
 use xcm_executor::{
-	traits::{Convert, DropAssets, Error as MatchError, MatchesFungibles},
+	traits::{DropAssets, Error as MatchError, MatchesFungibles},
 	Assets,
 };
 
 pub struct AsAssetMultiLocation<AssetId, AssetIdInfoGetter>(
 	PhantomData<(AssetId, AssetIdInfoGetter)>,
 );
-impl<AssetId, AssetIdInfoGetter> xcm_executor::traits::Convert<MultiLocation, AssetId>
+impl<AssetId, AssetIdInfoGetter> MaybeEquivalence<MultiLocation, AssetId>
 	for AsAssetMultiLocation<AssetId, AssetIdInfoGetter>
 where
 	AssetId: Clone,
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 {
-	fn convert_ref(asset_multi_location: impl Borrow<MultiLocation>) -> Result<AssetId, ()> {
-		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow()).ok_or(())
+	fn convert(asset_multi_location: &MultiLocation) -> Option<AssetId> {
+		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow())
 	}
 
-	fn reverse_ref(asset_id: impl Borrow<AssetId>) -> Result<MultiLocation, ()> {
-		AssetIdInfoGetter::get_asset_multi_location(asset_id.borrow().clone()).ok_or(())
+	fn convert_back(asset_id: &AssetId) -> Option<MultiLocation> {
+		AssetIdInfoGetter::get_asset_multi_location(asset_id.clone())
 	}
 }
 
@@ -66,8 +66,8 @@ pub struct ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertB
 impl<
 		AssetId: Clone,
 		Balance: Clone,
-		ConvertAssetId: Convert<MultiLocation, AssetId>,
-		ConvertBalance: Convert<u128, Balance>,
+		ConvertAssetId: MaybeEquivalence<MultiLocation, AssetId>,
+		ConvertBalance: MaybeEquivalence<Balance, u128>,
 	> MatchesFungibles<AssetId, Balance>
 	for ConvertedRegisteredAssetId<AssetId, Balance, ConvertAssetId, ConvertBalance>
 {
@@ -76,9 +76,9 @@ impl<
 			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
 			_ => return Err(MatchError::AssetNotHandled),
 		};
-		let what = ConvertAssetId::convert_ref(id).map_err(|_| MatchError::AssetNotHandled)?;
-		let amount = ConvertBalance::convert_ref(amount)
-			.map_err(|_| MatchError::AmountToBalanceConversionFailed)?;
+		let what = ConvertAssetId::convert(id).ok_or_else(|| MatchError::AssetNotHandled)?;
+		let amount = ConvertBalance::convert_back(amount)
+			.ok_or_else(|| MatchError::AmountToBalanceConversionFailed)?;
 		Ok((what, amount))
 	}
 }

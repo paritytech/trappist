@@ -30,11 +30,7 @@ use frame_system::EnsureRoot;
 use sp_core::ConstU32;
 use sp_std::marker::PhantomData;
 
-use parachains_common::{
-	impls::DealWithFees,
-	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
-	AssetIdForTrustBackedAssets,
-};
+use parachains_common::{impls::DealWithFees, AssetIdForTrustBackedAssets};
 
 use xcm_executor::traits::JustTry;
 
@@ -46,11 +42,11 @@ use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
-	ConvertedConcreteId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
-	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	UsingComponents,
+	ConvertedConcreteId, CurrencyAdapter, DenyReserveTransferToRelayChain, DenyThenTry,
+	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
+	MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
+	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
 use xcm_executor::XcmExecutor;
 
@@ -291,6 +287,7 @@ impl xcm_executor::Config for XcmConfig {
 	type SafeCallFilter = ();
 	type UniversalAliases = Nothing;
 	type UniversalLocation = UniversalLocation;
+	type Aliasers = ();
 }
 
 /// Converts a local signed origin into an XCM multilocation.

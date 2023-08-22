@@ -19,7 +19,9 @@ use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Nothing},
 };
-use pallet_contracts::{Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule};
+use pallet_contracts::{
+	Config, DebugInfo, DefaultAddressGenerator, Frame, NoopMigration, Schedule,
+};
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 
 use crate::{
@@ -64,4 +66,8 @@ impl Config for Runtime {
 	type MaxStorageKeyLen = ConstU32<128>;
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = (NoopMigration<1>, NoopMigration<2>);
 }

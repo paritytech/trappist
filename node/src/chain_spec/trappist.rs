@@ -24,14 +24,15 @@ use sc_service::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, GenesisConfig, LockdownModeConfig, SessionConfig, SessionKeys, SudoConfig,
-	SystemConfig,
+	CouncilConfig, LockdownModeConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys,
+	SudoConfig, SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec = sc_service::GenericChainSpec<trappist_runtime::GenesisConfig, Extensions>;
+pub type ChainSpec =
+	sc_service::GenericChainSpec<trappist_runtime::RuntimeGenesisConfig, Extensions>;
 
 const TRAPPIST_PARA_ID: u32 = 1836;
 
@@ -159,18 +160,22 @@ pub fn testnet_genesis(
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	id: ParaId,
-) -> GenesisConfig {
-	GenesisConfig {
+) -> RuntimeGenesisConfig {
+	RuntimeGenesisConfig {
 		system: SystemConfig {
 			code: trappist_runtime::WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
+			..Default::default()
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of 1 << 60.
 			balances: endowed_accounts.into_iter().map(|k| (k, 1 << 60)).collect(),
 		},
-		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
+		parachain_info: trappist_runtime::ParachainInfoConfig {
+			parachain_id: id,
+			..Default::default()
+		},
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
 			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
@@ -196,6 +201,7 @@ pub fn testnet_genesis(
 		parachain_system: Default::default(),
 		polkadot_xcm: trappist_runtime::PolkadotXcmConfig {
 			safe_xcm_version: Some(SAFE_XCM_VERSION),
+			..Default::default()
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.
@@ -207,7 +213,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
-		lockdown_mode: LockdownModeConfig { initial_status: false },
+		lockdown_mode: LockdownModeConfig { initial_status: false, ..Default::default() },
 	}
 }
 
@@ -267,12 +273,13 @@ fn trappist_live_genesis(
 	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
 	id: ParaId,
-) -> GenesisConfig {
-	GenesisConfig {
+) -> RuntimeGenesisConfig {
+	RuntimeGenesisConfig {
 		system: SystemConfig {
 			code: trappist_runtime::WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
+			..Default::default()
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts
@@ -281,7 +288,10 @@ fn trappist_live_genesis(
 				.chain(std::iter::once((root_key.clone(), 1_000_000_000_000_000_000)))
 				.collect(),
 		},
-		parachain_info: trappist_runtime::ParachainInfoConfig { parachain_id: id },
+		parachain_info: trappist_runtime::ParachainInfoConfig {
+			parachain_id: id,
+			..Default::default()
+		},
 		collator_selection: trappist_runtime::CollatorSelectionConfig {
 			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
 			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
@@ -305,6 +315,7 @@ fn trappist_live_genesis(
 		parachain_system: Default::default(),
 		polkadot_xcm: trappist_runtime::PolkadotXcmConfig {
 			safe_xcm_version: Some(SAFE_XCM_VERSION),
+			..Default::default()
 		},
 		sudo: SudoConfig {
 			// Assign network admin rights.

@@ -23,7 +23,7 @@ use pallet_remark::{self, Call as RemarkCall};
 
 #[test]
 fn genesis_config_default() {
-	let default_genesis = GenesisConfig::default();
+	let default_genesis = GenesisConfig::<Test>::default();
 	assert_eq!(default_genesis.initial_status, ACTIVATED);
 }
 
