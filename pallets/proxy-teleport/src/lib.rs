@@ -20,7 +20,8 @@ pub use xcm::{
 			BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw, Transact,
 			WithdrawAsset,
 		},
-		MultiAsset, MultiAssetFilter, MultiAssets, Parent, WeightLimit, WildMultiAsset, Xcm,
+		MultiAsset, MultiAssetFilter, MultiAssets, Parent, SendXcm, WeightLimit, WildMultiAsset,
+		Xcm, XcmHash
 	},
 	VersionedMultiAssets, VersionedMultiLocation, VersionedResponse, VersionedXcm,
 };
@@ -66,6 +67,10 @@ pub mod pallet {
 		Empty,
 		/// Could not re-anchor the assets to declare the fees for the destination chain.
 		CannotReanchor,
+		/// Origin is invalid for sending.
+		InvalidOrigin,
+        /// An error ocured during send
+        SendError,
 	}
 
 	#[pallet::event]
@@ -73,6 +78,13 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Execution of an XCM message was attempted.
 		Attempted { outcome: xcm::latest::Outcome },
+		/// A XCM message was sent.
+		Sent {
+			origin: MultiLocation,
+			destination: MultiLocation,
+			message: Xcm<()>,
+			message_id: XcmHash,
+		},
 	}
 
 	#[pallet::call]
@@ -139,17 +151,17 @@ impl<T: Config> Pallet<T> {
 		// 		Limited(remote_weight)
 		// 	},
 		// };
-		let xcm: Xcm<()> = Xcm(vec![
-			BuyExecution { fees, weight_limit },
-			DepositAsset {
-				assets: MultiAssetFilter::Wild(WildMultiAsset::AllCounted(max_assets)),
-				beneficiary,
-			},
+		let xcm_message: Xcm<()> = Xcm(vec![
+			WithdrawAsset(assets.clone()),
+            BuyExecution { fees, weight_limit },
+			// DepositAsset {
+			// 	assets: MultiAssetFilter::Wild(WildMultiAsset::AllCounted(max_assets)),
+			// 	beneficiary,
+			// },
 		]);
 		let mut message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
 			WithdrawAsset(assets),
 			// SetFeesMode { jit_withdraw: true },
-            //TODO: Send 
 		]);
 		let weight: Weight = Weight::from_parts(1_000_000_000, 100_000);
 		// 	T::Weigher::weight(&mut message).map_err(|()| Error::<T>::UnweighableMessage)?;
@@ -157,6 +169,13 @@ impl<T: Config> Pallet<T> {
 		let outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
 		Self::deposit_event(Event::Attempted { outcome });
+		let interior: Junctions =
+			origin_location.try_into().map_err(|_| Error::<T>::InvalidOrigin)?;
+		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_message.clone())
+			.map_err(|_| Error::<T>::SendError)?;
+        //TODO: Check this Error population
+		let e = Event::Sent { origin: origin_location, destination: dest, message: xcm_message, message_id };
+		Self::deposit_event(e);
 		Ok(())
 	}
 }
