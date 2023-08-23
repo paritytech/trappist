@@ -652,7 +652,9 @@ impl pallet_lockdown_mode::Config for Runtime {
 	type WeightInfo = weights::pallet_lockdown_mode::WeightInfo<Runtime>;
 }
 
-impl pallet_proxy_teleport::Config for Runtime {}
+impl pallet_proxy_teleport::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
