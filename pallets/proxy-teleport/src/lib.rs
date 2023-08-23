@@ -143,7 +143,7 @@ impl<T: Config> Pallet<T> {
 		let context = T::UniversalLocation::get();
 
 		// Will only work for caller fees. Proxy asset pays at destination.
-		let fees = assets
+		let fees = proxy_asset
 			.get(fee_asset_item as usize)
 			.ok_or(Error::<T>::Empty)?
 			.clone()
@@ -199,8 +199,8 @@ impl<T: Config> Pallet<T> {
 		Self::deposit_event(Event::Attempted { outcome });
 
 		// Use pallet-xcm send for sending message.
-		let interior: Junctions =
-			origin_location.try_into().map_err(|_| Error::<T>::InvalidOrigin)?;
+		let root_origin = T::SendXcmOrigin::ensure_origin(frame_system::RawOrigin::Root.into())?;
+		let interior: Junctions = root_origin.try_into().map_err(|_| Error::<T>::InvalidOrigin)?;
 		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_message.clone())
 			.map_err(|_| Error::<T>::SendError)?;
 		//TODO: Check this Error population and use the ones from pallet-xcm
