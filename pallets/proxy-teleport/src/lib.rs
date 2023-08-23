@@ -21,7 +21,7 @@ pub use xcm::{
 			WithdrawAsset,
 		},
 		MultiAsset, MultiAssetFilter, MultiAssets, Parent, SendXcm, WeightLimit, WildMultiAsset,
-		Xcm, XcmHash
+		Xcm, XcmHash,
 	},
 	VersionedMultiAssets, VersionedMultiLocation, VersionedResponse, VersionedXcm,
 };
@@ -69,8 +69,8 @@ pub mod pallet {
 		CannotReanchor,
 		/// Origin is invalid for sending.
 		InvalidOrigin,
-        /// An error ocured during send
-        SendError,
+		/// An error ocured during send
+		SendError,
 	}
 
 	#[pallet::event]
@@ -96,9 +96,18 @@ pub mod pallet {
 			dest: Box<VersionedMultiLocation>,
 			beneficiary: Box<VersionedMultiLocation>,
 			assets: Box<VersionedMultiAssets>,
+			proxy_asset: Box<VersionedMultiAssets>,
 			fee_asset_item: u32,
 		) -> DispatchResult {
-			Self::do_proxy_teleport_assets(origin, dest, beneficiary, assets, fee_asset_item, None)
+			Self::do_proxy_teleport_assets(
+				origin,
+				dest,
+				beneficiary,
+				assets,
+				proxy_asset,
+				fee_asset_item,
+				None,
+			)
 		}
 	}
 }
@@ -112,20 +121,28 @@ impl<T: Config> Pallet<T> {
 		dest: Box<VersionedMultiLocation>,
 		beneficiary: Box<VersionedMultiLocation>,
 		assets: Box<VersionedMultiAssets>,
+		proxy_asset: Box<VersionedMultiAssets>,
 		fee_asset_item: u32,
 		maybe_weight_limit: Option<WeightLimit>,
 	) -> DispatchResult {
+		//Unbox parameters.
 		let origin_location = T::ExecuteXcmOrigin::ensure_origin(origin)?;
 		let dest: MultiLocation = (*dest).try_into().map_err(|()| Error::<T>::BadVersion)?;
 		let beneficiary: MultiLocation =
 			(*beneficiary).try_into().map_err(|()| Error::<T>::BadVersion)?;
 		let assets: MultiAssets = (*assets).try_into().map_err(|()| Error::<T>::BadVersion)?;
+		let proxy_asset: MultiAssets =
+			(*proxy_asset).try_into().map_err(|()| Error::<T>::BadVersion)?;
 
+		//Checks
 		ensure!(assets.len() <= MAX_ASSETS_FOR_TRANSFER, Error::<T>::TooManyAssets);
 		let value = (origin_location, assets.into_inner());
 		ensure!(T::XcmTeleportFilter::contains(&value), Error::<T>::Filtered);
 		let (origin_location, assets) = value;
+
 		let context = T::UniversalLocation::get();
+
+		// Will only work for caller fees. Proxy asset pays at destination.
 		let fees = assets
 			.get(fee_asset_item as usize)
 			.ok_or(Error::<T>::Empty)?
@@ -134,6 +151,9 @@ impl<T: Config> Pallet<T> {
 			.map_err(|_| Error::<T>::CannotReanchor)?;
 		let max_assets = assets.len() as u32;
 		let assets: MultiAssets = assets.into();
+
+		// For now, ignore weight limit.
+		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
 		// let weight_limit = match maybe_weight_limit {
 		// 	Some(weight_limit) => weight_limit,
@@ -151,31 +171,48 @@ impl<T: Config> Pallet<T> {
 		// 		Limited(remote_weight)
 		// 	},
 		// };
+
+		// Build the message to send.
 		let xcm_message: Xcm<()> = Xcm(vec![
-			WithdrawAsset(assets.clone()),
-            BuyExecution { fees, weight_limit },
-			// DepositAsset {
-			// 	assets: MultiAssetFilter::Wild(WildMultiAsset::AllCounted(max_assets)),
-			// 	beneficiary,
-			// },
+			WithdrawAsset(proxy_asset),
+			BuyExecution { fees, weight_limit },
+			// ReceiveTeleported (mint)
+			// DepositAsset (beneficiary)
 		]);
-		let mut message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+
+		//Build the message to execute.
+		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
 			WithdrawAsset(assets),
+			//TODO: Check if needed.
 			// SetFeesMode { jit_withdraw: true },
 		]);
+
+		// Temporarly hardcode weight.
+		// TODO: Replace for Weigher.
 		let weight: Weight = Weight::from_parts(1_000_000_000, 100_000);
 		// 	T::Weigher::weight(&mut message).map_err(|()| Error::<T>::UnweighableMessage)?;
+
+		// Execute Withdraw for burning assets on origin.
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);
 		let outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
 		Self::deposit_event(Event::Attempted { outcome });
+
+		// Use pallet-xcm send for sending message.
 		let interior: Junctions =
 			origin_location.try_into().map_err(|_| Error::<T>::InvalidOrigin)?;
 		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_message.clone())
 			.map_err(|_| Error::<T>::SendError)?;
-        //TODO: Check this Error population
-		let e = Event::Sent { origin: origin_location, destination: dest, message: xcm_message, message_id };
+		//TODO: Check this Error population and use the ones from pallet-xcm
+		let e = Event::Sent {
+			origin: origin_location,
+			destination: dest,
+			message: xcm_message,
+			message_id,
+		};
 		Self::deposit_event(e);
+
+		// Finish.
 		Ok(())
 	}
 }
