@@ -6609,6 +6609,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-proxy-teleport"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+]
+
+[[package]]
 name = "pallet-ranked-collective"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v1.0.0#948fbd2fd1233dc26dbb9f9bbc1d2cca2c03945d"
@@ -12939,6 +12956,7 @@ dependencies = [
  "pallet-lockdown-mode",
  "pallet-multisig",
  "pallet-preimage",
+ "pallet-proxy-teleport",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
