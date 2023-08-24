@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 env:
-  POLKA_VERSION: 0.9.42
+  POLKA_VERSION: 0.9.43
 
 jobs:
   lint:

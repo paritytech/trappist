@@ -159,7 +159,7 @@ impl RuntimeResolver for PathBuf {
 
 		let file = std::fs::File::open(self).expect("Failed to open file");
 		let reader = std::io::BufReader::new(file);
-		let chain_spec: EmptyChainSpecWithId = sp_serializer::from_reader(reader)
+		let chain_spec: EmptyChainSpecWithId = serde_json::from_reader(reader)
 			.expect("Failed to read 'json' file with ChainSpec configuration");
 
 		chain_spec.id.as_str().into()
@@ -397,14 +397,19 @@ pub fn run() -> Result<()> {
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
 			use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
+			use try_runtime_cli::block_building_info::timestamp_with_aura_info;
 
 			type HostFunctionsOf<E> = ExtendedHostFunctions<
 				sp_io::SubstrateHostFunctions,
 				<E as NativeExecutionDispatch>::ExtendHostFunctions,
 			>;
 
+			let info_provider = timestamp_with_aura_info(6000);
+
 			construct_async_run!(|components, cli, cmd, _config, runtime| {
-				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>>())
+				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>, _>(Some(
+					info_provider,
+				)))
 			})
 		},
 		#[cfg(not(feature = "try-runtime"))]
@@ -483,12 +488,8 @@ impl DefaultConfigurationValues for RelayChainCli {
 		30334
 	}
 
-	fn rpc_ws_listen_port() -> u16 {
+	fn rpc_listen_port() -> u16 {
 		9945
-	}
-
-	fn rpc_http_listen_port() -> u16 {
-		9934
 	}
 
 	fn prometheus_listen_port() -> u16 {
@@ -520,16 +521,8 @@ impl CliConfiguration<Self> for RelayChainCli {
 			.or_else(|| self.base_path.clone().map(Into::into)))
 	}
 
-	fn rpc_http(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {
-		self.base.base.rpc_http(default_listen_port)
-	}
-
-	fn rpc_ipc(&self) -> Result<Option<String>> {
-		self.base.base.rpc_ipc()
-	}
-
-	fn rpc_ws(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {
-		self.base.base.rpc_ws(default_listen_port)
+	fn rpc_addr(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {
+		self.base.base.rpc_addr(default_listen_port)
 	}
 
 	fn prometheus_config(
@@ -575,8 +568,8 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.rpc_methods()
 	}
 
-	fn rpc_ws_max_connections(&self) -> Result<Option<usize>> {
-		self.base.base.rpc_ws_max_connections()
+	fn rpc_max_connections(&self) -> Result<u32> {
+		self.base.base.rpc_max_connections()
 	}
 
 	fn rpc_cors(&self, is_dev: bool) -> Result<Option<Vec<String>>> {

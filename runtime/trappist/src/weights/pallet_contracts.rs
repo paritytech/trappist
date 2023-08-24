@@ -306,6 +306,27 @@ impl<T: frame_system::Config> pallet_contracts::weights::WeightInfo for WeightIn
 			.saturating_add(T::DbWeight::get().writes(3))
 			.saturating_add(Weight::from_parts(0, 2715).saturating_mul(r.into()))
 	}
+	/// Storage: Contracts ContractInfoOf (r:1 w:1)
+	/// Proof: Contracts ContractInfoOf (max_values: None, max_size: Some(290), added: 2765, mode: Measured)
+	/// Storage: Contracts CodeStorage (r:1 w:0)
+	/// Proof: Contracts CodeStorage (max_values: None, max_size: Some(126001), added: 128476, mode: Measured)
+	/// Storage: Timestamp Now (r:1 w:0)
+	/// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: Measured)
+	/// Storage: System EventTopics (r:2 w:2)
+	/// Proof Skipped: System EventTopics (max_values: None, max_size: None, mode: Measured)
+	/// The range of component `r` is `[0, 1600]`.
+	fn seal_caller_is_root(r: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `668 + r * (3 ±0)`
+		//  Estimated: `6608 + r * (3 ±0)`
+		// Minimum execution time: 228_022_000 picoseconds.
+		Weight::from_parts(232_385_198, 6608)
+			// Standard Error: 300
+			.saturating_add(Weight::from_parts(145_143, 0).saturating_mul(r.into()))
+			.saturating_add(T::DbWeight::get().reads(5_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 3).saturating_mul(r.into()))
+	}
 	/// Storage: System Account (r:1 w:0)
 	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: Measured)
 	/// Storage: Contracts ContractInfoOf (r:1601 w:1)

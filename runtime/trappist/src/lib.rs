@@ -111,7 +111,10 @@ pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
-pub type Migrations = pallet_contracts::Migration<Runtime>;
+type EventRecord = frame_system::EventRecord<
+	<Runtime as frame_system::Config>::RuntimeEvent,
+	<Runtime as frame_system::Config>::Hash,
+>;
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -120,7 +123,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	Migrations,
+	(migrations::SetStorageVersions, pallet_xcm::migration::v1::MigrateToV1<Runtime>),
 >;
 
 impl_opaque_keys! {
@@ -134,7 +137,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("trappist-rococo"),
 	impl_name: create_runtime_str!("trappist-rococo"),
 	authoring_version: 1,
-	spec_version: 9420,
+	spec_version: 9430,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -350,6 +353,7 @@ impl pallet_collator_selection::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -713,6 +717,36 @@ construct_runtime!(
 	}
 );
 
+pub mod migrations {
+	use super::*;
+	use frame_support::traits::{GetStorageVersion, OnRuntimeUpgrade, StorageVersion};
+
+	/// Migrations that set `StorageVersion`s we missed to set.
+	///
+	/// It's *possible* that these pallets have not in fact been migrated to the versions being set,
+	/// which we should keep in mind in the future if we notice any strange behavior.
+	/// We opted to not check exactly what on-chain versions each pallet is at, since it would be
+	/// an involved effort, this is testnet, and no one has complained
+	/// (https://github.com/paritytech/polkadot/issues/6657#issuecomment-1552956439).
+	pub struct SetStorageVersions;
+
+	impl OnRuntimeUpgrade for SetStorageVersions {
+		fn on_runtime_upgrade() -> Weight {
+			let mut writes = 0;
+			let mut reads = 0;
+
+			// Scheduler
+			if Scheduler::on_chain_storage_version() < 4 {
+				StorageVersion::new(4).put::<Scheduler>();
+				writes += 1;
+			}
+			reads += 1;
+
+			RocksDbWeight::get().reads_writes(reads, writes)
+		}
+	}
+}
+
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
@@ -931,7 +965,8 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_contracts::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash> for Runtime {
+
+	impl pallet_contracts::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash, EventRecord> for Runtime {
 		fn call(
 			origin: AccountId,
 			dest: AccountId,
@@ -939,7 +974,7 @@ impl_runtime_apis! {
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
 			input_data: Vec<u8>,
-		) -> pallet_contracts_primitives::ContractExecResult<Balance> {
+		) -> pallet_contracts_primitives::ContractExecResult<Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_call(
 				origin,
@@ -949,6 +984,7 @@ impl_runtime_apis! {
 				storage_deposit_limit,
 				input_data,
 				contracts::CONTRACTS_DEBUG_OUTPUT,
+				pallet_contracts::CollectEvents::UnsafeCollect,
 				pallet_contracts::Determinism::Enforced,
 			)
 		}
@@ -961,7 +997,7 @@ impl_runtime_apis! {
 			code: pallet_contracts_primitives::Code<Hash>,
 			data: Vec<u8>,
 			salt: Vec<u8>,
-		) -> pallet_contracts_primitives::ContractInstantiateResult<AccountId, Balance> {
+		) -> pallet_contracts_primitives::ContractInstantiateResult<AccountId, Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_instantiate(
 				origin,
@@ -972,6 +1008,7 @@ impl_runtime_apis! {
 				data,
 				salt,
 				contracts::CONTRACTS_DEBUG_OUTPUT,
+				pallet_contracts::CollectEvents::UnsafeCollect,
 			)
 		}
 
