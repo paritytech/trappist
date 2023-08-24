@@ -40,7 +40,7 @@ pub use xcm::{
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{pallet_prelude::*, parameter_types};
+	use frame_support::{pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
 
 	#[pallet::pallet]
@@ -107,9 +107,6 @@ pub mod pallet {
 	}
 }
 
-/// The maximum number of distinct assets allowed to be transferred in a single helper extrinsic.
-const MAX_ASSETS_FOR_TRANSFER: usize = 2;
-
 impl<T: Config> Pallet<T> {
 	fn do_proxy_teleport_assets(
 		origin: OriginFor<T>,
@@ -136,7 +133,7 @@ impl<T: Config> Pallet<T> {
 		let assets = MultiAssets::from(vec![native_asset]);
 
 		// Native from foreign perspective
-		//TODO: Replace ID with Parameter
+		//TODO: Replace ID with parameter
 		let localtion_as_foreign =
 			MultiLocation { parents: 1, interior: Junctions::X1(Junction::Parachain(1836)) };
 
@@ -164,10 +161,12 @@ impl<T: Config> Pallet<T> {
 			.clone()
 			.reanchored(&dest, context)
 			.map_err(|_| Error::<T>::CannotReanchor)?;
-		let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
-		let assets: MultiAssets = assets.into();
+
+		// TODO: Define if Withdrawn proxy assets are deposited or dropped
+		//let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
 		//Build the message to execute on origin.
+		let assets: MultiAssets = assets.into();
 		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
 			// Withdraw drops asset so is used as burn mechanism
 			WithdrawAsset(assets),
@@ -181,11 +180,8 @@ impl<T: Config> Pallet<T> {
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
-            // Intentionally drop ROC to avoid exploit 
-			DepositAsset {
-				assets: MultiAssetFilter::Definite(foreing_assets),
-				beneficiary,
-			},
+			// Intentionally drop ROC to avoid exploit
+			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
 		]);
 
 		// Temporarly hardcode weight.
