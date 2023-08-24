@@ -149,7 +149,7 @@ impl<T: Config> Pallet<T> {
 			.clone()
 			.reanchored(&dest, context)
 			.map_err(|_| Error::<T>::CannotReanchor)?;
-		let max_assets = assets.len() as u32;
+		let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 		let assets: MultiAssets = assets.into();
 
 		// For now, ignore weight limit.
@@ -180,7 +180,7 @@ impl<T: Config> Pallet<T> {
 			fun: Fungibility::Fungible(1000000000000_u128),
 		};
 
-        let foreing_assets = MultiAssets::from(vec![foreing_asset.clone()]);
+		let foreing_assets = MultiAssets::from(vec![foreing_asset.clone()]);
 		// Build the message to send.
 		let xcm_message: Xcm<()> = Xcm(vec![
 			WithdrawAsset(proxy_asset),
