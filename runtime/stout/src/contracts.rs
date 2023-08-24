@@ -20,9 +20,11 @@ use frame_support::{
 	traits::{ConstU32, Nothing},
 };
 use pallet_contracts::{
-	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, NoopMigration,
-	Schedule,
+	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
+
+#[cfg(feature = "runtime-benchmarks")]
+use pallet_contracts::NoopMigration;
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_core::ConstBool;
 

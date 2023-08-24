@@ -125,7 +125,12 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(migrations::SetStorageVersions, pallet_xcm::migration::v1::MigrateToV1<Runtime>),
+	(
+		migrations::SetStorageVersions,
+		pallet_xcm::migration::v1::MigrateToV1<Runtime>,
+		pallet_collator_selection::migration::v1::MigrateToV1<Runtime>,
+		pallet_contracts::Migration<Runtime>,
+	),
 >;
 
 impl_opaque_keys! {
@@ -178,16 +183,18 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 impl frame_system::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type BaseCallFilter = LockdownMode;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
+	type Nonce = Nonce;
 	type Hash = Hash;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = AccountIdLookup<AccountId, ()>;
-	type RuntimeEvent = RuntimeEvent;
+	type Block = Block;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = RocksDbWeight;
 	type Version = Version;
@@ -199,8 +206,6 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ConstU16<42>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
-	type Nonce = Nonce;
-	type Block = Block;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -212,26 +217,26 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 impl pallet_authorship::Config for Runtime {
-	type EventHandler = CollatorSelection;
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
+	type EventHandler = CollatorSelection;
 }
 
 impl pallet_balances::Config for Runtime {
+	/// The ubiquitous event type.
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	type DustRemoval = ();
-	/// The ubiquitous event type.
-	type RuntimeEvent = RuntimeEvent;
 	type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
 	type AccountStore = System;
-	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
+	type ReserveIdentifier = [u8; 8];
+	type RuntimeHoldReason = ();
+	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type ReserveIdentifier = [u8; 8];
-	type FreezeIdentifier = ();
 	type MaxHolds = ConstU32<0>;
 	type MaxFreezes = ConstU32<0>;
-	type RuntimeHoldReason = ();
 }
 
 parameter_types! {
@@ -372,6 +377,7 @@ pub type AssetBalance = Balance;
 impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = AssetBalance;
+	type RemoveItemsLimit = frame_support::traits::ConstU32<1000>;
 	type AssetId = AssetIdForTrustBackedAssets;
 	type AssetIdParameter = parity_scale_codec::Compact<AssetIdForTrustBackedAssets>;
 	type Currency = Balances;
@@ -386,7 +392,6 @@ impl pallet_assets::Config for Runtime {
 	type Freezer = ();
 	type Extra = ();
 	type CallbackHandle = ();
-	type RemoveItemsLimit = frame_support::traits::ConstU32<1000>;
 	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
@@ -528,7 +533,6 @@ impl pallet_democracy::Config for Runtime {
 	type InstantAllowed = InstantAllowed;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type CooloffPeriod = CooloffPeriod;
-	type SubmitOrigin = EnsureSigned<AccountId>;
 	type MaxVotes = MaxVotes;
 	type MaxProposals = MaxProposals;
 	type MaxDeposits = ConstU32<100>;
@@ -541,6 +545,7 @@ impl pallet_democracy::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
 	type ExternalDefaultOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>;
+	type SubmitOrigin = EnsureSigned<AccountId>;
 	type FastTrackOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>;
 	type InstantOrigin =
