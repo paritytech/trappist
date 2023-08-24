@@ -40,7 +40,7 @@ pub use xcm::{
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{pallet_prelude::*, parameter_types};
 	use frame_system::pallet_prelude::*;
 
 	#[pallet::pallet]
@@ -50,10 +50,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config + pallet_xcm::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 	}
-
-	#[pallet::storage]
-	#[pallet::getter(fn something)]
-	pub type Something<T> = StorageValue<_, u32>;
 
 	#[pallet::error]
 	pub enum Error<T> {
@@ -91,11 +87,11 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
 		#[pallet::weight(10_000)]
-		pub fn proxy_teleport(
+		pub fn proxy_native_teleport(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
 			beneficiary: Box<VersionedMultiLocation>,
-			assets: Box<VersionedMultiAssets>,
+			native_asset_amount: u128,
 			proxy_asset: Box<VersionedMultiAssets>,
 			fee_asset_item: u32,
 		) -> DispatchResult {
@@ -103,10 +99,9 @@ pub mod pallet {
 				origin,
 				dest,
 				beneficiary,
-				assets,
+				native_asset_amount,
 				proxy_asset,
 				fee_asset_item,
-				None,
 			)
 		}
 	}
@@ -120,17 +115,39 @@ impl<T: Config> Pallet<T> {
 		origin: OriginFor<T>,
 		dest: Box<VersionedMultiLocation>,
 		beneficiary: Box<VersionedMultiLocation>,
-		assets: Box<VersionedMultiAssets>,
+		native_asset_amount: u128,
 		proxy_asset: Box<VersionedMultiAssets>,
 		fee_asset_item: u32,
-		maybe_weight_limit: Option<WeightLimit>,
 	) -> DispatchResult {
-		//Unbox parameters.
+		//Unbox origin, destination and beneficiary.
 		let origin_location = T::ExecuteXcmOrigin::ensure_origin(origin)?;
 		let dest: MultiLocation = (*dest).try_into().map_err(|()| Error::<T>::BadVersion)?;
 		let beneficiary: MultiLocation =
 			(*beneficiary).try_into().map_err(|()| Error::<T>::BadVersion)?;
-		let assets: MultiAssets = (*assets).try_into().map_err(|()| Error::<T>::BadVersion)?;
+
+		//Create assets
+
+		// Native from local perspective
+		let native_asset = MultiAsset {
+			id: AssetId::Concrete(MultiLocation::here()),
+			fun: Fungibility::Fungible(native_asset_amount),
+		};
+
+		let assets = MultiAssets::from(vec![native_asset]);
+
+		// Native from foreign perspective
+		//TODO: Replace ID with Parameter
+		let localtion_as_foreign =
+			MultiLocation { parents: 1, interior: Junctions::X1(Junction::Parachain(1836)) };
+
+		let native_as_foreign = MultiAsset {
+			id: AssetId::Concrete(localtion_as_foreign),
+			fun: Fungibility::Fungible(native_asset_amount),
+		};
+
+		let foreing_assets = MultiAssets::from(vec![native_as_foreign]);
+
+		//Unbox proxy asset
 		let proxy_asset: MultiAssets =
 			(*proxy_asset).try_into().map_err(|()| Error::<T>::BadVersion)?;
 
@@ -152,35 +169,10 @@ impl<T: Config> Pallet<T> {
 		let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 		let assets: MultiAssets = assets.into();
 
-		// For now, ignore weight limit.
+		// Set WeightLimit
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
-		// let weight_limit = match maybe_weight_limit {
-		// 	Some(weight_limit) => weight_limit,
-		// 	None => {
-		// 		let fees = fees.clone();
-		// 		let mut remote_message = Xcm(vec![
-		// 			ReceiveTeleportedAsset(assets.clone()),
-		// 			ClearOrigin,
-		// 			BuyExecution { fees, weight_limit: Limited(Weight::zero()) },
-		// 			DepositAsset { assets: Wild(AllCounted(max_assets)), beneficiary },
-		// 		]);
-		// 		// use local weight for remote message and hope for the best.
-		// 		let remote_weight = T::Weigher::weight(&mut remote_message)
-		// 			.map_err(|()| Error::<T>::UnweighableMessage)?;
-		// 		Limited(remote_weight)
-		// 	},
-		// };
 
-		let foreign_location =
-			MultiLocation { parents: 1, interior: Junctions::X1(Junction::Parachain(1836)) };
-
-		let foreing_asset = MultiAsset {
-			id: AssetId::Concrete(foreign_location),
-			fun: Fungibility::Fungible(1000000000000_u128),
-		};
-
-		let foreing_assets = MultiAssets::from(vec![foreing_asset.clone()]);
 		// Build the message to send.
 		let xcm_message: Xcm<()> = Xcm(vec![
 			WithdrawAsset(proxy_asset),
