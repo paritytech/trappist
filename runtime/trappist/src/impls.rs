@@ -125,24 +125,18 @@ mod tests {
 	use polkadot_core_primitives::v2::AccountId;
 	use sp_core::H256;
 	use sp_runtime::{
-		testing::Header,
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
 		Perbill, Permill,
 	};
 
 	use super::*;
 
-	type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 	type Block = frame_system::mocking::MockBlock<Test>;
 	const TEST_ACCOUNT: AccountId = AccountId::new([1; 32]);
 
 	construct_runtime!(
-		pub enum Test where
-			Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
-		{
-			System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
+		pub struct Test {
+			System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 			CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>},
 			Treasury: pallet_treasury::{Pallet, Call, Storage, Event<T>},
@@ -162,13 +156,10 @@ mod tests {
 		type BlockLength = BlockLength;
 		type RuntimeOrigin = RuntimeOrigin;
 		type RuntimeCall = RuntimeCall;
-		type Index = u64;
-		type BlockNumber = u64;
 		type Hash = H256;
 		type Hashing = BlakeTwo256;
 		type AccountId = AccountId;
 		type Lookup = IdentityLookup<Self::AccountId>;
-		type Header = Header;
 		type RuntimeEvent = RuntimeEvent;
 		type BlockHashCount = BlockHashCount;
 		type DbWeight = ();
@@ -181,6 +172,8 @@ mod tests {
 		type SS58Prefix = ();
 		type OnSetCode = ();
 		type MaxConsumers = ConstU32<16>;
+		type Nonce = u64;
+		type Block = Block;
 	}
 
 	impl pallet_balances::Config for Test {
@@ -191,7 +184,7 @@ mod tests {
 		type ExistentialDeposit = ConstU64<1>;
 		type AccountStore = System;
 		type ReserveIdentifier = [u8; 8];
-		type HoldIdentifier = ();
+		type RuntimeHoldReason = ();
 		type FreezeIdentifier = ();
 		type MaxLocks = ();
 		type MaxReserves = MaxReserves;
@@ -220,7 +213,7 @@ mod tests {
 		pub const PotId: PalletId = PalletId(*b"PotStake");
 		pub const MaxCandidates: u32 = 20;
 		pub const MaxInvulnerables: u32 = 20;
-		pub const MinCandidates: u32 = 1;
+		pub const MinEligibleCollators: u32 = 1;
 	}
 
 	impl pallet_collator_selection::Config for Test {
@@ -229,7 +222,7 @@ mod tests {
 		type UpdateOrigin = EnsureRoot<AccountId>;
 		type PotId = PotId;
 		type MaxCandidates = MaxCandidates;
-		type MinCandidates = MinCandidates;
+		type MinEligibleCollators = MinEligibleCollators;
 		type MaxInvulnerables = MaxInvulnerables;
 		type KickThreshold = ();
 		type ValidatorId = <Self as frame_system::Config>::AccountId;
@@ -283,7 +276,7 @@ mod tests {
 	}
 
 	pub fn new_test_ext() -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 		// We use default for brevity, but you can configure as desired if needed.
 		pallet_balances::GenesisConfig::<Test>::default()
 			.assimilate_storage(&mut t)

@@ -34,7 +34,7 @@ benchmarks! {
 			asset.into(),
 			&XcmContext {
 				origin: Some(origin),
-				message_hash: [0; 32],
+				message_id: [0; 32],
 				topic: None,
 			},
 		);
@@ -51,7 +51,7 @@ benchmarks! {
 			asset.into(),
 			&XcmContext {
 				origin: Some(origin),
-				message_hash: [0; 32],
+				message_id: [0; 32],
 				topic: None,
 			},
 		);
@@ -66,7 +66,7 @@ benchmarks! {
 			asset.into(),
 			&XcmContext {
 				origin: Some(origin),
-				message_hash: [0; 32],
+				message_id: [0; 32],
 				topic: None,
 			},
 		);

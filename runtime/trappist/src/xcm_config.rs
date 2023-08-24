@@ -16,7 +16,6 @@
 // limitations under the License.
 
 use frame_support::{
-	inherent::Vec,
 	match_types, parameter_types,
 	traits::{Contains, ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
 	weights::Weight,
@@ -24,21 +23,19 @@ use frame_support::{
 use frame_system::EnsureRoot;
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use parachains_common::{
-	xcm_config::{DenyReserveTransferToRelayChain, DenyThenTry},
-	AssetIdForTrustBackedAssets,
-};
+use parachains_common::AssetIdForTrustBackedAssets;
 use polkadot_parachain::primitives::Sibling;
 use sp_core::ConstU32;
-use sp_std::marker::PhantomData;
+use sp_std::{marker::PhantomData, vec::Vec};
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter, EnsureXcmOrigin,
-	FixedRateOfFungible, FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, UsingComponents, WeightInfoBounds,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, CurrencyAdapter,
+	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedRateOfFungible,
+	FungiblesAdapter, IsConcrete, MintLocation, NativeAsset, NoChecking, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents, WeightInfoBounds,
 };
 use xcm_executor::{traits::JustTry, XcmExecutor};
 
@@ -287,6 +284,7 @@ impl xcm_executor::Config for XcmConfig {
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = Reserves;
 	type IsTeleporter = TrustedTeleporters;
+	type Aliasers = ();
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = WeightInfoBounds<

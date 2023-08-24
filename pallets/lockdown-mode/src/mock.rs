@@ -18,18 +18,16 @@
 use crate as pallet_lockdown_mode;
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 use frame_support::{
-	traits::{ConstU16, ConstU64, Contains, GenesisBuild},
+	traits::{ConstU16, ConstU64, Contains},
 	weights::Weight,
 };
 use frame_system as system;
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, ConstU32, IdentityLookup},
-	DispatchResult,
+	BuildStorage, DispatchResult,
 };
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::parameter_types! {
@@ -40,11 +38,7 @@ frame_support::parameter_types! {
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
+	pub struct Test {
 		System: frame_system,
 		LockdownMode: pallet_lockdown_mode::{Pallet, Call, Storage, Event<T>},
 		Balance: pallet_balances::{Pallet, Call, Storage, Event<T>},
@@ -53,19 +47,18 @@ frame_support::construct_runtime!(
 );
 
 impl system::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
 	type BaseCallFilter = frame_support::traits::Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = u64;
+	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type RuntimeEvent = RuntimeEvent;
+	type Block = Block;
 	type BlockHashCount = ConstU64<250>;
 	type DbWeight = ();
 	type Version = ();
@@ -87,7 +80,7 @@ impl pallet_balances::Config for Test {
 	type ExistentialDeposit = ConstU64<1>;
 	type AccountStore = System;
 	type ReserveIdentifier = [u8; 8];
-	type HoldIdentifier = ();
+	type RuntimeHoldReason = ();
 	type FreezeIdentifier = ();
 	type MaxLocks = ();
 	type MaxReserves = ();
@@ -141,11 +134,9 @@ impl pallet_lockdown_mode::Config for Test {
 }
 
 pub fn new_test_ext(initial_status: bool) -> sp_io::TestExternalities {
-	let mut storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
-	GenesisBuild::<Test>::assimilate_storage(
-		&pallet_lockdown_mode::GenesisConfig { initial_status },
-		&mut storage,
-	)
-	.unwrap();
+	let mut storage = system::GenesisConfig::<Test>::default().build_storage().unwrap();
+	pallet_lockdown_mode::GenesisConfig::<Test> { initial_status, ..Default::default() }
+		.assimilate_storage(&mut storage)
+		.unwrap();
 	storage.into()
 }
