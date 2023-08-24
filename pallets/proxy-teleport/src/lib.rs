@@ -151,15 +151,13 @@ impl<T: Config> Pallet<T> {
 		let proxy_asset: MultiAssets =
 			(*proxy_asset).try_into().map_err(|()| Error::<T>::BadVersion)?;
 
-		//Checks
-		ensure!(assets.len() <= MAX_ASSETS_FOR_TRANSFER, Error::<T>::TooManyAssets);
+		//TeleportFilter check
 		let value = (origin_location, assets.into_inner());
 		ensure!(T::XcmTeleportFilter::contains(&value), Error::<T>::Filtered);
 		let (origin_location, assets) = value;
 
+		// Reanchor the proxy asset to the destination chain.
 		let context = T::UniversalLocation::get();
-
-		// Will only work for caller fees. Proxy asset pays at destination.
 		let fees = proxy_asset
 			.get(fee_asset_item as usize)
 			.ok_or(Error::<T>::Empty)?
@@ -169,26 +167,25 @@ impl<T: Config> Pallet<T> {
 		let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 		let assets: MultiAssets = assets.into();
 
+		//Build the message to execute on origin.
+		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+			// Withdraw drops asset so is used as burn mechanism
+			WithdrawAsset(assets),
+		]);
+
+		// Build the message to send.
 		// Set WeightLimit
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
-
-		// Build the message to send.
 		let xcm_message: Xcm<()> = Xcm(vec![
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
-			ReceiveTeleportedAsset(foreing_assets),
+			ReceiveTeleportedAsset(foreing_assets.clone()),
+            // Intentionally drop ROC to avoid exploit 
 			DepositAsset {
-				assets: MultiAssetFilter::Wild(WildMultiAsset::AllCounted(max_assets)),
+				assets: MultiAssetFilter::Definite(foreing_assets),
 				beneficiary,
 			},
-		]);
-
-		//Build the message to execute.
-		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
-			WithdrawAsset(assets),
-			//TODO: Check if needed.
-			// SetFeesMode { jit_withdraw: true },
 		]);
 
 		// Temporarly hardcode weight.
