@@ -21,7 +21,10 @@ use frame_support::{
 };
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_contracts::NoopMigration;
-use pallet_contracts::{Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule};
+use pallet_contracts::{
+	migration::{v10, v11, v12},
+	Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
+};
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 
 use crate::{
