@@ -17,8 +17,8 @@ pub use xcm::{
 	v3::{
 		AssetId, ExecuteXcm, Fungibility,
 		Instruction::{
-			BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw, Transact,
-			WithdrawAsset,
+			BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw,
+			ReceiveTeleportedAsset, Transact, WithdrawAsset,
 		},
 		MultiAsset, MultiAssetFilter, MultiAssets, Parent, SendXcm, WeightLimit, WildMultiAsset,
 		Xcm, XcmHash,
@@ -172,12 +172,24 @@ impl<T: Config> Pallet<T> {
 		// 	},
 		// };
 
+		let foreign_location =
+			MultiLocation { parents: 1, interior: Junctions::X1(Junction::Parachain(1836)) };
+
+		let foreing_asset = MultiAsset {
+			id: AssetId::Concrete(foreign_location),
+			fun: Fungibility::Fungible(1000000000000_u128),
+		};
+
+        let foreing_assets = MultiAssets::from(vec![foreing_asset.clone()]);
 		// Build the message to send.
 		let xcm_message: Xcm<()> = Xcm(vec![
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
-			// ReceiveTeleported (mint)
-			// DepositAsset (beneficiary)
+			ReceiveTeleportedAsset(foreing_assets),
+			DepositAsset {
+				assets: MultiAssetFilter::Wild(WildMultiAsset::AllCounted(max_assets)),
+				beneficiary,
+			},
 		]);
 
 		//Build the message to execute.
