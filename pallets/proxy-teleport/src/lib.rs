@@ -106,7 +106,8 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		//Unbox origin, destination and beneficiary.
 		let origin_location = T::ExecuteXcmOrigin::ensure_origin(origin)?;
-		let dest: MultiLocation = (*dest).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
+		let dest: MultiLocation =
+			(*dest).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 		let beneficiary: MultiLocation =
 			(*beneficiary).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 
@@ -185,10 +186,11 @@ impl<T: Config> Pallet<T> {
 
 		// Use pallet-xcm send for sending message.
 		let root_origin = T::SendXcmOrigin::ensure_origin(frame_system::RawOrigin::Root.into())?;
-		let interior: Junctions = root_origin.try_into().map_err(|_| pallet_xcm::Error::<T>::InvalidOrigin)?;
+		let interior: Junctions =
+			root_origin.try_into().map_err(|_| pallet_xcm::Error::<T>::InvalidOrigin)?;
+		//TODO: Check this Error population
 		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_message.clone())
 			.map_err(|_| Error::<T>::SendError)?;
-		//TODO: Check this Error population and use the ones from pallet-xcm
 		let e = Event::Sent {
 			origin: origin_location,
 			destination: dest,
