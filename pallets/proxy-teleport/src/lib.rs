@@ -53,18 +53,6 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The version of the `Versioned` value used is not able to be interpreted.
-		BadVersion,
-		/// Too many assets have been attempted for transfer.
-		TooManyAssets,
-		/// The message execution fails the filter.
-		Filtered,
-		/// The assets to be sent are empty.
-		Empty,
-		/// Could not re-anchor the assets to declare the fees for the destination chain.
-		CannotReanchor,
-		/// Origin is invalid for sending.
-		InvalidOrigin,
 		/// An error ocured during send
 		SendError,
 	}
@@ -118,9 +106,9 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResult {
 		//Unbox origin, destination and beneficiary.
 		let origin_location = T::ExecuteXcmOrigin::ensure_origin(origin)?;
-		let dest: MultiLocation = (*dest).try_into().map_err(|()| Error::<T>::BadVersion)?;
+		let dest: MultiLocation = (*dest).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 		let beneficiary: MultiLocation =
-			(*beneficiary).try_into().map_err(|()| Error::<T>::BadVersion)?;
+			(*beneficiary).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 
 		//Create assets
 
@@ -146,23 +134,23 @@ impl<T: Config> Pallet<T> {
 
 		//Unbox proxy asset
 		let proxy_asset: MultiAssets =
-			(*proxy_asset).try_into().map_err(|()| Error::<T>::BadVersion)?;
+			(*proxy_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 
 		//TeleportFilter check
 		let value = (origin_location, assets.into_inner());
-		ensure!(T::XcmTeleportFilter::contains(&value), Error::<T>::Filtered);
+		ensure!(T::XcmTeleportFilter::contains(&value), pallet_xcm::Error::<T>::Filtered);
 		let (origin_location, assets) = value;
 
 		// Reanchor the proxy asset to the destination chain.
 		let context = T::UniversalLocation::get();
 		let fees = proxy_asset
 			.get(fee_asset_item as usize)
-			.ok_or(Error::<T>::Empty)?
+			.ok_or(pallet_xcm::Error::<T>::Empty)?
 			.clone()
 			.reanchored(&dest, context)
-			.map_err(|_| Error::<T>::CannotReanchor)?;
+			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 
-		// TODO: Define if Withdrawn proxy assets are deposited or dropped
+		// TODO: Define if Withdrawn proxy assets are deposited or trapped
 		//let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
 		//Build the message to execute on origin.
@@ -197,7 +185,7 @@ impl<T: Config> Pallet<T> {
 
 		// Use pallet-xcm send for sending message.
 		let root_origin = T::SendXcmOrigin::ensure_origin(frame_system::RawOrigin::Root.into())?;
-		let interior: Junctions = root_origin.try_into().map_err(|_| Error::<T>::InvalidOrigin)?;
+		let interior: Junctions = root_origin.try_into().map_err(|_| pallet_xcm::Error::<T>::InvalidOrigin)?;
 		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_message.clone())
 			.map_err(|_| Error::<T>::SendError)?;
 		//TODO: Check this Error population and use the ones from pallet-xcm
