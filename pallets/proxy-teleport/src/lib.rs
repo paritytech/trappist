@@ -151,7 +151,8 @@ impl<T: Config> Pallet<T> {
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 
-		// TODO: Define if Withdrawn proxy assets are deposited or trapped
+		// TODO: Define if Withdrawn proxy assets are deposited or trapped. 
+		// Check if there is no vulnerability through RefundSurplus
 		//let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
 		//Build the message to execute on origin.
@@ -169,7 +170,7 @@ impl<T: Config> Pallet<T> {
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
-			// Intentionally drop ROC to avoid exploit
+			// Intentionally trap ROC to avoid exploit
 			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
 		]);
 
@@ -178,7 +179,7 @@ impl<T: Config> Pallet<T> {
 		let weight: Weight = Weight::from_parts(1_000_000_000, 100_000);
 		// 	T::Weigher::weight(&mut message).map_err(|()| Error::<T>::UnweighableMessage)?;
 
-		// Execute Withdraw for burning assets on origin.
+		// Execute Withdraw for trapping assets on origin.
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);
 		let outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
