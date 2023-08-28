@@ -118,19 +118,13 @@ impl<T: Config> Pallet<T> {
 			id: AssetId::Concrete(MultiLocation::here()),
 			fun: Fungibility::Fungible(native_asset_amount),
 		};
-
-		let assets = MultiAssets::from(vec![native_asset]);
+		let assets = MultiAssets::from(vec![native_asset.clone()]);
 
 		// Native from foreign perspective
-		//TODO: Replace ID with parameter
-		let location_as_foreign =
-			MultiLocation { parents: 1, interior: Junctions::X1(Junction::Parachain(1836)) };
-
-		let native_as_foreign = MultiAsset {
-			id: AssetId::Concrete(location_as_foreign),
-			fun: Fungibility::Fungible(native_asset_amount),
-		};
-
+		let context = T::UniversalLocation::get();
+		let native_as_foreign = native_asset
+			.reanchored(&dest, context)
+			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 		let foreing_assets = MultiAssets::from(vec![native_as_foreign]);
 
 		//Unbox proxy asset
@@ -143,7 +137,7 @@ impl<T: Config> Pallet<T> {
 		let (origin_location, assets) = value;
 
 		// Reanchor the proxy asset to the destination chain.
-		let context = T::UniversalLocation::get();
+
 		let fees = proxy_asset
 			.get(fee_asset_item as usize)
 			.ok_or(pallet_xcm::Error::<T>::Empty)?
@@ -151,7 +145,7 @@ impl<T: Config> Pallet<T> {
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 
-		// TODO: Define if Withdrawn proxy assets are deposited or trapped. 
+		// TODO: Define if Withdrawn proxy assets are deposited or trapped.
 		// Check if there is no vulnerability through RefundSurplus
 		//let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
