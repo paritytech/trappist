@@ -144,10 +144,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("trappist-rococo"),
 	impl_name: create_runtime_str!("trappist-rococo"),
 	authoring_version: 1,
-	spec_version: 9430,
+	spec_version: 10000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 2,
+	transaction_version: 3,
 	state_version: 1,
 };
 
