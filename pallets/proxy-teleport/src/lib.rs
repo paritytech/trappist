@@ -123,11 +123,11 @@ impl<T: Config> Pallet<T> {
 
 		// Native from foreign perspective
 		//TODO: Replace ID with parameter
-		let localtion_as_foreign =
+		let location_as_foreign =
 			MultiLocation { parents: 1, interior: Junctions::X1(Junction::Parachain(1836)) };
 
 		let native_as_foreign = MultiAsset {
-			id: AssetId::Concrete(localtion_as_foreign),
+			id: AssetId::Concrete(location_as_foreign),
 			fun: Fungibility::Fungible(native_asset_amount),
 		};
 
