@@ -11,17 +11,17 @@ use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
 use parity_scale_codec::Encode;
 use sp_std::{boxed::Box, vec};
-use xcm::v3::WeightLimit::Unlimited;
 pub use xcm::{
 	opaque::latest::prelude::{Junction, Junctions, MultiLocation, OriginKind},
 	v3::{
 		AssetId, ExecuteXcm, Fungibility,
 		Instruction::{
-			BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw,
+			BurnAsset, BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw,
 			ReceiveTeleportedAsset, Transact, WithdrawAsset,
 		},
-		MultiAsset, MultiAssetFilter, MultiAssets, Parent, SendXcm, WeightLimit, WildMultiAsset,
-		Xcm, XcmHash,
+		MultiAsset, MultiAssetFilter, MultiAssets, Parent, SendXcm, WeightLimit,
+		WeightLimit::Unlimited,
+		WildMultiAsset, Xcm, XcmHash,
 	},
 	VersionedMultiAssets, VersionedMultiLocation, VersionedResponse, VersionedXcm,
 };
@@ -153,7 +153,8 @@ impl<T: Config> Pallet<T> {
 		let assets: MultiAssets = assets.into();
 		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
 			// Withdraw drops asset so is used as burn mechanism
-			WithdrawAsset(assets),
+			WithdrawAsset(assets.clone()),
+			BurnAsset(assets),
 		]);
 
 		// Build the message to send.
