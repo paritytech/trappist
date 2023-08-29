@@ -213,10 +213,10 @@ pub type Barrier = DenyThenTry<
 >;
 
 parameter_types! {
-	pub RockmineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
+	pub AssetHubLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
 	// ALWAYS ensure that the index in PalletInstance stays up-to-date with
-	// Rockmine's Assets pallet index
-	pub RockmineAssetsPalletLocation: MultiLocation =
+	// AssetHub's Assets pallet index
+	pub AssetHubAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 	pub RUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),

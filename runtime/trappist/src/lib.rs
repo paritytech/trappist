@@ -1102,7 +1102,7 @@ impl_runtime_apis! {
 			impl cumulus_pallet_session_benchmarking::Config for Runtime {}
 
 			use xcm::latest::prelude::*;
-			use xcm_config::{RelayLocation, SelfReserve, RockmineLocation};
+			use xcm_config::{RelayLocation, SelfReserve, AssetHubLocation};
 			use pallet_xcm_benchmarks::asset_instance_from;
 
 			impl pallet_xcm_benchmarks::Config for Runtime {
@@ -1140,7 +1140,7 @@ impl_runtime_apis! {
 
 			parameter_types! {
 				pub TrustedTeleporter: Option<(MultiLocation, MultiAsset)> = Some((
-					RockmineLocation::get(),
+					AssetHubLocation::get(),
 					MultiAsset { fun: Fungible(1 * UNITS), id: Concrete(SelfReserve::get()) },
 				));
 				pub const CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
