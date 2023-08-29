@@ -71,6 +71,22 @@ pub mod pallet {
 		},
 	}
 
+	/// Teleport native asset from a parachain to another.
+	/// This function is called by the parachain that wants to teleport native assets to another
+	/// parachain but needs to buy execution on the destination parachain with an asset that is not
+	/// being teleported. We call this asset the proxy asset.
+	/// The parachain that wants to teleport native assets to another parachain with this method
+	/// need to fund its Sovereign Account with the proxy asset on the destination parachain.
+	/// If multiple proxy assets are included in the message, only the first one is used to buy
+	/// execution. Proxy assets are trapped on the destination parachain.
+	/// Parameters:
+	/// - `origin`: The origin of the call.
+	/// - `dest`: The destination chain of the teleport.
+	/// - `beneficiary`: The beneficiary of the teleport from the perspective of the destination
+	///   chain.
+	/// - `native_asset_amount`: The amount of native asset to teleport.
+	/// - `proxy_asset`: The proxy asset to buy execution on the destination chain.
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
@@ -81,7 +97,6 @@ pub mod pallet {
 			beneficiary: Box<VersionedMultiLocation>,
 			native_asset_amount: u128,
 			proxy_asset: Box<VersionedMultiAssets>,
-			fee_asset_item: u32,
 		) -> DispatchResult {
 			Self::do_proxy_teleport_assets(
 				origin,
@@ -89,7 +104,6 @@ pub mod pallet {
 				beneficiary,
 				native_asset_amount,
 				proxy_asset,
-				fee_asset_item,
 			)
 		}
 	}
@@ -102,7 +116,6 @@ impl<T: Config> Pallet<T> {
 		beneficiary: Box<VersionedMultiLocation>,
 		native_asset_amount: u128,
 		proxy_asset: Box<VersionedMultiAssets>,
-		fee_asset_item: u32,
 	) -> DispatchResult {
 		//Unbox origin, destination and beneficiary.
 		let origin_location = T::ExecuteXcmOrigin::ensure_origin(origin)?;
@@ -137,7 +150,7 @@ impl<T: Config> Pallet<T> {
 		let (origin_location, assets) = value;
 
 		// Reanchor the proxy asset to the destination chain.
-
+		let fee_asset_item: usize = 0;
 		let fees = proxy_asset
 			.get(fee_asset_item as usize)
 			.ok_or(pallet_xcm::Error::<T>::Empty)?
