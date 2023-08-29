@@ -196,7 +196,7 @@ match_types! {
 	};
 }
 match_types! {
-	pub type Rockmine: impl Contains<MultiLocation> = {
+	pub type AssetHub: impl Contains<MultiLocation> = {
 		MultiLocation { parents: 1, interior: X1(Parachain(1000)) }
 	};
 }
@@ -216,10 +216,10 @@ pub type Barrier = DenyThenTry<
 >;
 
 parameter_types! {
-	pub RockmineLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
+	pub AssetHubLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(1000)));
 	// ALWAYS ensure that the index in PalletInstance stays up-to-date with
-	// Rockmine's Assets pallet index
-	pub RockmineAssetsPalletLocation: MultiLocation =
+	// AssetHub's Assets pallet index
+	pub AssetHubAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
 	pub RUsdPerSecond: (xcm::v3::AssetId, u128, u128) = (
 		MultiLocation::new(1, X3(Parachain(1000), PalletInstance(50), GeneralIndex(1984))).into(),
@@ -232,7 +232,7 @@ parameter_types! {
 
 parameter_types! {
 	pub const TrappistNative: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(MultiLocation::here()) });
-	pub AssetHubTrustedTeleporter: (MultiAssetFilter, MultiLocation) = (TrappistNative::get(), RockmineLocation::get());
+	pub AssetHubTrustedTeleporter: (MultiAssetFilter, MultiLocation) = (TrappistNative::get(), AssetHubLocation::get());
 }
 
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);
@@ -273,7 +273,7 @@ pub type Traders = (
 	UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, ToAuthor<Runtime>>,
 );
 
-pub type Reserves = (NativeAsset, ReserveAssetsFrom<RockmineLocation>);
+pub type Reserves = (NativeAsset, ReserveAssetsFrom<AssetHubLocation>);
 pub type TrustedTeleporters = (xcm_builder::Case<AssetHubTrustedTeleporter>,);
 
 pub struct XcmConfig;
