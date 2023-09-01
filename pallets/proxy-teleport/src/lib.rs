@@ -12,14 +12,14 @@ pub use pallet::*;
 use parity_scale_codec::Encode;
 use sp_std::{boxed::Box, vec};
 pub use xcm::{
-	opaque::latest::prelude::{Junction, Junctions, MultiLocation, OriginKind},
-	v3::{
+	latest::prelude::{
 		AssetId, ExecuteXcm, Fungibility,
 		Instruction::{
 			BurnAsset, BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw,
 			ReceiveTeleportedAsset, Transact, WithdrawAsset,
 		},
-		MultiAsset, MultiAssetFilter, MultiAssets, Parent, SendXcm, WeightLimit,
+		Junction, Junctions, MultiAsset, MultiAssetFilter, MultiAssets, MultiLocation, OriginKind,
+		Parent, SendXcm, WeightLimit,
 		WeightLimit::Unlimited,
 		WildMultiAsset, Xcm, XcmHash,
 	},
