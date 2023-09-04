@@ -55,6 +55,8 @@ pub mod pallet {
 	pub enum Error<T> {
 		/// An error ocured during send
 		SendError,
+		/// Failed to execute
+		FailedToExecute,
 	}
 
 	#[pallet::event]
@@ -123,6 +125,9 @@ impl<T: Config> Pallet<T> {
 			(*dest).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 		let beneficiary: MultiLocation =
 			(*beneficiary).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
+		//Unbox proxy asset
+		let proxy_asset: MultiAssets =
+			(*proxy_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 
 		//Create assets
 
@@ -140,11 +145,7 @@ impl<T: Config> Pallet<T> {
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 		let foreing_assets = MultiAssets::from(vec![native_as_foreign]);
 
-		//Unbox proxy asset
-		let proxy_asset: MultiAssets =
-			(*proxy_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
-
-		//TeleportFilter check
+		// TeleportFilter check
 		let value = (origin_location, assets.into_inner());
 		ensure!(T::XcmTeleportFilter::contains(&value), pallet_xcm::Error::<T>::Filtered);
 		let (origin_location, assets) = value;
@@ -160,21 +161,18 @@ impl<T: Config> Pallet<T> {
 
 		// TODO: Define if Withdrawn proxy assets are deposited or trapped.
 		// Check if there is no vulnerability through RefundSurplus
-		//let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
+		// let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
-		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
-			// Withdraw drops asset so is used as burn mechanism
-			WithdrawAsset(assets.clone()),
-			BurnAsset(assets),
-		]);
+		let message: Xcm<<T as frame_system::Config>::RuntimeCall> =
+			Xcm(vec![WithdrawAsset(assets.clone()), BurnAsset(assets)]);
 
 		// Build the message to send.
 		// Set WeightLimit
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
-		let xcm_message: Xcm<()> = Xcm(vec![
+		let xcm_to_send: Xcm<()> = Xcm(vec![
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
@@ -191,6 +189,7 @@ impl<T: Config> Pallet<T> {
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);
 		let outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
+		outcome.clone().ensure_complete().map_err(|_| Error::<T>::FailedToExecute)?;
 		Self::deposit_event(Event::Attempted { outcome });
 
 		// Use pallet-xcm send for sending message.
@@ -198,12 +197,12 @@ impl<T: Config> Pallet<T> {
 		let interior: Junctions =
 			root_origin.try_into().map_err(|_| pallet_xcm::Error::<T>::InvalidOrigin)?;
 		//TODO: Check this Error population
-		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_message.clone())
+		let message_id = BaseXcm::<T>::send_xcm(interior, dest, xcm_to_send.clone())
 			.map_err(|_| Error::<T>::SendError)?;
 		let e = Event::Sent {
 			origin: origin_location,
 			destination: dest,
-			message: xcm_message,
+			message: xcm_to_send,
 			message_id,
 		};
 		Self::deposit_event(e);
