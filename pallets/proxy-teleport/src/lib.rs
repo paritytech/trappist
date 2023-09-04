@@ -1,3 +1,24 @@
+// This file is part of Trappist.
+
+// Copyright (C) Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Disclaimer:
+// This is an experimental implementation of a pallet-xcm extension.
+// This module is not audited and should not be used in production.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
@@ -112,6 +133,7 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
+
 	fn do_proxy_teleport_assets(
 		origin: OriginFor<T>,
 		dest: Box<VersionedMultiLocation>,
@@ -163,20 +185,33 @@ impl<T: Config> Pallet<T> {
 		// Check if there is no vulnerability through RefundSurplus
 		// let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
+		// DISCLAIMER: Splitting the instructions to be executed on origin and destination is
+		// discouraged. Due to current limitations, we need to generate a message
+		// to be executed on origin and another message to be sent to be executed on destination in
+		// two different steps as:
+		// - We cannot buy execution on Asset Hub with foreign assets.
+		// - We cannot send arbitrary instructions from a local XCM execution.
+		// - InitiateTeleport prepends unwanted instructions to the message.
+		// - Asset Hub does not recognize Sibling chains as trusted teleporters of ROC.
+
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
 		let message: Xcm<<T as frame_system::Config>::RuntimeCall> =
 			Xcm(vec![WithdrawAsset(assets.clone()), BurnAsset(assets)]);
 
-		// Build the message to send.
+		// Build the message to send to be executed.
 		// Set WeightLimit
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
 		let xcm_to_send: Xcm<()> = Xcm(vec![
+			// There are currently no limitations on the amount of proxy assets to withdraw.
+			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be aware of this
+			// and implement a mechanism to prevent draining.
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
-			// Intentionally trap ROC to avoid exploit
+			// Intentionally trap ROC to avoid exploit of draining Sovereing Account
+			// by depositing withdrawn ROC on beneficiary.
 			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
 		]);
 
@@ -193,6 +228,7 @@ impl<T: Config> Pallet<T> {
 		Self::deposit_event(Event::Attempted { outcome });
 
 		// Use pallet-xcm send for sending message.
+		// Origin is set to Root so it is interpreted as Sovereign Account.
 		let root_origin = T::SendXcmOrigin::ensure_origin(frame_system::RawOrigin::Root.into())?;
 		let interior: Junctions =
 			root_origin.try_into().map_err(|_| pallet_xcm::Error::<T>::InvalidOrigin)?;
