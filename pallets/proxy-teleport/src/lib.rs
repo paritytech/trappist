@@ -133,7 +133,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-
 	fn do_proxy_teleport_assets(
 		origin: OriginFor<T>,
 		dest: Box<VersionedMultiLocation>,
@@ -205,8 +204,8 @@ impl<T: Config> Pallet<T> {
 		let weight_limit: WeightLimit = Unlimited;
 		let xcm_to_send: Xcm<()> = Xcm(vec![
 			// There are currently no limitations on the amount of proxy assets to withdraw.
-			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be aware of this
-			// and implement a mechanism to prevent draining.
+			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be
+			// aware of this and implement a mechanism to prevent draining.
 			WithdrawAsset(proxy_asset),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
