@@ -33,8 +33,8 @@ pub use pallet::*;
 use parity_scale_codec::Encode;
 use sp_std::{boxed::Box, vec};
 pub use xcm::{
-	latest::prelude::*,
-	VersionedMultiAssets, VersionedMultiLocation, VersionedResponse, VersionedXcm,
+	latest::prelude::*, VersionedMultiAssets, VersionedMultiLocation, VersionedResponse,
+	VersionedXcm,
 };
 
 // #[cfg(test)]
