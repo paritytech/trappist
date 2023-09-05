@@ -53,7 +53,7 @@ pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/pari
 pallet-asset-registry = { default-features = false, path = "pallets/asset-registry" }
 trappist-runtime-benchmarks = { default-features = false, path = "pallets/benchmarks" }
 pallet-lockdown-mode = { version = "0.1.0", default-features = false, path = "pallets/lockdown-mode" }
-pallet-proxy-teleport = { version = "0.1.0", default-features = false, path = "pallets/proxy-teleport" }
+pallet-withdraw-teleport = { version = "0.1.0", default-features = false, path = "pallets/withdraw-teleport" }
 
 # Substrate std
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0" }

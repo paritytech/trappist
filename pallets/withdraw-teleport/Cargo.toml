@@ -1,7 +1,7 @@
 [package]
-name = "pallet-proxy-teleport"
+name = "pallet-withdraw-teleport"
 version = "0.1.0"
-description = "Pallet for allowing to teleport funds by paying with a proxy account."
+description = "Pallet for allowing to teleport funds by paying with a fee asset on destiny."
 authors = { workspace = true }
 license = { workspace = true }
 homepage = { workspace = true }

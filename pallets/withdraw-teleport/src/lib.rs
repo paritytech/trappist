@@ -87,48 +87,48 @@ pub mod pallet {
 	/// Teleport native asset from a parachain to another.
 	/// This function is called by the parachain that wants to teleport native assets to another
 	/// parachain but needs to buy execution on the destination parachain with an asset that is not
-	/// being teleported. We call this asset the proxy asset.
+	/// being teleported. We call this asset the fee asset.
 	/// The parachain that wants to teleport native assets to another parachain with this method
-	/// need to fund its Sovereign Account with the proxy asset on the destination parachain.
-	/// If multiple proxy assets are included in the message, only the first one is used to buy
-	/// execution. Proxy assets are trapped on the destination parachain.
+	/// need to fund its Sovereign Account with the fee asset on the destination parachain.
+	/// If multiple fee assets are included in the message, only the first one is used to buy
+	/// execution. Fee assets are trapped on the destination parachain.
 	/// Parameters:
 	/// - `origin`: The origin of the call.
 	/// - `dest`: The destination chain of the teleport.
 	/// - `beneficiary`: The beneficiary of the teleport from the perspective of the destination
 	///   chain.
 	/// - `native_asset_amount`: The amount of native asset to teleport.
-	/// - `proxy_asset`: The proxy asset to buy execution on the destination chain.
+	/// - `fee_asset`: The fee asset to buy execution on the destination chain.
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
 		#[pallet::weight(10_000)]
-		pub fn proxy_native_teleport(
+		pub fn withdraw_and_teleport(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
 			beneficiary: Box<VersionedMultiLocation>,
 			native_asset_amount: u128,
-			proxy_asset: Box<VersionedMultiAssets>,
+			fee_asset: Box<VersionedMultiAssets>,
 		) -> DispatchResult {
-			Self::do_proxy_teleport_assets(
+			Self::do_withdraw_and_teleport(
 				origin,
 				dest,
 				beneficiary,
 				native_asset_amount,
-				proxy_asset,
+				fee_asset,
 			)
 		}
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	fn do_proxy_teleport_assets(
+	fn do_withdraw_and_teleport(
 		origin: OriginFor<T>,
 		dest: Box<VersionedMultiLocation>,
 		beneficiary: Box<VersionedMultiLocation>,
 		native_asset_amount: u128,
-		proxy_asset: Box<VersionedMultiAssets>,
+		fee_asset: Box<VersionedMultiAssets>,
 	) -> DispatchResult {
 		//Unbox origin, destination and beneficiary.
 		let origin_location = T::ExecuteXcmOrigin::ensure_origin(origin)?;
@@ -136,9 +136,9 @@ impl<T: Config> Pallet<T> {
 			(*dest).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 		let beneficiary: MultiLocation =
 			(*beneficiary).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
-		//Unbox proxy asset
-		let proxy_asset: MultiAssets =
-			(*proxy_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
+		//Unbox fee asset
+		let fee_asset: MultiAssets =
+			(*fee_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
 
 		//Create assets
 
@@ -161,16 +161,16 @@ impl<T: Config> Pallet<T> {
 		ensure!(T::XcmTeleportFilter::contains(&value), pallet_xcm::Error::<T>::Filtered);
 		let (origin_location, assets) = value;
 
-		// Reanchor the proxy asset to the destination chain.
+		// Reanchor the fee asset to the destination chain.
 		let fee_asset_item: usize = 0;
-		let fees = proxy_asset
+		let fees = fee_asset
 			.get(fee_asset_item as usize)
 			.ok_or(pallet_xcm::Error::<T>::Empty)?
 			.clone()
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 
-		// TODO: Define if Withdrawn proxy assets are deposited or trapped.
+		// TODO: Define if Withdrawn fee assets are deposited or trapped.
 		// Check if there is no vulnerability through RefundSurplus
 		// let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
 
@@ -193,10 +193,10 @@ impl<T: Config> Pallet<T> {
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
 		let xcm_to_send: Xcm<()> = Xcm(vec![
-			// There are currently no limitations on the amount of proxy assets to withdraw.
+			// There are currently no limitations on the amount of fee assets to withdraw.
 			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be
 			// aware of this and implement a mechanism to prevent draining.
-			WithdrawAsset(proxy_asset),
+			WithdrawAsset(fee_asset),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
 			// Intentionally trap ROC to avoid exploit of draining Sovereing Account

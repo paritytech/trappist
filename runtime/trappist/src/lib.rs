@@ -654,7 +654,7 @@ impl pallet_treasury::Config for Runtime {
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 }
 
-impl pallet_proxy_teleport::Config for Runtime {
+impl pallet_withdraw_teleport::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
@@ -721,7 +721,7 @@ construct_runtime!(
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
-		ProxyTeleport: pallet_proxy_teleport = 112,
+		WithdrawTeleport: pallet_withdraw_teleport = 112,
 	}
 );
 

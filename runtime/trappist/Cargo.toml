@@ -107,7 +107,7 @@ pallet-dex-rpc-runtime-api = { workspace = true }
 pallet-asset-registry = { workspace = true }
 trappist-runtime-benchmarks = { workspace = true }
 pallet-lockdown-mode = { workspace = true }
-pallet-proxy-teleport = { workspace = true }
+pallet-withdraw-teleport = { workspace = true }
 
 [features]
 default = ["std"]
@@ -149,7 +149,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-lockdown-mode/std",
 	"pallet-preimage/std",
-	"pallet-proxy-teleport/std",
+	"pallet-withdraw-teleport/std",
 	"pallet-multisig/std",
 	"pallet-insecure-randomness-collective-flip/std",
 	"pallet-scheduler/std",
