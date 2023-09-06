@@ -24,7 +24,7 @@
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
 use frame_support::{
 	dispatch::DispatchResult,
-	ensure,
+	ensure, log,
 	traits::{Contains, EnsureOrigin, Get},
 	weights::Weight,
 };
@@ -187,9 +187,11 @@ impl<T: Config> Pallet<T> {
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
 		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+			// Burn the native asset.
 			WithdrawAsset(assets.clone()),
 			BuyExecution { fees: native_asset, weight_limit: Unlimited },
 			BurnAsset(assets),
+			// Burn the fee asset derivative.
 			WithdrawAsset(fee_asset.clone()),
 			BurnAsset(fee_asset.clone()),
 		]);
@@ -199,14 +201,11 @@ impl<T: Config> Pallet<T> {
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
 		let xcm_to_send: Xcm<()> = Xcm(vec![
-			// There are currently no limitations on the amount of fee assets to withdraw.
-			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be
-			// aware of this and implement a mechanism to prevent draining.
+			// User must have the derivative of fee_asset on origin.
 			WithdrawAsset(fee_asset.clone()),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
-			// Intentionally trap ROC to avoid exploit of draining Sovereing Account
-			// by depositing withdrawn ROC on beneficiary.
+			// We can deposit funds since they were both withdrawn on origin.
 			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
 			RefundSurplus,
 			DepositAsset { assets: MultiAssetFilter::Definite(fee_asset), beneficiary },
