@@ -152,6 +152,7 @@ impl<T: Config> Pallet<T> {
 		// Native from foreign perspective
 		let context = T::UniversalLocation::get();
 		let native_as_foreign = native_asset
+			.clone()
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 		let foreing_assets = MultiAssets::from(vec![native_as_foreign]);
@@ -185,8 +186,13 @@ impl<T: Config> Pallet<T> {
 
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
-		let message: Xcm<<T as frame_system::Config>::RuntimeCall> =
-			Xcm(vec![WithdrawAsset(assets.clone()), BurnAsset(assets)]);
+		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+			WithdrawAsset(assets.clone()),
+			BuyExecution { fees: native_asset, weight_limit: Unlimited },
+			BurnAsset(assets),
+			WithdrawAsset(fee_asset.clone()),
+			BurnAsset(fee_asset.clone()),
+		]);
 
 		// Build the message to send to be executed.
 		// Set WeightLimit
