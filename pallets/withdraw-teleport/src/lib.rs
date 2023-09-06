@@ -154,7 +154,7 @@ impl<T: Config> Pallet<T> {
 		let native_as_foreign = native_asset
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
-		let foreing_assets = MultiAssets::from(vec![native_as_foreign]);
+		let foreign_assets = MultiAssets::from(vec![native_as_foreign]);
 
 		// TeleportFilter check
 		let value = (origin_location, assets.into_inner());
@@ -198,10 +198,10 @@ impl<T: Config> Pallet<T> {
 			// aware of this and implement a mechanism to prevent draining.
 			WithdrawAsset(fee_asset),
 			BuyExecution { fees, weight_limit },
-			ReceiveTeleportedAsset(foreing_assets.clone()),
+			ReceiveTeleportedAsset(foreign_assets.clone()),
 			// Intentionally trap ROC to avoid exploit of draining Sovereing Account
 			// by depositing withdrawn ROC on beneficiary.
-			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
+			DepositAsset { assets: MultiAssetFilter::Definite(foreign_assets), beneficiary },
 		]);
 
 		// Temporarly hardcode weight.
