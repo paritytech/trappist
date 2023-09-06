@@ -236,7 +236,7 @@ parameter_types! {
 		0u128
 	);
 	/// Roc = 7 RUSD
-	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::parent().into(), default_fee_per_second() * 70, 0u128);
+	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::new(1,Here).into(), default_fee_per_second() * 70, 0u128);
 	pub HopPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, X1(Parachain(1836))).into(), default_fee_per_second() * 10, 0u128);
 }
 
