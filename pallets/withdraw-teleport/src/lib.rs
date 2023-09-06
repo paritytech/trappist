@@ -202,12 +202,14 @@ impl<T: Config> Pallet<T> {
 			// There are currently no limitations on the amount of fee assets to withdraw.
 			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be
 			// aware of this and implement a mechanism to prevent draining.
-			WithdrawAsset(fee_asset),
+			WithdrawAsset(fee_asset.clone()),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreing_assets.clone()),
 			// Intentionally trap ROC to avoid exploit of draining Sovereing Account
 			// by depositing withdrawn ROC on beneficiary.
 			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
+			RefundSurplus,
+			DepositAsset { assets: MultiAssetFilter::Definite(fee_asset), beneficiary },
 		]);
 
 		// Temporarly hardcode weight.
