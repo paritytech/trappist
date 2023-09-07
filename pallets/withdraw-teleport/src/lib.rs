@@ -200,15 +200,19 @@ impl<T: Config> Pallet<T> {
 		// Set WeightLimit
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
+		let fee_asset_id: AssetId = fee_asset.get(0).ok_or(pallet_xcm::Error::<T>::Empty)?.id;
 		let xcm_to_send: Xcm<()> = Xcm(vec![
 			// User must have the derivative of fee_asset on origin.
 			WithdrawAsset(fee_asset.clone()),
 			BuyExecution { fees, weight_limit },
-			ReceiveTeleportedAsset(foreing_assets.clone()),
+			ReceiveTeleportedAsset(foreign_assets.clone()),
 			// We can deposit funds since they were both withdrawn on origin.
-			DepositAsset { assets: MultiAssetFilter::Definite(foreing_assets), beneficiary },
+			DepositAsset { assets: MultiAssetFilter::Definite(foreign_assets), beneficiary },
 			RefundSurplus,
-			DepositAsset { assets: MultiAssetFilter::Definite(fee_asset), beneficiary },
+			DepositAsset {
+				assets: Wild(AllOf { id: fee_asset_id, fun: WildFungibility::Fungible }),
+				beneficiary,
+			},
 		]);
 
 		// Temporarly hardcode weight.
