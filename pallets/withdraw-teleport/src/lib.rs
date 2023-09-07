@@ -155,7 +155,7 @@ impl<T: Config> Pallet<T> {
 			.clone()
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
-		let foreing_assets = MultiAssets::from(vec![native_as_foreign]);
+		let foreign_assets = MultiAssets::from(vec![native_as_foreign]);
 
 		// TeleportFilter check
 		let value = (origin_location, assets.into_inner());
