@@ -149,9 +149,23 @@ impl<T: Config> Pallet<T> {
 		};
 		let assets = MultiAssets::from(vec![native_asset.clone()]);
 
+		// Since there is execution buy on origin, fees will be deducted.
+		//TODO: Implement fee calculation based on weight of local instructions.
+		// Native after fees
+		let mock_fee = 1_000;
+		let native_amount_after_fees = native_asset_amount
+			.checked_sub(mock_fee)
+			.ok_or(pallet_xcm::Error::<T>::FeesNotMet)?;
+		let native_after_fees = MultiAsset {
+			id: AssetId::Concrete(MultiLocation::here()),
+			fun: Fungibility::Fungible(native_amount_after_fees),
+		};
+		let natives_after_fees = MultiAssets::from(vec![native_after_fees.clone()]);
+
 		// Native from foreign perspective
 		let context = T::UniversalLocation::get();
-		let native_as_foreign = native_asset
+		// On destination chain, the amount to be minted is the amount after fees.
+		let native_as_foreign = native_after_fees
 			.clone()
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
@@ -171,10 +185,6 @@ impl<T: Config> Pallet<T> {
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 
-		// TODO: Define if Withdrawn fee assets are deposited or trapped.
-		// Check if there is no vulnerability through RefundSurplus
-		// let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
-
 		// DISCLAIMER: Splitting the instructions to be executed on origin and destination is
 		// discouraged. Due to current limitations, we need to generate a message
 		// to be executed on origin and another message to be sent to be executed on destination in
@@ -190,7 +200,7 @@ impl<T: Config> Pallet<T> {
 			// Burn the native asset.
 			WithdrawAsset(assets.clone()),
 			BuyExecution { fees: native_asset, weight_limit: Unlimited },
-			BurnAsset(assets),
+			BurnAsset(natives_after_fees),
 			// Burn the fee asset derivative.
 			WithdrawAsset(fee_asset.clone()),
 			BurnAsset(fee_asset.clone()),
