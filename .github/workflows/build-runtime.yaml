@@ -15,7 +15,7 @@ jobs:
         runtime: ["trappist", "stout"]
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache runtime target dir
         uses: actions/cache@v3
