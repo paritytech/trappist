@@ -38,9 +38,6 @@ use crate::{
 	service::{new_partial, Block},
 };
 
-#[cfg(feature = "try-runtime")]
-use crate::service::RuntimeExecutor;
-
 /// Dispatches the code to the currently selected runtime.
 macro_rules! dispatch_runtime {
 	($runtime:expr, |$alias: ident| $code:expr) => {
@@ -387,28 +384,6 @@ pub fn run() -> Result<()> {
 				}
 			})
 		},
-		#[cfg(feature = "try-runtime")]
-		Some(Subcommand::TryRuntime(cmd)) => {
-			use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
-			use try_runtime_cli::block_building_info::timestamp_with_aura_info;
-
-			type HostFunctionsOf<E> = ExtendedHostFunctions<
-				sp_io::SubstrateHostFunctions,
-				<E as NativeExecutionDispatch>::ExtendHostFunctions,
-			>;
-
-			let info_provider = timestamp_with_aura_info(6000);
-
-			construct_async_run!(|components, cli, cmd, _config, runtime| {
-				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>, _>(Some(
-					info_provider,
-				)))
-			})
-		},
-		#[cfg(not(feature = "try-runtime"))]
-		Some(Subcommand::TryRuntime) => Err("Try-runtime was not enabled when building the node. \
-			You can enable it with `--features try-runtime`."
-			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			let runner = cli.create_runner(&cli.run.normalize())?;
