@@ -81,14 +81,14 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 	fn contains(call: &RuntimeCall) -> bool {
 		!matches!(
 			call,
-			RuntimeCall::Balances(_) |
-				RuntimeCall::Assets(_) |
-				RuntimeCall::Dex(_) |
-				RuntimeCall::PolkadotXcm(_) |
-				RuntimeCall::Treasury(_) |
-				RuntimeCall::Contracts(_) |
-				RuntimeCall::Uniques(_) |
-				RuntimeCall::AssetRegistry(_)
+			RuntimeCall::Balances(_)
+				| RuntimeCall::Assets(_)
+				| RuntimeCall::Dex(_)
+				| RuntimeCall::PolkadotXcm(_)
+				| RuntimeCall::Treasury(_)
+				| RuntimeCall::Contracts(_)
+				| RuntimeCall::Uniques(_)
+				| RuntimeCall::AssetRegistry(_)
 		)
 	}
 }

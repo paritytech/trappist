@@ -125,12 +125,12 @@ impl From<&str> for Runtime {
 	fn from(value: &str) -> Self {
 		#[cfg(feature = "trappist-runtime")]
 		if value.starts_with("trappist") {
-			return Runtime::Trappist
+			return Runtime::Trappist;
 		}
 
 		#[cfg(feature = "stout-runtime")]
 		if value.starts_with("stout") {
-			return Runtime::Stout
+			return Runtime::Stout;
 		}
 
 		let fallback = Runtime::default();
@@ -337,7 +337,7 @@ pub fn run() -> Result<()> {
 						if !cfg!(feature = "runtime-benchmarks") {
 							return Err("Benchmarking wasn't enabled when building the node. \
 							You can enable it with `--features runtime-benchmarks`."
-								.into())
+								.into());
 						}
 
 						dispatch_runtime!(config.chain_spec.runtime(), |runtime| {
@@ -362,8 +362,9 @@ pub fn run() -> Result<()> {
 							cmd.run(config, partial.client, db, storage)
 						})
 					},
-					BenchmarkCmd::Machine(cmd) =>
-						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
+					BenchmarkCmd::Machine(cmd) => {
+						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
+					},
 					BenchmarkCmd::Overhead(cmd) => {
 						construct_partial!(config, |partial| {
 							let ext_builder = RemarkBuilder::new(partial.client.clone());
