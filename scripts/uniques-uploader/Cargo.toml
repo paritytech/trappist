@@ -1,0 +1,12 @@
+[package]
+name = "uniques-uploader"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+subxt = { git = "https://github.com/paritytech/subxt/", features = ["native","substrate-compat"] }
+subxt-signer = { git = "https://github.com/paritytech/subxt/", version = "0.31.0", features = ["subxt"] }
+tokio = { version = "1.28.2", features = ["macros", "time", "rt-multi-thread"] }
+
+
+[workspace]
