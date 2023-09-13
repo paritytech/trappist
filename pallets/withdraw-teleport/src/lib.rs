@@ -26,7 +26,6 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure, log,
 	traits::{Contains, EnsureOrigin, Get},
-	weights::Weight,
 };
 use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
@@ -36,6 +35,7 @@ pub use xcm::{
 	latest::prelude::*, VersionedMultiAssets, VersionedMultiLocation, VersionedResponse,
 	VersionedXcm,
 };
+use xcm_executor::traits::WeightBounds;
 
 // #[cfg(test)]
 // mod mock;
@@ -181,7 +181,7 @@ impl<T: Config> Pallet<T> {
 
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
-		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+		let mut message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
 			WithdrawAsset(assets.clone()),
 			SetFeesMode { jit_withdraw: true },
 			// Burn the native asset.
@@ -210,10 +210,8 @@ impl<T: Config> Pallet<T> {
 			},
 		]);
 
-		// Temporarly hardcode weight.
-		// TODO: Replace for Weigher.
-		let weight: Weight = Weight::from_parts(1_000_000_000, 100_000);
-		// 	T::Weigher::weight(&mut message).map_err(|()| Error::<T>::UnweighableMessage)?;
+		let weight = T::Weigher::weight(&mut message)
+			.map_err(|()| pallet_xcm::Error::<T>::UnweighableMessage)?;
 
 		// Execute Withdraw for trapping assets on origin.
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);
