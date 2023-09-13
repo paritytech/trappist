@@ -155,14 +155,14 @@ pub mod pallet {
 
 			let check = matches!(
 				last_junction,
-				Some(AccountId32 { .. }) |
-					Some(AccountKey20 { .. }) |
-					Some(PalletInstance(_)) |
-					Some(Parachain(_)) | None
+				Some(AccountId32 { .. })
+					| Some(AccountKey20 { .. })
+					| Some(PalletInstance(_))
+					| Some(Parachain(_)) | None
 			);
 
-			check |
-				match last_junction {
+			check
+				| match last_junction {
 					Some(GeneralIndex(_)) => {
 						let penultimate = split_multilocation.last();
 						matches!(penultimate, Some(PalletInstance(_)))
