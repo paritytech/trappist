@@ -149,24 +149,9 @@ impl<T: Config> Pallet<T> {
 		};
 		let assets = MultiAssets::from(vec![native_asset.clone()]);
 
-		// Since there is execution buy on origin, fees will be deducted.
-		//TODO: Implement fee calculation based on weight of local instructions.
-		// Native after fees
-		let mock_fee = 1_000;
-		let native_amount_after_fees = native_asset_amount
-			.checked_sub(mock_fee)
-			.ok_or(pallet_xcm::Error::<T>::FeesNotMet)?;
-		let native_after_fees = MultiAsset {
-			id: AssetId::Concrete(MultiLocation::here()),
-			fun: Fungibility::Fungible(native_amount_after_fees),
-		};
-		let natives_after_fees = MultiAssets::from(vec![native_after_fees.clone()]);
-
 		// Native from foreign perspective
 		let context = T::UniversalLocation::get();
-		// On destination chain, the amount to be minted is the amount after fees.
-		let native_as_foreign = native_after_fees
-			.clone()
+		let native_as_foreign = native_asset
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 		let foreign_assets = MultiAssets::from(vec![native_as_foreign]);
@@ -197,10 +182,10 @@ impl<T: Config> Pallet<T> {
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
 		let message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
-			// Burn the native asset.
 			WithdrawAsset(assets.clone()),
-			BuyExecution { fees: native_asset, weight_limit: Unlimited },
-			BurnAsset(natives_after_fees),
+			SetFeesMode { jit_withdraw: true },
+			// Burn the native asset.
+			BurnAsset(assets),
 			// Burn the fee asset derivative.
 			WithdrawAsset(fee_asset.clone()),
 			BurnAsset(fee_asset.clone()),
