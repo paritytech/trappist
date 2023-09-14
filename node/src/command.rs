@@ -38,9 +38,6 @@ use crate::{
 	service::{new_partial, Block},
 };
 
-#[cfg(feature = "try-runtime")]
-use crate::service::RuntimeExecutor;
-
 /// Dispatches the code to the currently selected runtime.
 macro_rules! dispatch_runtime {
 	($runtime:expr, |$alias: ident| $code:expr) => {
@@ -128,12 +125,12 @@ impl From<&str> for Runtime {
 	fn from(value: &str) -> Self {
 		#[cfg(feature = "trappist-runtime")]
 		if value.starts_with("trappist") {
-			return Runtime::Trappist
+			return Runtime::Trappist;
 		}
 
 		#[cfg(feature = "stout-runtime")]
 		if value.starts_with("stout") {
-			return Runtime::Stout
+			return Runtime::Stout;
 		}
 
 		let fallback = Runtime::default();
@@ -340,7 +337,7 @@ pub fn run() -> Result<()> {
 						if !cfg!(feature = "runtime-benchmarks") {
 							return Err("Benchmarking wasn't enabled when building the node. \
 							You can enable it with `--features runtime-benchmarks`."
-								.into())
+								.into());
 						}
 
 						dispatch_runtime!(config.chain_spec.runtime(), |runtime| {
@@ -365,8 +362,9 @@ pub fn run() -> Result<()> {
 							cmd.run(config, partial.client, db, storage)
 						})
 					},
-					BenchmarkCmd::Machine(cmd) =>
-						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
+					BenchmarkCmd::Machine(cmd) => {
+						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
+					},
 					BenchmarkCmd::Overhead(cmd) => {
 						construct_partial!(config, |partial| {
 							let ext_builder = RemarkBuilder::new(partial.client.clone());
@@ -387,28 +385,6 @@ pub fn run() -> Result<()> {
 				}
 			})
 		},
-		#[cfg(feature = "try-runtime")]
-		Some(Subcommand::TryRuntime(cmd)) => {
-			use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
-			use try_runtime_cli::block_building_info::timestamp_with_aura_info;
-
-			type HostFunctionsOf<E> = ExtendedHostFunctions<
-				sp_io::SubstrateHostFunctions,
-				<E as NativeExecutionDispatch>::ExtendHostFunctions,
-			>;
-
-			let info_provider = timestamp_with_aura_info(6000);
-
-			construct_async_run!(|components, cli, cmd, _config, runtime| {
-				Ok(cmd.run::<Block, HostFunctionsOf<RuntimeExecutor<runtime::Runtime>>, _>(Some(
-					info_provider,
-				)))
-			})
-		},
-		#[cfg(not(feature = "try-runtime"))]
-		Some(Subcommand::TryRuntime) => Err("Try-runtime was not enabled when building the node. \
-			You can enable it with `--features try-runtime`."
-			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		None => {
 			let runner = cli.create_runner(&cli.run.normalize())?;

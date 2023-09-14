@@ -1,5 +1,5 @@
+# Test storage migration using try-runtime on PRs with label "migration"
 name: Test storage migration
-# Test storage migration using try-runtume on PRs with label "migration"
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup worker
         uses: "./.github/templates/setup-worker"
@@ -31,12 +31,14 @@ jobs:
           key: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-release-${{ env.POLKA_VERSION }}
 
+      - name: Install try-runtime
+        run: cargo install --git https://github.com/paritytech/try-runtime-cli --locked
+
       - run: |
           echo "Found label runtime_migration. Running tests"
-          export RUST_LOG=remote-ext=debug,runtime=debug
           echo "---------- Running try-runtime for Trappist ----------"
-          cargo run -p trappist --locked --release --no-default-features --features trappist/trappist-runtime,try-runtime try-runtime \
-              --runtime ./target/release/wbuild/trappist-runtime/target/wasm32-unknown-unknown/release/trappist_runtime.wasm \
-              -lruntime=debug \
-              --chain=trappist-dev \
+          cargo build -p trappist --locked --release --no-default-features --features trappist/trappist-runtime,try-runtime && \
+          try-runtime --runtime ./target/release/wbuild/trappist-runtime/target/wasm32-unknown-unknown/release/trappist_runtime.wasm \
               on-runtime-upgrade live --uri wss://rococo-trappist-try-runtime-node.parity-chains.parity.io:443
+        env:
+          RUST_LOG: remote-ext=debug,runtime=debug

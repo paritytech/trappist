@@ -143,17 +143,17 @@ impl<AssetId, AssetIdInfoGetter, AssetsPallet, BalancesPallet, XcmPallet, Accoun
 
 						// only trap if amount ≥ min_balance
 						// do nothing otherwise (asset is lost)
-						amount.saturated_into::<AssetsPallet::Balance>() >=
-							AssetsPallet::minimum_balance(asset_id)
+						amount.saturated_into::<AssetsPallet::Balance>()
+							>= AssetsPallet::minimum_balance(asset_id)
 					},
 					None => {
 						weight.saturating_accrue(Weigher::native());
 
 						// only trap if native token and amount ≥ min_balance
 						// do nothing otherwise (asset is lost)
-						*location == NATIVE_LOCATION &&
-							amount.saturated_into::<BalancesPallet::Balance>() >=
-								BalancesPallet::minimum_balance()
+						*location == NATIVE_LOCATION
+							&& amount.saturated_into::<BalancesPallet::Balance>()
+								>= BalancesPallet::minimum_balance()
 					},
 				}
 			} else {
