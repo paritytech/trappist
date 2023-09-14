@@ -57,6 +57,7 @@
 //! While the migration is in progress, all dispatchables except `migrate`, are blocked, and returns
 //! a `MigrationInProgress` error.
 
+pub mod v01;
 pub mod v1;
 
 use crate::{weights::WeightInfo, Config, Error, MigrationInProgress, Pallet, LOG_TARGET};

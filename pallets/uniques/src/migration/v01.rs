@@ -17,13 +17,22 @@
 
 //! Various pieces of common functionality.
 use super::*;
-use crate::*;
+use crate::{
+	migration::{IsFinished, MigrationStep},
+	types::*,
+	weights::WeightInfo,
+	Config, Pallet, LOG_TARGET,
+};
 use frame_support::{
+	pallet_prelude::*,
+	storage_alias,
 	traits::{Get, GetStorageVersion, OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
 	weights::Weight,
+	DefaultNoBound, Identity,
 };
 use parity_scale_codec::{Codec, MaxEncodedLen};
 use sp_runtime::BoundedVec;
+use sp_std::prelude::*;
 
 mod old {
 	use super::*;
@@ -43,13 +52,13 @@ mod old {
 	}
 
 	#[storage_alias]
-	pub(super) type ItemMetadataOf<T: Config<I>, I: 'static = ()> = StorageDoubleMap<
-		_,
+	pub(super) type ItemMetadataOf<T: Config> = StorageDoubleMap<
+		Pallet<T>,
 		Blake2_128Concat,
 		T::CollectionId,
 		Blake2_128Concat,
 		T::ItemId,
-		ItemMetadata<DepositBalanceOf<T, I>, T::StringLimit>,
+		ItemMetadata<DepositBalanceOf<T>, T::StringLimit>,
 		OptionQuery,
 	>;
 }
@@ -69,13 +78,13 @@ pub fn store_old_metadata<T: Config>(
 }
 
 #[storage_alias]
-pub(super) type ItemMetadataOf<T: Config<I>, I: 'static = ()> = StorageDoubleMap<
-	_,
+pub(super) type ItemMetadataOf<T: Config> = StorageDoubleMap<
+	Pallet<T>,
 	Blake2_128Concat,
 	T::CollectionId,
 	Blake2_128Concat,
 	T::ItemId,
-	ItemMetadata<DepositBalanceOf<T, I>, T::StringLimit>,
+	ItemMetadata<DepositBalanceOf<T>, T::StringLimit>,
 	OptionQuery,
 >;
 
@@ -94,8 +103,8 @@ impl<T: Config> MigrationStep for Migration<T> {
 	fn step(&mut self) -> (IsFinished, Weight) {
 		let mut iter = if let Some(last_metadata) = self.last_metadata.take() {
 			old::ItemMetadataOf::<T>::iter_from(old::ItemMetadataOf::<T>::hashed_key_for(
-				last_account.0,
-				last_account.1,
+				last_metadata.0,
+				last_metadata.1,
 			))
 		} else {
 			old::ItemMetadataOf::<T>::iter()
