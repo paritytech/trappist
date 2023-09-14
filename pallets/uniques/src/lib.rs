@@ -447,6 +447,99 @@ pub mod pallet {
 		}
 	}
 
+	/* 	#[pallet::hooks]
+	impl<T: Config<I>, I: 'static> Hooks<BlockNumberFor<T>> for Pallet<T, I> {
+		fn on_idle(_block: BlockNumberFor<T>, mut remaining_weight: Weight) -> Weight {
+			use migration::MigrateResult::*;
+
+			loop {
+				let (result, weight) = Migration::<T>::migrate(remaining_weight);
+				remaining_weight.saturating_reduce(weight);
+
+				match result {
+					// There is not enough weight to perform a migration, or make any progress, we
+					// just return the remaining weight.
+					NoMigrationPerformed | InProgress { steps_done: 0 } => return remaining_weight,
+					// Migration is still in progress, we can start the next step.
+					InProgress { .. } => continue,
+					// Either no migration is in progress, or we are done with all migrations, we
+					// can do some more other work with the remaining weight.
+					Completed | NoMigrationInProgress => break,
+				}
+			}
+
+			ContractInfo::<T>::process_deletion_queue_batch(remaining_weight)
+				.saturating_add(T::WeightInfo::on_process_deletion_queue_batch())
+		}
+
+		fn integrity_test() {
+			Migration::<T>::integrity_test();
+
+			// Total runtime memory limit
+			let max_runtime_mem: u32 = T::Schedule::get().limits.runtime_memory;
+			// Memory limits for a single contract:
+			// Value stack size: 1Mb per contract, default defined in wasmi
+			const MAX_STACK_SIZE: u32 = 1024 * 1024;
+			// Heap limit is normally 16 mempages of 64kb each = 1Mb per contract
+			let max_heap_size = T::Schedule::get().limits.max_memory_size();
+			// Max call depth is CallStack::size() + 1
+			let max_call_depth = u32::try_from(T::CallStack::size().saturating_add(1))
+				.expect("CallStack size is too big");
+
+			// Check that given configured `MaxCodeLen`, runtime heap memory limit can't be broken.
+			//
+			// In worst case, the decoded Wasm contract code would be `x16` times larger than the
+			// encoded one. This is because even a single-byte wasm instruction has 16-byte size in
+			// wasmi. This gives us `MaxCodeLen*16` safety margin.
+			//
+			// Next, the pallet keeps the Wasm blob for each
+			// contract, hence we add up `MaxCodeLen` to the safety margin.
+			//
+			// Finally, the inefficiencies of the freeing-bump allocator
+			// being used in the client for the runtime memory allocations, could lead to possible
+			// memory allocations for contract code grow up to `x4` times in some extreme cases,
+			// which gives us total multiplier of `17*4` for `MaxCodeLen`.
+			//
+			// That being said, for every contract executed in runtime, at least `MaxCodeLen*17*4`
+			// memory should be available. Note that maximum allowed heap memory and stack size per
+			// each contract (stack frame) should also be counted.
+			//
+			// Finally, we allow 50% of the runtime memory to be utilized by the contracts call
+			// stack, keeping the rest for other facilities, such as PoV, etc.
+			//
+			// This gives us the following formula:
+			//
+			// `(MaxCodeLen * 17 * 4 + MAX_STACK_SIZE + max_heap_size) * max_call_depth <
+			// max_runtime_mem/2`
+			//
+			// Hence the upper limit for the `MaxCodeLen` can be defined as follows:
+			let code_len_limit = max_runtime_mem
+				.saturating_div(2)
+				.saturating_div(max_call_depth)
+				.saturating_sub(max_heap_size)
+				.saturating_sub(MAX_STACK_SIZE)
+				.saturating_div(17 * 4);
+
+			assert!(
+				T::MaxCodeLen::get() < code_len_limit,
+				"Given `CallStack` height {:?}, `MaxCodeLen` should be set less than {:?} \
+				 (current value is {:?}), to avoid possible runtime oom issues.",
+				max_call_depth,
+				code_len_limit,
+				T::MaxCodeLen::get(),
+			);
+
+			// Debug buffer should at least be large enough to accommodate a simple error message
+			const MIN_DEBUG_BUF_SIZE: u32 = 256;
+			assert!(
+				T::MaxDebugBufferLen::get() > MIN_DEBUG_BUF_SIZE,
+				"Debug buffer should have minimum size of {} (current setting is {})",
+				MIN_DEBUG_BUF_SIZE,
+				T::MaxDebugBufferLen::get(),
+			)
+		}
+	} */
+
 	#[pallet::call]
 	impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		/// Issue a new collection of non-fungible items from a public origin.

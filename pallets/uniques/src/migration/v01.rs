@@ -55,10 +55,10 @@ mod old {
 	pub(super) type ItemMetadataOf<T: Config> = StorageDoubleMap<
 		Pallet<T>,
 		Blake2_128Concat,
-		T::CollectionId,
+		<T as Config>::CollectionId,
 		Blake2_128Concat,
-		T::ItemId,
-		ItemMetadata<DepositBalanceOf<T>, T::StringLimit>,
+		<T as Config>::ItemId,
+		ItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
 		OptionQuery,
 	>;
 }
@@ -67,12 +67,12 @@ mod old {
 pub fn store_old_metadata<T: Config>(
 	collection_id: T::CollectionId,
 	item_id: T::ItemId,
-	metadata: crate::ItemMetadata<DepositBalanceOf<T, I>, T::StringLimit>,
+	metadata: crate::ItemMetadata<DepositBalanceOf<T>, T::StringLimit>,
 ) {
 	let info = old::OldItemMetadata {
 		deposit: metadata.deposit.clone(),
-		data: metadata.data,
-		is_frozen: metadata.data,
+		data: metadata.data.clone(),
+		is_frozen: metadata.is_frozen.clone(),
 	};
 	old::ItemMetadataOf::<T>::insert(collection_id, item_id, metadata);
 }
@@ -81,10 +81,10 @@ pub fn store_old_metadata<T: Config>(
 pub(super) type ItemMetadataOf<T: Config> = StorageDoubleMap<
 	Pallet<T>,
 	Blake2_128Concat,
-	T::CollectionId,
+	<T as Config>::CollectionId,
 	Blake2_128Concat,
-	T::ItemId,
-	ItemMetadata<DepositBalanceOf<T>, T::StringLimit>,
+	<T as Config>::ItemId,
+	ItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
 	OptionQuery,
 >;
 
