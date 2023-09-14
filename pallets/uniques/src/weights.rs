@@ -75,11 +75,66 @@ pub trait WeightInfo {
 	fn set_collection_max_supply() -> Weight;
 	fn set_price() -> Weight;
 	fn buy_item() -> Weight;
+	fn on_runtime_upgrade_noop() -> Weight;
+	fn on_runtime_upgrade_in_progress() -> Weight;
+	fn on_runtime_upgrade() -> Weight;
+	fn migrate() -> Weight;
+	fn migration_noop() -> Weight;
 }
 
 /// Weights for `pallet_uniques` using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn on_runtime_upgrade_noop() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+
+	fn on_runtime_upgrade_in_progress() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+
+	fn on_runtime_upgrade() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+
+	fn migrate() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+
+	fn migration_noop() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+
 	/// Storage: `Uniques::Class` (r:1 w:1)
 	/// Proof: `Uniques::Class` (`max_values`: None, `max_size`: Some(178), added: 2653, mode: `MaxEncodedLen`)
 	/// Storage: `Uniques::ClassAccount` (r:0 w:1)
@@ -472,6 +527,55 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests.
 impl WeightInfo for () {
+	fn on_runtime_upgrade_noop() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
+
+	fn on_runtime_upgrade_in_progress() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
+
+	fn on_runtime_upgrade() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
+
+	fn migrate() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
+
+	fn migration_noop() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
 	/// Storage: `Uniques::Class` (r:1 w:1)
 	/// Proof: `Uniques::Class` (`max_values`: None, `max_size`: Some(178), added: 2653, mode: `MaxEncodedLen`)
 	/// Storage: `Uniques::ClassAccount` (r:0 w:1)

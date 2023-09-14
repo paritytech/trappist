@@ -22,6 +22,7 @@
 #[macro_use]
 extern crate frame_benchmarking;
 
+use constants::{currency::*, fee::WeightToFee};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use frame_support::{
 	construct_runtime,
@@ -39,6 +40,8 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
+use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
+use pallet_uniques::NoopMigration;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
@@ -63,9 +66,6 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
-
-use constants::{currency::*, fee::WeightToFee};
-use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 use xcm_config::{
 	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
 };
@@ -130,7 +130,7 @@ pub type Executive = frame_executive::Executive<
 		pallet_xcm::migration::v1::MigrateToV1<Runtime>,
 		pallet_collator_selection::migration::v1::MigrateToV1<Runtime>,
 		pallet_contracts::Migration<Runtime>,
-		pallet_uniques::migration::v1::MigrateToV1<Runtime>,
+		pallet_uniques::Migration<Runtime>,
 	),
 >;
 
@@ -472,6 +472,11 @@ impl pallet_uniques::Config for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
 	type WeightInfo = weights::pallet_uniques::WeightInfo<Runtime>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	//type Migrations = (pallet_uniques::migration::v1::Migration<Self>);
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = (NoopMigration<1>, NoopMigration<2>);
 }
 
 parameter_types! {

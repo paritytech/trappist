@@ -21,6 +21,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+impl-trait-for-tuples = "0.2"
 
 [dev-dependencies]
 pallet-balances = { workspace = true }

@@ -42,8 +42,12 @@ mod types;
 pub mod migration;
 pub mod weights;
 
-use frame_support::traits::{
-	tokens::Locker, BalanceStatus::Reserved, Currency, EnsureOriginWithArg, ReservableCurrency,
+pub use crate::migration::{MigrateSequence, Migration, NoopMigration};
+use frame_support::{
+	pallet_prelude::StorageVersion,
+	traits::{
+		tokens::Locker, BalanceStatus::Reserved, Currency, EnsureOriginWithArg, ReservableCurrency,
+	},
 };
 use frame_system::Config as SystemConfig;
 use parity_scale_codec::{Decode, Encode};
@@ -63,6 +67,8 @@ const LOG_TARGET: &str = "runtime::uniques";
 /// A type alias for the account ID type used in the dispatchable functions of this pallet.
 type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
 
+pub(crate) const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
@@ -70,6 +76,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	#[pallet::pallet]
+	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T, I = ()>(_);
 
 	#[cfg(feature = "runtime-benchmarks")]
@@ -157,6 +164,8 @@ pub mod pallet {
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
+
+		type Migrations: MigrateSequence;
 	}
 
 	#[pallet::storage]
@@ -168,6 +177,12 @@ pub mod pallet {
 		T::CollectionId,
 		CollectionDetails<T::AccountId, DepositBalanceOf<T, I>>,
 	>;
+
+	/// A migration can span across multiple blocks. This storage defines a cursor to track the
+	/// progress of the migration, enabling us to resume from the last completed position.
+	#[pallet::storage]
+	pub(super) type MigrationInProgress<T: Config<I>, I: 'static = ()> =
+		StorageValue<_, migration::Cursor, OptionQuery>;
 
 	#[pallet::storage]
 	/// The collection, if any, of which an account is willing to take ownership.
@@ -417,6 +432,7 @@ pub mod pallet {
 		NotForSale,
 		/// The provided bid is too low.
 		BidTooLow,
+		MigrationInProgress,
 	}
 
 	impl<T: Config<I>, I: 'static> Pallet<T, I> {

@@ -54,7 +54,7 @@ pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/pari
 pallet-asset-registry = { default-features = false, path = "pallets/asset-registry" }
 trappist-runtime-benchmarks = { default-features = false, path = "pallets/benchmarks" }
 pallet-lockdown-mode = { version = "0.1.0", default-features = false, path = "pallets/lockdown-mode" }
-pallet-uniques = { default-features = false, path = "pallets/uniques" }
+
 
 # Substrate std
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0" }
@@ -118,6 +118,7 @@ frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate"
 
 ## Substrate Pallet Dependencies
 pallet-assets = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-asset-tx-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-aura = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-authorship = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
