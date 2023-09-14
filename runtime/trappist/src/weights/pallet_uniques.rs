@@ -50,6 +50,16 @@ use core::marker::PhantomData;
 /// Weight functions for `pallet_uniques`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_uniques::WeightInfo for WeightInfo<T> {
+	fn v1_migration_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+
 	fn on_runtime_upgrade_noop() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `249`
