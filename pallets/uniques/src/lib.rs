@@ -67,7 +67,7 @@ const LOG_TARGET: &str = "runtime::uniques";
 /// A type alias for the account ID type used in the dispatchable functions of this pallet.
 type AccountIdLookupOf<T> = <<T as frame_system::Config>::Lookup as StaticLookup>::Source;
 
-pub(crate) const STORAGE_VERSION: StorageVersion = StorageVersion::new(0);
+pub(crate) const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 
 #[frame_support::pallet]
 pub mod pallet {

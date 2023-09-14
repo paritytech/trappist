@@ -37,7 +37,7 @@ use sp_std::prelude::*;
 mod old {
 	use super::*;
 
-	#[derive(Decode)]
+	#[derive(Encode, Decode)]
 	pub struct OldItemMetadata<DepositBalance, StringLimit: Get<u32>> {
 		/// The balance deposited for this metadata.
 		///
@@ -58,16 +58,16 @@ mod old {
 		<T as Config>::CollectionId,
 		Blake2_128Concat,
 		<T as Config>::ItemId,
-		ItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
+		OldItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
 		OptionQuery,
 	>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 pub fn store_old_metadata<T: Config>(
-	collection_id: T::CollectionId,
-	item_id: T::ItemId,
-	metadata: crate::ItemMetadata<DepositBalanceOf<T>, T::StringLimit>,
+	collection_id: <T as Config>::CollectionId,
+	item_id: <T as Config>::ItemId,
+	metadata: old::OldItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
 ) {
 	let info = old::OldItemMetadata {
 		deposit: metadata.deposit.clone(),
@@ -94,7 +94,7 @@ pub struct Migration<T: Config> {
 }
 
 impl<T: Config> MigrationStep for Migration<T> {
-	const VERSION: u16 = 13;
+	const VERSION: u16 = 1;
 
 	fn max_step_weight() -> Weight {
 		T::WeightInfo::v1_migration_step()

@@ -145,7 +145,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("trappist-rococo"),
 	impl_name: create_runtime_str!("trappist-rococo"),
 	authoring_version: 1,
-	spec_version: 10020,
+	spec_version: 10030,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -473,8 +473,8 @@ impl pallet_uniques::Config for Runtime {
 	type Helper = ();
 	type WeightInfo = weights::pallet_uniques::WeightInfo<Runtime>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (NoopMigration<1>, NoopMigration<2>);
-	//type Migrations = (pallet_uniques::migration::v1::Migration<Self>);
+	//type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type Migrations = (pallet_uniques::migration::v01::Migration<Self>,);
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);
 }
