@@ -80,11 +80,21 @@ pub trait WeightInfo {
 	fn on_runtime_upgrade() -> Weight;
 	fn migrate() -> Weight;
 	fn migration_noop() -> Weight;
+	fn v1_migration_step() -> Weight;
 }
 
 /// Weights for `pallet_uniques` using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn v1_migration_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `440`
+		//  Estimated: `6380`
+		// Minimum execution time: 12_704_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
 	fn on_runtime_upgrade_noop() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `249`
@@ -527,6 +537,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests.
 impl WeightInfo for () {
+	fn 	v1_migration_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3643`
+		// Minimum execution time: 31_393_000 picoseconds.
+		Weight::from_parts(10_000, 0)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
+	}
 	fn on_runtime_upgrade_noop() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `249`
