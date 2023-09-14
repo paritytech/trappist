@@ -41,6 +41,7 @@ use frame_system::{
 	EnsureRoot, EnsureSigned,
 };
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
+#[cfg(feature = "runtime-benchmarks")]
 use pallet_uniques::NoopMigration;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
@@ -473,7 +474,6 @@ impl pallet_uniques::Config for Runtime {
 	type Helper = ();
 	type WeightInfo = weights::pallet_uniques::WeightInfo<Runtime>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	//type Migrations = (NoopMigration<1>, NoopMigration<2>);
 	type Migrations = (pallet_uniques::migration::v01::Migration<Self>,);
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);

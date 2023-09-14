@@ -447,13 +447,13 @@ pub mod pallet {
 		}
 	}
 
-	/* 	#[pallet::hooks]
+	#[pallet::hooks]
 	impl<T: Config<I>, I: 'static> Hooks<BlockNumberFor<T>> for Pallet<T, I> {
 		fn on_idle(_block: BlockNumberFor<T>, mut remaining_weight: Weight) -> Weight {
 			use migration::MigrateResult::*;
 
 			loop {
-				let (result, weight) = Migration::<T>::migrate(remaining_weight);
+				let (result, weight) = Migration::<T, I>::migrate(remaining_weight);
 				remaining_weight.saturating_reduce(weight);
 
 				match result {
@@ -468,77 +468,13 @@ pub mod pallet {
 				}
 			}
 
-			ContractInfo::<T>::process_deletion_queue_batch(remaining_weight)
-				.saturating_add(T::WeightInfo::on_process_deletion_queue_batch())
+			remaining_weight
 		}
 
 		fn integrity_test() {
-			Migration::<T>::integrity_test();
-
-			// Total runtime memory limit
-			let max_runtime_mem: u32 = T::Schedule::get().limits.runtime_memory;
-			// Memory limits for a single contract:
-			// Value stack size: 1Mb per contract, default defined in wasmi
-			const MAX_STACK_SIZE: u32 = 1024 * 1024;
-			// Heap limit is normally 16 mempages of 64kb each = 1Mb per contract
-			let max_heap_size = T::Schedule::get().limits.max_memory_size();
-			// Max call depth is CallStack::size() + 1
-			let max_call_depth = u32::try_from(T::CallStack::size().saturating_add(1))
-				.expect("CallStack size is too big");
-
-			// Check that given configured `MaxCodeLen`, runtime heap memory limit can't be broken.
-			//
-			// In worst case, the decoded Wasm contract code would be `x16` times larger than the
-			// encoded one. This is because even a single-byte wasm instruction has 16-byte size in
-			// wasmi. This gives us `MaxCodeLen*16` safety margin.
-			//
-			// Next, the pallet keeps the Wasm blob for each
-			// contract, hence we add up `MaxCodeLen` to the safety margin.
-			//
-			// Finally, the inefficiencies of the freeing-bump allocator
-			// being used in the client for the runtime memory allocations, could lead to possible
-			// memory allocations for contract code grow up to `x4` times in some extreme cases,
-			// which gives us total multiplier of `17*4` for `MaxCodeLen`.
-			//
-			// That being said, for every contract executed in runtime, at least `MaxCodeLen*17*4`
-			// memory should be available. Note that maximum allowed heap memory and stack size per
-			// each contract (stack frame) should also be counted.
-			//
-			// Finally, we allow 50% of the runtime memory to be utilized by the contracts call
-			// stack, keeping the rest for other facilities, such as PoV, etc.
-			//
-			// This gives us the following formula:
-			//
-			// `(MaxCodeLen * 17 * 4 + MAX_STACK_SIZE + max_heap_size) * max_call_depth <
-			// max_runtime_mem/2`
-			//
-			// Hence the upper limit for the `MaxCodeLen` can be defined as follows:
-			let code_len_limit = max_runtime_mem
-				.saturating_div(2)
-				.saturating_div(max_call_depth)
-				.saturating_sub(max_heap_size)
-				.saturating_sub(MAX_STACK_SIZE)
-				.saturating_div(17 * 4);
-
-			assert!(
-				T::MaxCodeLen::get() < code_len_limit,
-				"Given `CallStack` height {:?}, `MaxCodeLen` should be set less than {:?} \
-				 (current value is {:?}), to avoid possible runtime oom issues.",
-				max_call_depth,
-				code_len_limit,
-				T::MaxCodeLen::get(),
-			);
-
-			// Debug buffer should at least be large enough to accommodate a simple error message
-			const MIN_DEBUG_BUF_SIZE: u32 = 256;
-			assert!(
-				T::MaxDebugBufferLen::get() > MIN_DEBUG_BUF_SIZE,
-				"Debug buffer should have minimum size of {} (current setting is {})",
-				MIN_DEBUG_BUF_SIZE,
-				T::MaxDebugBufferLen::get(),
-			)
+			Migration::<T, I>::integrity_test();
 		}
-	} */
+	}
 
 	#[pallet::call]
 	impl<T: Config<I>, I: 'static> Pallet<T, I> {
@@ -565,6 +501,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			admin: AccountIdLookupOf<T>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let owner = T::CreateOrigin::ensure_origin(origin, &collection)?;
 			let admin = T::Lookup::lookup(admin)?;
 
@@ -603,6 +540,7 @@ pub mod pallet {
 			owner: AccountIdLookupOf<T>,
 			free_holding: bool,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			T::ForceOrigin::ensure_origin(origin)?;
 			let owner = T::Lookup::lookup(owner)?;
 
@@ -642,6 +580,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			witness: DestroyWitness,
 		) -> DispatchResultWithPostInfo {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = match T::ForceOrigin::try_origin(origin) {
 				Ok(_) => None,
 				Err(origin) => Some(ensure_signed(origin)?),
@@ -675,6 +614,7 @@ pub mod pallet {
 			item: T::ItemId,
 			owner: AccountIdLookupOf<T>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let owner = T::Lookup::lookup(owner)?;
 
@@ -707,6 +647,7 @@ pub mod pallet {
 			item: T::ItemId,
 			check_owner: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let check_owner = check_owner.map(T::Lookup::lookup).transpose()?;
 
@@ -746,6 +687,7 @@ pub mod pallet {
 			item: T::ItemId,
 			dest: AccountIdLookupOf<T>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let dest = T::Lookup::lookup(dest)?;
 
@@ -782,6 +724,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			items: Vec<T::ItemId>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			let mut collection_details =
@@ -843,6 +786,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			let mut details =
@@ -875,6 +819,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			let mut details =
@@ -905,6 +850,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			Collection::<T, I>::try_mutate(collection.clone(), |maybe_details| {
@@ -933,6 +879,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			Collection::<T, I>::try_mutate(collection.clone(), |maybe_details| {
@@ -964,6 +911,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			owner: AccountIdLookupOf<T>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let owner = T::Lookup::lookup(owner)?;
 
@@ -1015,6 +963,7 @@ pub mod pallet {
 			admin: AccountIdLookupOf<T>,
 			freezer: AccountIdLookupOf<T>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let issuer = T::Lookup::lookup(issuer)?;
 			let admin = T::Lookup::lookup(admin)?;
@@ -1055,6 +1004,7 @@ pub mod pallet {
 			item: T::ItemId,
 			delegate: AccountIdLookupOf<T>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check: Option<T::AccountId> = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
@@ -1109,6 +1059,7 @@ pub mod pallet {
 			item: T::ItemId,
 			maybe_check_delegate: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check: Option<T::AccountId> = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
@@ -1166,6 +1117,7 @@ pub mod pallet {
 			free_holding: bool,
 			is_frozen: bool,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			T::ForceOrigin::ensure_origin(origin)?;
 
 			Collection::<T, I>::try_mutate(collection.clone(), |maybe_item| {
@@ -1213,6 +1165,7 @@ pub mod pallet {
 			key: BoundedVec<u8, T::KeyLimit>,
 			value: BoundedVec<u8, T::ValueLimit>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1276,6 +1229,7 @@ pub mod pallet {
 			maybe_item: Option<T::ItemId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1330,6 +1284,7 @@ pub mod pallet {
 			data: BoundedVec<u8, T::StringLimit>,
 			is_frozen: bool,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1396,6 +1351,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1447,6 +1403,7 @@ pub mod pallet {
 			data: BoundedVec<u8, T::StringLimit>,
 			is_frozen: bool,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1503,6 +1460,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1540,6 +1498,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			maybe_collection: Option<T::CollectionId>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let who = ensure_signed(origin)?;
 			let old = OwnershipAcceptance::<T, I>::get(&who);
 			match (old.is_some(), maybe_collection.is_some()) {
@@ -1578,6 +1537,7 @@ pub mod pallet {
 			collection: T::CollectionId,
 			max_supply: u32,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1620,6 +1580,7 @@ pub mod pallet {
 			price: Option<ItemPrice<T, I>>,
 			whitelisted_buyer: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let whitelisted_buyer = whitelisted_buyer.map(T::Lookup::lookup).transpose()?;
 			Self::do_set_price(collection, item, origin, price, whitelisted_buyer)
@@ -1642,6 +1603,7 @@ pub mod pallet {
 			item: T::ItemId,
 			bid_price: ItemPrice<T, I>,
 		) -> DispatchResult {
+			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			Self::do_buy_item(collection, item, origin, bid_price)
 		}
