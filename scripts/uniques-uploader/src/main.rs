@@ -88,14 +88,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             nonce.saturating_inc();
 
-            let key = ["keeeeey", &item_id.to_string()].join("").as_bytes().to_vec();
-            let value = ["valueeeee", &item_id.to_string()].join("").as_bytes().to_vec();
+            let data = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890abcdefg".to_vec();
 
-            let item_metadata = interface::api::tx().uniques().set_attribute(
+            let item_metadata = interface::api::tx().uniques().set_metadata(
                 collection_id,
-                Some(item_id),
-                BoundedVec(key),
-                BoundedVec(value),
+                item_id,
+                BoundedVec(data),
+                false,
             );
 
             api.tx()

@@ -6,7 +6,8 @@ members = [
 	"primitives/xcm",
 ]
 exclude = [
-	"xcm-simulator"
+	"xcm-simulator",
+	"uniques-uploader"
 ]
 
 [profile.release]
@@ -53,6 +54,7 @@ pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/pari
 pallet-asset-registry = { default-features = false, path = "pallets/asset-registry" }
 trappist-runtime-benchmarks = { default-features = false, path = "pallets/benchmarks" }
 pallet-lockdown-mode = { version = "0.1.0", default-features = false, path = "pallets/lockdown-mode" }
+pallet-uniques = { default-features = false, path = "pallets/uniques" }
 
 # Substrate std
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0" }
@@ -134,7 +136,6 @@ pallet-sudo = { git = "https://github.com/paritytech/substrate", default-feature
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
-pallet-uniques = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 

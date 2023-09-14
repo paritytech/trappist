@@ -130,6 +130,7 @@ pub type Executive = frame_executive::Executive<
 		pallet_xcm::migration::v1::MigrateToV1<Runtime>,
 		pallet_collator_selection::migration::v1::MigrateToV1<Runtime>,
 		pallet_contracts::Migration<Runtime>,
+		pallet_uniques::migration::v1::MigrateToV1<Runtime>,
 	),
 >;
 
@@ -144,7 +145,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("trappist-rococo"),
 	impl_name: create_runtime_str!("trappist-rococo"),
 	authoring_version: 1,
-	spec_version: 10000,
+	spec_version: 10020,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
