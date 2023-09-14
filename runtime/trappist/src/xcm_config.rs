@@ -230,7 +230,7 @@ parameter_types! {
 		0u128
 	);
 	/// Roc = 7 RUSD
-	pub RocPerSecond: (xcm::v3::AssetId, u128,u128) = (MultiLocation::new(1,Here).into(), default_fee_per_second() * 70, 0u128);
+	pub RocPerSecond: (xcm::v3::AssetId, u128, u128) = (MultiLocation::new(1, Here).into(), default_fee_per_second() * 70, 0u128);
 }
 
 parameter_types! {
