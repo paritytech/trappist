@@ -24,9 +24,8 @@
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
 use frame_support::{
 	dispatch::DispatchResult,
-	ensure,
+	ensure, log,
 	traits::{Contains, EnsureOrigin, Get},
-	weights::Weight,
 };
 use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
@@ -36,6 +35,7 @@ pub use xcm::{
 	latest::prelude::*, VersionedMultiAssets, VersionedMultiLocation, VersionedResponse,
 	VersionedXcm,
 };
+use xcm_executor::traits::WeightBounds;
 
 // #[cfg(test)]
 // mod mock;
@@ -170,10 +170,6 @@ impl<T: Config> Pallet<T> {
 			.reanchored(&dest, context)
 			.map_err(|_| pallet_xcm::Error::<T>::CannotReanchor)?;
 
-		// TODO: Define if Withdrawn fee assets are deposited or trapped.
-		// Check if there is no vulnerability through RefundSurplus
-		// let max_assets = (assets.len() as u32).checked_add(1).ok_or(Error::<T>::TooManyAssets)?;
-
 		// DISCLAIMER: Splitting the instructions to be executed on origin and destination is
 		// discouraged. Due to current limitations, we need to generate a message
 		// to be executed on origin and another message to be sent to be executed on destination in
@@ -185,29 +181,37 @@ impl<T: Config> Pallet<T> {
 
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
-		let message: Xcm<<T as frame_system::Config>::RuntimeCall> =
-			Xcm(vec![WithdrawAsset(assets.clone()), BurnAsset(assets)]);
+		let mut message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+			WithdrawAsset(assets.clone()),
+			SetFeesMode { jit_withdraw: true },
+			// Burn the native asset.
+			BurnAsset(assets),
+			// Burn the fee asset derivative.
+			WithdrawAsset(fee_asset.clone()),
+			BurnAsset(fee_asset.clone()),
+		]);
 
 		// Build the message to send to be executed.
 		// Set WeightLimit
 		// TODO: Implement weight_limit calculation with final instructions.
 		let weight_limit: WeightLimit = Unlimited;
+		let fee_asset_id: AssetId = fee_asset.get(0).ok_or(pallet_xcm::Error::<T>::Empty)?.id;
 		let xcm_to_send: Xcm<()> = Xcm(vec![
-			// There are currently no limitations on the amount of fee assets to withdraw.
-			// Since funds are withdrawn from the Sovereign Account of the origin, chains must be
-			// aware of this and implement a mechanism to prevent draining.
-			WithdrawAsset(fee_asset),
+			// User must have the derivative of fee_asset on origin.
+			WithdrawAsset(fee_asset.clone()),
 			BuyExecution { fees, weight_limit },
 			ReceiveTeleportedAsset(foreign_assets.clone()),
-			// Intentionally trap ROC to avoid exploit of draining Sovereing Account
-			// by depositing withdrawn ROC on beneficiary.
+			// We can deposit funds since they were both withdrawn on origin.
 			DepositAsset { assets: MultiAssetFilter::Definite(foreign_assets), beneficiary },
+			RefundSurplus,
+			DepositAsset {
+				assets: Wild(AllOf { id: fee_asset_id, fun: WildFungibility::Fungible }),
+				beneficiary,
+			},
 		]);
 
-		// Temporarly hardcode weight.
-		// TODO: Replace for Weigher.
-		let weight: Weight = Weight::from_parts(1_000_000_000, 100_000);
-		// 	T::Weigher::weight(&mut message).map_err(|()| Error::<T>::UnweighableMessage)?;
+		let weight = T::Weigher::weight(&mut message)
+			.map_err(|()| pallet_xcm::Error::<T>::UnweighableMessage)?;
 
 		// Execute Withdraw for trapping assets on origin.
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);

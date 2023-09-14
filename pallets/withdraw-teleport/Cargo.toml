@@ -21,6 +21,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm = { workspace = true }
+xcm-executor = { workspace = true }
 sp-io = { workspace = true }
 
 
