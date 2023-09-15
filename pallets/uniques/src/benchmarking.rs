@@ -28,6 +28,11 @@ use frame_support::{
 	traits::{EnsureOrigin, Get},
 	BoundedVec,
 };
+use crate::{
+	migration::{
+		v01, MigrationStep,
+	}
+}
 use frame_system::RawOrigin as SystemOrigin;
 use sp_runtime::traits::Bounded;
 use sp_std::prelude::*;
@@ -443,6 +448,18 @@ benchmarks_instance_pallet! {
 			seller,
 			buyer,
 		}.into());
+	}
+
+	#[pov_mode = Measured]
+	v1_migration_step {
+		let (collection, seller, _) = create_collection::<T, I>();
+		let (item, ..) = mint_item::<T, I>(0);
+		add_item_metadata::<T, I>(T::Helper::item(item));
+		let metadata = InstanceMetadataOf::<T, I>::get(collection.clone(), item).unwrap();
+		v01::store_old_metadata::<T>(collection, item, metadata);
+		let mut m = v01::Migration::<T>::default();
+	}: {
+		m.step();
 	}
 
 	impl_benchmark_test_suite!(Uniques, crate::mock::new_test_ext(), crate::mock::Test);
