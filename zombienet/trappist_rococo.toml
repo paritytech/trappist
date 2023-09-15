@@ -52,13 +52,13 @@ chain = "trappist-local"
 
   [[parachains.collators]]
   name = "trappist-collator01"
-  command = "./bin/trappist-node"
+  command = "./bin/trappist-node-master"
   ws_port = 9920
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
   [[parachains.collators]]
   name = "trappist-collator02"
-  command = "./bin/trappist-node"
+  command = "./bin/trappist-node-master"
   ws_port = 9921
   args = ["--log=xcm=trace,pallet-assets=trace"]
 

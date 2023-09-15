@@ -50,62 +50,70 @@ use core::marker::PhantomData;
 /// Weight functions for `pallet_uniques`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_uniques::WeightInfo for WeightInfo<T> {
+/// Storage: `Uniques::InstanceMetadataOf` (r:3 w:2)
+	/// Proof: `Uniques::InstanceMetadataOf` (`max_values`: None, `max_size`: Some(159), added: 2634, mode: `Measured`)
 	fn v1_migration_step() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `249`
-		//  Estimated: `3643`
-		// Minimum execution time: 31_393_000 picoseconds.
-		Weight::from_parts(10_000, 0)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+		//  Measured:  `445`
+		//  Estimated: `8860`
+		// Minimum execution time: 21_000_000 picoseconds.
+		Weight::from_parts(22_000_000, 8860)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 
 	fn on_runtime_upgrade_noop() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `249`
-		//  Estimated: `3643`
-		// Minimum execution time: 31_393_000 picoseconds.
-		Weight::from_parts(10_000, 0)
+		//  Measured:  `142`
+		//  Estimated: `3607`
+		// Minimum execution time: 4_775_000 picoseconds.
+		Weight::from_parts(5_084_000, 3607)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 
+	/// Storage: UNKNOWN KEY `0x4342193e496fab7ec59d615ed0dc55304e7b9012096b41c4eb3aaf947f6ea429` (r:1 w:0)
+	/// Proof: UNKNOWN KEY `0x4342193e496fab7ec59d615ed0dc55304e7b9012096b41c4eb3aaf947f6ea429` (r:1 w:0)
+	/// Storage: `Contracts::MigrationInProgress` (r:1 w:0)
+	/// Proof: `Contracts::MigrationInProgress` (`max_values`: Some(1), `max_size`: Some(1026), added: 1521, mode: `Measured`)
 	fn on_runtime_upgrade_in_progress() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `249`
-		//  Estimated: `3643`
-		// Minimum execution time: 31_393_000 picoseconds.
-		Weight::from_parts(10_000, 0)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+		//  Measured:  `167`
+		//  Estimated: `3632`
+		// Minimum execution time: 6_663_000 picoseconds.
+		Weight::from_parts(6_855_000, 3632)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
 
+	/// Storage: UNKNOWN KEY `0x4342193e496fab7ec59d615ed0dc55304e7b9012096b41c4eb3aaf947f6ea429` (r:1 w:0)
+	/// Proof: UNKNOWN KEY `0x4342193e496fab7ec59d615ed0dc55304e7b9012096b41c4eb3aaf947f6ea429` (r:1 w:0)
+	/// Storage: `Contracts::MigrationInProgress` (r:1 w:1)
+	/// Proof: `Contracts::MigrationInProgress` (`max_values`: Some(1), `max_size`: Some(1026), added: 1521, mode: `Measured`)
 	fn on_runtime_upgrade() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `249`
-		//  Estimated: `3643`
-		// Minimum execution time: 31_393_000 picoseconds.
-		Weight::from_parts(10_000, 0)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
+		//  Measured:  `142`
+		//  Estimated: `3607`
+		// Minimum execution time: 7_212_000 picoseconds.
+		Weight::from_parts(7_426_000, 3607)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 
 	fn migrate() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `249`
-		//  Estimated: `3643`
-		// Minimum execution time: 31_393_000 picoseconds.
-		Weight::from_parts(10_000, 0)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+		//  Measured:  `166`
+		//  Estimated: `3631`
+		// Minimum execution time: 12_759_000 picoseconds.
+		Weight::from_parts(13_134_000, 3631)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 
 	fn migration_noop() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `249`
-		//  Estimated: `3643`
-		// Minimum execution time: 31_393_000 picoseconds.
-		Weight::from_parts(10_000, 0)
+		//  Measured:  `142`
+		//  Estimated: `1627`
+		// Minimum execution time: 3_327_000 picoseconds.
+		Weight::from_parts(3_502_000, 1627)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
