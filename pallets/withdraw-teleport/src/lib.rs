@@ -24,7 +24,7 @@
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
 use frame_support::{
 	dispatch::DispatchResult,
-	ensure, log,
+	ensure,
 	traits::{Contains, EnsureOrigin, Get},
 };
 use frame_system::pallet_prelude::OriginFor;
@@ -52,8 +52,6 @@ use xcm_executor::traits::WeightBounds;
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
-
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -103,7 +101,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(10_000)]
+		#[pallet::weight(<pallet_xcm::TestWeightInfo as pallet_xcm::WeightInfo>::teleport_assets())]
 		pub fn withdraw_and_teleport(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
