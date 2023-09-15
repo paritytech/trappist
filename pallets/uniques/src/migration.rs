@@ -31,10 +31,10 @@
 //! you would set the `Migrations` type as follows:
 //!
 //! ```
-//! use pallet_contracts::migration::{v10, v11};
+//! use pallet_uniques::migration::{v01};
 //! # pub enum Runtime {};
 //! # struct Currency;
-//! type Migrations = (v10::Migration<Runtime, Currency>, v11::Migration<Runtime>);
+//! type Migrations = (v01::Migration<Runtime, Currency>);
 //! ```
 //!
 //! ## Notes:
@@ -186,7 +186,7 @@ pub trait MigrateSequence: private::Sealed {
 	/// ```
 	/// The following code will compile:
 	/// ```
-	///     # use pallet_contracts::{NoopMigration, MigrateSequence};
+	///     # use pallet_uniques::{NoopMigration, MigrateSequence};
 	/// 	let _ = <(NoopMigration<1>, NoopMigration<2>)>::VERSION_RANGE;
 	/// ```
 	const VERSION_RANGE: (u16, u16);
