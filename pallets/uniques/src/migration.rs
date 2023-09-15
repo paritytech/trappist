@@ -230,12 +230,12 @@ pub struct Migration<T: Config<I>, I: 'static = (), const TEST_ALL_STEPS: bool =
 );
 
 #[cfg(feature = "try-runtime")]
-impl<T: Config, I, const TEST_ALL_STEPS: bool> Migration<T, I, TEST_ALL_STEPS> {
+impl<T: Config<I>, I: 'static, const TEST_ALL_STEPS: bool> Migration<T, I, TEST_ALL_STEPS> {
 	fn run_all_steps() -> Result<(), TryRuntimeError> {
 		let mut weight = Weight::zero();
-		let name = <Pallet<T>>::name();
+		let name = <Pallet<T, I>>::name();
 		loop {
-			let in_progress_version = <Pallet<T>>::on_chain_storage_version() + 1;
+			let in_progress_version = <Pallet<T, I>>::on_chain_storage_version() + 1;
 			let state = T::Migrations::pre_upgrade_step(in_progress_version)?;
 			let (status, w) = Self::migrate(Weight::MAX);
 			weight.saturating_accrue(w);
@@ -251,7 +251,7 @@ impl<T: Config, I, const TEST_ALL_STEPS: bool> Migration<T, I, TEST_ALL_STEPS> {
 			}
 		}
 
-		let name = <Pallet<T>>::name();
+		let name = <Pallet<T, I>>::name();
 		log::info!(target: LOG_TARGET, "{name}: Migration steps weight = {}", weight);
 		Ok(())
 	}
@@ -307,8 +307,8 @@ impl<T: Config<I>, I: 'static, const TEST_ALL_STEPS: bool> OnRuntimeUpgrade
 		// We can't really do much here as our migrations do not happen during the runtime upgrade.
 		// Instead, we call the migrations `pre_upgrade` and `post_upgrade` hooks when we iterate
 		// over our migrations.
-		let storage_version = <Pallet<T>>::on_chain_storage_version();
-		let target_version = <Pallet<T>>::current_storage_version();
+		let storage_version = <Pallet<T, I>>::on_chain_storage_version();
+		let target_version = <Pallet<T, I>>::current_storage_version();
 
 		ensure!(
 			storage_version != target_version,
@@ -318,7 +318,7 @@ impl<T: Config<I>, I: 'static, const TEST_ALL_STEPS: bool> OnRuntimeUpgrade
 		log::debug!(
 			target: LOG_TARGET,
 			"Requested migration of {} from {:?}(on-chain storage version) to {:?}(current storage version)",
-			<Pallet<T>>::name(), storage_version, target_version
+			<Pallet<T, I>>::name(), storage_version, target_version
 		);
 
 		ensure!(
