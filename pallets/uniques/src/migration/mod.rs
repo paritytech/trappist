@@ -65,12 +65,12 @@ pub mod v1 {
 					Some(new_value)
 				});
 
-				log::info!("v1 applied successfully");
+				log::info!("Uniques migration v1 applied successfully");
 				StorageVersion::new(1).put::<Pallet<T>>();
 
 				T::DbWeight::get().reads_writes(translated + 1, translated + 1)
 			} else {
-				log::warn!("skipping v1, should be removed");
+				log::warn!("Uniques migration skipping v1, should be removed");
 				T::DbWeight::get().reads(1)
 			}
 		}

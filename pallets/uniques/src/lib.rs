@@ -39,10 +39,8 @@ mod functions;
 mod impl_nonfungibles;
 mod types;
 
-pub mod migration;
 pub mod weights;
 
-pub use crate::migration::{MigrateSequence, Migration, NoopMigration};
 use frame_support::{
 	pallet_prelude::StorageVersion,
 	traits::{
@@ -60,6 +58,8 @@ use sp_std::prelude::*;
 pub use pallet::*;
 pub use types::*;
 pub use weights::WeightInfo;
+
+pub mod migration;
 
 /// The log target for this pallet.
 const LOG_TARGET: &str = "runtime::uniques";
@@ -164,8 +164,6 @@ pub mod pallet {
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
-
-		type Migrations: MigrateSequence;
 	}
 
 	#[pallet::storage]
@@ -177,12 +175,6 @@ pub mod pallet {
 		T::CollectionId,
 		CollectionDetails<T::AccountId, DepositBalanceOf<T, I>>,
 	>;
-
-	/// A migration can span across multiple blocks. This storage defines a cursor to track the
-	/// progress of the migration, enabling us to resume from the last completed position.
-	#[pallet::storage]
-	pub(super) type MigrationInProgress<T: Config<I>, I: 'static = ()> =
-		StorageValue<_, migration::Cursor, OptionQuery>;
 
 	#[pallet::storage]
 	/// The collection, if any, of which an account is willing to take ownership.
@@ -447,35 +439,6 @@ pub mod pallet {
 		}
 	}
 
-	#[pallet::hooks]
-	impl<T: Config<I>, I: 'static> Hooks<BlockNumberFor<T>> for Pallet<T, I> {
-		fn on_idle(_block: BlockNumberFor<T>, mut remaining_weight: Weight) -> Weight {
-			use migration::MigrateResult::*;
-
-			loop {
-				let (result, weight) = Migration::<T, I>::migrate(remaining_weight);
-				remaining_weight.saturating_reduce(weight);
-
-				match result {
-					// There is not enough weight to perform a migration, or make any progress, we
-					// just return the remaining weight.
-					NoMigrationPerformed | InProgress { steps_done: 0 } => return remaining_weight,
-					// Migration is still in progress, we can start the next step.
-					InProgress { .. } => continue,
-					// Either no migration is in progress, or we are done with all migrations, we
-					// can do some more other work with the remaining weight.
-					Completed | NoMigrationInProgress => break,
-				}
-			}
-
-			remaining_weight
-		}
-
-		fn integrity_test() {
-			Migration::<T, I>::integrity_test();
-		}
-	}
-
 	#[pallet::call]
 	impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		/// Issue a new collection of non-fungible items from a public origin.
@@ -501,7 +464,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			admin: AccountIdLookupOf<T>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let owner = T::CreateOrigin::ensure_origin(origin, &collection)?;
 			let admin = T::Lookup::lookup(admin)?;
 
@@ -540,7 +502,6 @@ pub mod pallet {
 			owner: AccountIdLookupOf<T>,
 			free_holding: bool,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			T::ForceOrigin::ensure_origin(origin)?;
 			let owner = T::Lookup::lookup(owner)?;
 
@@ -580,7 +541,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			witness: DestroyWitness,
 		) -> DispatchResultWithPostInfo {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = match T::ForceOrigin::try_origin(origin) {
 				Ok(_) => None,
 				Err(origin) => Some(ensure_signed(origin)?),
@@ -614,7 +574,6 @@ pub mod pallet {
 			item: T::ItemId,
 			owner: AccountIdLookupOf<T>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let owner = T::Lookup::lookup(owner)?;
 
@@ -647,7 +606,6 @@ pub mod pallet {
 			item: T::ItemId,
 			check_owner: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let check_owner = check_owner.map(T::Lookup::lookup).transpose()?;
 
@@ -687,7 +645,6 @@ pub mod pallet {
 			item: T::ItemId,
 			dest: AccountIdLookupOf<T>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let dest = T::Lookup::lookup(dest)?;
 
@@ -724,7 +681,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			items: Vec<T::ItemId>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			let mut collection_details =
@@ -786,7 +742,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			let mut details =
@@ -819,7 +774,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			let mut details =
@@ -850,7 +804,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			Collection::<T, I>::try_mutate(collection.clone(), |maybe_details| {
@@ -879,7 +832,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 
 			Collection::<T, I>::try_mutate(collection.clone(), |maybe_details| {
@@ -911,7 +863,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			owner: AccountIdLookupOf<T>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let owner = T::Lookup::lookup(owner)?;
 
@@ -963,7 +914,6 @@ pub mod pallet {
 			admin: AccountIdLookupOf<T>,
 			freezer: AccountIdLookupOf<T>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let issuer = T::Lookup::lookup(issuer)?;
 			let admin = T::Lookup::lookup(admin)?;
@@ -1004,7 +954,6 @@ pub mod pallet {
 			item: T::ItemId,
 			delegate: AccountIdLookupOf<T>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check: Option<T::AccountId> = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
@@ -1059,7 +1008,6 @@ pub mod pallet {
 			item: T::ItemId,
 			maybe_check_delegate: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check: Option<T::AccountId> = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
@@ -1117,7 +1065,6 @@ pub mod pallet {
 			free_holding: bool,
 			is_frozen: bool,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			T::ForceOrigin::ensure_origin(origin)?;
 
 			Collection::<T, I>::try_mutate(collection.clone(), |maybe_item| {
@@ -1165,7 +1112,6 @@ pub mod pallet {
 			key: BoundedVec<u8, T::KeyLimit>,
 			value: BoundedVec<u8, T::ValueLimit>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1229,7 +1175,6 @@ pub mod pallet {
 			maybe_item: Option<T::ItemId>,
 			key: BoundedVec<u8, T::KeyLimit>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1284,7 +1229,6 @@ pub mod pallet {
 			data: BoundedVec<u8, T::StringLimit>,
 			is_frozen: bool,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1351,7 +1295,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			item: T::ItemId,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1403,7 +1346,6 @@ pub mod pallet {
 			data: BoundedVec<u8, T::StringLimit>,
 			is_frozen: bool,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1460,7 +1402,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			collection: T::CollectionId,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1498,7 +1439,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			maybe_collection: Option<T::CollectionId>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let who = ensure_signed(origin)?;
 			let old = OwnershipAcceptance::<T, I>::get(&who);
 			match (old.is_some(), maybe_collection.is_some()) {
@@ -1537,7 +1477,6 @@ pub mod pallet {
 			collection: T::CollectionId,
 			max_supply: u32,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let maybe_check_owner = T::ForceOrigin::try_origin(origin)
 				.map(|_| None)
 				.or_else(|origin| ensure_signed(origin).map(Some))?;
@@ -1580,7 +1519,6 @@ pub mod pallet {
 			price: Option<ItemPrice<T, I>>,
 			whitelisted_buyer: Option<AccountIdLookupOf<T>>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			let whitelisted_buyer = whitelisted_buyer.map(T::Lookup::lookup).transpose()?;
 			Self::do_set_price(collection, item, origin, price, whitelisted_buyer)
@@ -1603,7 +1541,6 @@ pub mod pallet {
 			item: T::ItemId,
 			bid_price: ItemPrice<T, I>,
 		) -> DispatchResult {
-			Migration::<T, I>::ensure_migrated()?;
 			let origin = ensure_signed(origin)?;
 			Self::do_buy_item(collection, item, origin, bid_price)
 		}

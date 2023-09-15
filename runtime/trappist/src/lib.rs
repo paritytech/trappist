@@ -126,7 +126,10 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(pallet_uniques::Migration<Runtime>,),
+	(
+		pallet_xcm::migration::v1::MigrateToV1<Runtime>,
+		pallet_uniques::migration::v1::MigrateToV1<Runtime>,
+	),
 >;
 
 impl_opaque_keys! {
@@ -467,10 +470,6 @@ impl pallet_uniques::Config for Runtime {
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
 	type WeightInfo = weights::pallet_uniques::WeightInfo<Runtime>;
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (pallet_uniques::migration::v01::Migration<Self>,);
-	#[cfg(feature = "runtime-benchmarks")]
-	type Migrations = (NoopMigration<1>, NoopMigration<2>);
 }
 
 parameter_types! {
