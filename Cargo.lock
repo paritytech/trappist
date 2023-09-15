@@ -6992,6 +6992,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-withdraw-teleport"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
 name = "pallet-xcm"
 version = "1.0.0"
 source = "git+https://github.com/paritytech/polkadot?branch=release-v1.0.0#c9ec8c5a15959ce711bb60aa79add58f560d61e9"
@@ -12948,6 +12966,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-uniques",
  "pallet-utility",
+ "pallet-withdraw-teleport",
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "parachain-info",

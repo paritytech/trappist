@@ -5529,7 +5529,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-proxy"
+name = "pallet-withdraw"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.37#f38bd6671d460293c93062cc1e4fe9e9e490cb29"
 dependencies = [
@@ -6958,7 +6958,7 @@ dependencies = [
  "pallet-nomination-pools-runtime-api",
  "pallet-offences",
  "pallet-preimage",
- "pallet-proxy",
+ "pallet-withdraw",
  "pallet-scheduler",
  "pallet-session",
  "pallet-staking",
@@ -7895,7 +7895,7 @@ dependencies = [
  "pallet-nis",
  "pallet-offences",
  "pallet-preimage",
- "pallet-proxy",
+ "pallet-withdraw",
  "pallet-recovery",
  "pallet-scheduler",
  "pallet-session",
@@ -10415,7 +10415,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-multisig",
- "pallet-proxy",
+ "pallet-withdraw",
  "pallet-session",
  "pallet-state-trie-migration",
  "pallet-timestamp",

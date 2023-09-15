@@ -649,6 +649,10 @@ impl pallet_treasury::Config for Runtime {
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 }
 
+impl pallet_withdraw_teleport::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
+
 impl pallet_lockdown_mode::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
@@ -712,6 +716,7 @@ construct_runtime!(
 		// Additional pallets
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
+		WithdrawTeleport: pallet_withdraw_teleport = 112,
 	}
 );
 
