@@ -58,7 +58,6 @@
 //! a `MigrationInProgress` error.
 
 pub mod v01;
-pub mod v1;
 
 use crate::{weights::WeightInfo, Config, Error, MigrationInProgress, Pallet, LOG_TARGET};
 use frame_support::{
@@ -226,10 +225,12 @@ pub trait MigrateSequence: private::Sealed {
 /// If `TEST_ALL_STEPS == true` and `try-runtime` is enabled, this will run all the migrations
 /// inside `on_runtime_upgrade`. This should be set to false in tests that want to ensure the step
 /// by step migration works.
-pub struct Migration<T: Config, const TEST_ALL_STEPS: bool = true>(PhantomData<T>);
+pub struct Migration<T: Config<I>, I: 'static = (), const TEST_ALL_STEPS: bool = true>(
+	PhantomData<(T, I)>,
+);
 
 #[cfg(feature = "try-runtime")]
-impl<T: Config, const TEST_ALL_STEPS: bool> Migration<T, TEST_ALL_STEPS> {
+impl<T: Config, I, const TEST_ALL_STEPS: bool> Migration<T, I, TEST_ALL_STEPS> {
 	fn run_all_steps() -> Result<(), TryRuntimeError> {
 		let mut weight = Weight::zero();
 		let name = <Pallet<T>>::name();
@@ -256,11 +257,13 @@ impl<T: Config, const TEST_ALL_STEPS: bool> Migration<T, TEST_ALL_STEPS> {
 	}
 }
 
-impl<T: Config, const TEST_ALL_STEPS: bool> OnRuntimeUpgrade for Migration<T, TEST_ALL_STEPS> {
+impl<T: Config<I>, I: 'static, const TEST_ALL_STEPS: bool> OnRuntimeUpgrade
+	for Migration<T, I, TEST_ALL_STEPS>
+{
 	fn on_runtime_upgrade() -> Weight {
-		let name = <Pallet<T>>::name();
-		let latest_version = <Pallet<T>>::current_storage_version();
-		let storage_version = <Pallet<T>>::on_chain_storage_version();
+		let name = <Pallet<T, I>>::name();
+		let latest_version = <Pallet<T, I>>::current_storage_version();
+		let storage_version = <Pallet<T, I>>::on_chain_storage_version();
 
 		if storage_version == latest_version {
 			log::warn!(
@@ -289,7 +292,7 @@ impl<T: Config, const TEST_ALL_STEPS: bool> OnRuntimeUpgrade for Migration<T, TE
 		);
 
 		let cursor = T::Migrations::new(storage_version + 1);
-		MigrationInProgress::<T>::set(Some(cursor));
+		MigrationInProgress::<T, I>::set(Some(cursor));
 
 		#[cfg(feature = "try-runtime")]
 		if TEST_ALL_STEPS {
@@ -346,7 +349,7 @@ pub enum StepResult {
 	Completed { steps_done: u32 },
 }
 
-impl<T: Config, const TEST_ALL_STEPS: bool> Migration<T, TEST_ALL_STEPS> {
+impl<T: Config<I>, I: 'static, const TEST_ALL_STEPS: bool> Migration<T, I, TEST_ALL_STEPS> {
 	/// Verify that each migration's step of the [`Config::Migrations`] sequence fits into
 	/// `Cursor`.
 	pub(crate) fn integrity_test() {
@@ -357,20 +360,20 @@ impl<T: Config, const TEST_ALL_STEPS: bool> Migration<T, TEST_ALL_STEPS> {
 	/// Migrate
 	/// Return the weight used and whether or not a migration is in progress
 	pub(crate) fn migrate(weight_limit: Weight) -> (MigrateResult, Weight) {
-		let name = <Pallet<T>>::name();
+		let name = <Pallet<T, I>>::name();
 		let mut weight_left = weight_limit;
 
 		if weight_left.checked_reduce(T::WeightInfo::migrate()).is_none() {
 			return (MigrateResult::NoMigrationPerformed, Weight::zero())
 		}
 
-		MigrationInProgress::<T>::mutate_exists(|progress| {
+		MigrationInProgress::<T, I>::mutate_exists(|progress| {
 			let Some(cursor_before) = progress.as_mut() else {
 				return (MigrateResult::NoMigrationInProgress, T::WeightInfo::migration_noop())
 			};
 
 			// if a migration is running it is always upgrading to the next version
-			let storage_version = <Pallet<T>>::on_chain_storage_version();
+			let storage_version = <Pallet<T, I>>::on_chain_storage_version();
 			let in_progress_version = storage_version + 1;
 
 			log::info!(
@@ -390,8 +393,8 @@ impl<T: Config, const TEST_ALL_STEPS: bool> Migration<T, TEST_ALL_STEPS> {
 					MigrateResult::InProgress { steps_done }
 				},
 				StepResult::Completed { steps_done } => {
-					in_progress_version.put::<Pallet<T>>();
-					if <Pallet<T>>::current_storage_version() != in_progress_version {
+					in_progress_version.put::<Pallet<T, I>>();
+					if <Pallet<T, I>>::current_storage_version() != in_progress_version {
 						log::info!(
 							target: LOG_TARGET,
 							"{name}: Next migration is {:?},",
@@ -417,14 +420,14 @@ impl<T: Config, const TEST_ALL_STEPS: bool> Migration<T, TEST_ALL_STEPS> {
 
 	pub(crate) fn ensure_migrated() -> DispatchResult {
 		if Self::in_progress() {
-			Err(Error::<T>::MigrationInProgress.into())
+			Err(Error::<T, I>::MigrationInProgress.into())
 		} else {
 			Ok(())
 		}
 	}
 
 	pub(crate) fn in_progress() -> bool {
-		MigrationInProgress::<T>::exists()
+		MigrationInProgress::<T, I>::exists()
 	}
 }
 

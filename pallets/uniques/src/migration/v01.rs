@@ -16,7 +16,6 @@
 // limitations under the License.
 
 //! Various pieces of common functionality.
-use super::*;
 use crate::{
 	migration::{IsFinished, MigrationStep},
 	types::*,
@@ -24,13 +23,9 @@ use crate::{
 	Config, Pallet, LOG_TARGET,
 };
 use frame_support::{
-	pallet_prelude::*,
-	storage_alias,
-	traits::{Get, GetStorageVersion, OnRuntimeUpgrade, PalletInfoAccess, StorageVersion},
-	weights::Weight,
-	DefaultNoBound, Identity,
+	pallet_prelude::*, storage_alias, traits::Get, weights::Weight, DefaultNoBound,
 };
-use parity_scale_codec::{Codec, MaxEncodedLen};
+use parity_scale_codec::MaxEncodedLen;
 use sp_runtime::BoundedVec;
 use sp_std::prelude::*;
 
@@ -52,21 +47,22 @@ mod old {
 	}
 
 	#[storage_alias]
-	pub(super) type ItemMetadataOf<T: Config> = StorageDoubleMap<
-		Pallet<T>,
+	// Use storage_prefix name
+	pub(super) type InstanceMetadataOf<T: Config<I>, I: 'static> = StorageDoubleMap<
+		Pallet<T, I>,
 		Blake2_128Concat,
-		<T as Config>::CollectionId,
+		<T as Config<I>>::CollectionId,
 		Blake2_128Concat,
-		<T as Config>::ItemId,
-		OldItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
+		<T as Config<I>>::ItemId,
+		OldItemMetadata<DepositBalanceOf<T, I>, <T as Config<I>>::StringLimit>,
 		OptionQuery,
 	>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub fn store_old_metadata<T: Config>(
-	collection_id: <T as Config>::CollectionId,
-	item_id: <T as Config>::ItemId,
+pub fn store_old_metadata<T: Config<I>, I: 'static>(
+	collection_id: <T as Config<I>>::CollectionId,
+	item_id: <T as Config<I>>::ItemId,
 	metadata: old::OldItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
 ) {
 	let info = old::OldItemMetadata {
@@ -74,26 +70,15 @@ pub fn store_old_metadata<T: Config>(
 		data: metadata.data.clone(),
 		is_frozen: metadata.is_frozen.clone(),
 	};
-	old::ItemMetadataOf::<T>::insert(collection_id, item_id, metadata);
+	old::InstanceMetadataOf::<T, I>::insert(collection_id, item_id, metadata);
 }
 
-#[storage_alias]
-pub(super) type ItemMetadataOf<T: Config> = StorageDoubleMap<
-	Pallet<T>,
-	Blake2_128Concat,
-	<T as Config>::CollectionId,
-	Blake2_128Concat,
-	<T as Config>::ItemId,
-	ItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
-	OptionQuery,
->;
-
 #[derive(Encode, Decode, MaxEncodedLen, DefaultNoBound)]
-pub struct Migration<T: Config> {
+pub struct Migration<T: Config<I>, I: 'static = ()> {
 	last_metadata: Option<(T::CollectionId, T::ItemId)>,
 }
 
-impl<T: Config> MigrationStep for Migration<T> {
+impl<T: Config<I>, I: 'static> MigrationStep for Migration<T, I> {
 	const VERSION: u16 = 1;
 
 	fn max_step_weight() -> Weight {
@@ -102,23 +87,26 @@ impl<T: Config> MigrationStep for Migration<T> {
 
 	fn step(&mut self) -> (IsFinished, Weight) {
 		let mut iter = if let Some(last_metadata) = self.last_metadata.take() {
-			old::ItemMetadataOf::<T>::iter_from(old::ItemMetadataOf::<T>::hashed_key_for(
-				last_metadata.0,
-				last_metadata.1,
-			))
+			old::InstanceMetadataOf::<T, I>::iter_from(
+				old::InstanceMetadataOf::<T, I>::hashed_key_for(last_metadata.0, last_metadata.1),
+			)
 		} else {
-			old::ItemMetadataOf::<T>::iter()
+			old::InstanceMetadataOf::<T, I>::iter()
 		};
 
 		if let Some((collection_item, item_id, old)) = iter.next() {
 			log::debug!(target: LOG_TARGET, "Migrating item {:?} from collection {:?}", item_id, collection_item);
-			let metadata = ItemMetadata::<DepositBalanceOf<T>, T::StringLimit> {
+			let metadata = ItemMetadata::<DepositBalanceOf<T, I>, T::StringLimit> {
 				deposit: old.deposit,
 				data: old.data,
 				is_frozen: old.is_frozen,
-				name: BoundedVec::default(),
+				name: BoundedVec::truncate_from(b"Polkadot Deep Dive".to_vec()),
 			};
-			ItemMetadataOf::<T>::insert(collection_item.clone(), item_id.clone(), metadata);
+			crate::ItemMetadataOf::<T, I>::insert(
+				collection_item.clone(),
+				item_id.clone(),
+				metadata,
+			);
 			self.last_metadata = Some((collection_item, item_id));
 			(IsFinished::No, T::WeightInfo::v1_migration_step())
 		} else {
