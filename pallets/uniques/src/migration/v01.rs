@@ -29,7 +29,7 @@ use parity_scale_codec::MaxEncodedLen;
 use sp_runtime::BoundedVec;
 use sp_std::prelude::*;
 
-mod old {
+pub(crate) mod old {
 	use super::*;
 
 	#[derive(Encode, Decode)]
@@ -46,9 +46,17 @@ mod old {
 		pub(super) is_frozen: bool,
 	}
 
+	impl<DepositBalance, StringLimit: Get<u32>> From<ItemMetadata<DepositBalance, StringLimit>>
+		for OldItemMetadata<DepositBalance, StringLimit>
+	{
+		fn from(value: ItemMetadata<DepositBalance, StringLimit>) -> Self {
+			Self { deposit: value.deposit, data: value.data, is_frozen: value.is_frozen }
+		}
+	}
+
 	#[storage_alias]
 	// Use storage_prefix name
-	pub(super) type InstanceMetadataOf<T: Config<I>, I: 'static> = StorageDoubleMap<
+	pub(crate) type InstanceMetadataOf<T: Config<I>, I: 'static> = StorageDoubleMap<
 		Pallet<T, I>,
 		Blake2_128Concat,
 		<T as Config<I>>::CollectionId,
@@ -63,13 +71,8 @@ mod old {
 pub fn store_old_metadata<T: Config<I>, I: 'static>(
 	collection_id: <T as Config<I>>::CollectionId,
 	item_id: <T as Config<I>>::ItemId,
-	metadata: old::OldItemMetadata<DepositBalanceOf<T>, <T as Config>::StringLimit>,
+	metadata: old::OldItemMetadata<DepositBalanceOf<T, I>, <T as Config<I>>::StringLimit>,
 ) {
-	let info = old::OldItemMetadata {
-		deposit: metadata.deposit.clone(),
-		data: metadata.data.clone(),
-		is_frozen: metadata.is_frozen.clone(),
-	};
 	old::InstanceMetadataOf::<T, I>::insert(collection_id, item_id, metadata);
 }
 

@@ -20,6 +20,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use super::*;
+use crate::migration::{v01, MigrationStep};
 use frame_benchmarking::v1::{
 	account, benchmarks_instance_pallet, whitelist_account, whitelisted_caller, BenchmarkError,
 };
@@ -28,11 +29,6 @@ use frame_support::{
 	traits::{EnsureOrigin, Get},
 	BoundedVec,
 };
-use crate::{
-	migration::{
-		v01, MigrationStep,
-	}
-}
 use frame_system::RawOrigin as SystemOrigin;
 use sp_runtime::traits::Bounded;
 use sp_std::prelude::*;
@@ -454,12 +450,16 @@ benchmarks_instance_pallet! {
 	v1_migration_step {
 		let (collection, seller, _) = create_collection::<T, I>();
 		let (item, ..) = mint_item::<T, I>(0);
-		add_item_metadata::<T, I>(T::Helper::item(item));
-		let metadata = InstanceMetadataOf::<T, I>::get(collection.clone(), item).unwrap();
-		v01::store_old_metadata::<T>(collection, item, metadata);
-		let mut m = v01::Migration::<T>::default();
+		// Add item metadata (new format, empty name)
+		add_item_metadata::<T, I>(item);
+		let metadata = ItemMetadataOf::<T, I>::get(collection.clone(), item).unwrap();
+		// Store item in old format (note .into() for conversion to old format)
+		v01::store_old_metadata::<T, I>(collection.clone(), item, metadata.into());
+		let mut m = v01::Migration::<T, I>::default();
 	}: {
+		// Perform migration and assert name set (as per migration)
 		m.step();
+		assert_eq!(ItemMetadataOf::<T, I>::get(collection, item).unwrap().name.into_inner(), b"Polkadot Deep Dive".to_vec())
 	}
 
 	impl_benchmark_test_suite!(Uniques, crate::mock::new_test_ext(), crate::mock::Test);
