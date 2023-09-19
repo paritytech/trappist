@@ -125,7 +125,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(),
+	(pallet_blacklist::pallet::Migration<Runtime>,),
 >;
 
 impl_opaque_keys! {
@@ -174,6 +174,13 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
+}
+
+impl pallet_blacklist::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type BlacklistingOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = pallet_blacklist::SubstrateWeight<Runtime>;
+	type Migrations = ();
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -717,6 +724,7 @@ construct_runtime!(
 		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
 		WithdrawTeleport: pallet_withdraw_teleport = 112,
+		Blacklist: pallet_blacklist = 113,
 	}
 );
 
@@ -778,6 +786,7 @@ mod benches {
 		// NOTE: Make sure you point to the individual modules below.
 		[pallet_xcm_benchmarks::fungible, XcmBalances]
 		[pallet_xcm_benchmarks::generic, XcmGeneric]
+		[pallet_blacklist, Blacklist]
 	);
 }
 

@@ -138,6 +138,7 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 pallet-uniques = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
 pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v1.0.0" }
+pallet-blacklist = { path = "../blacklist", default-features = false }
 
 # Cumulus client dependencies
 cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0" }
