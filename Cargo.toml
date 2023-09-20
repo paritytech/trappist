@@ -18,6 +18,9 @@ inherits = "release"
 lto = true
 codegen-units = 1
 
+[profile.test]
+debug = 0
+
 [workspace.package]
 authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
 homepage = "https://trappist.io"
