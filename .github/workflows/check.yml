@@ -39,8 +39,7 @@ jobs:
         uses: Swatinem/rust-cache@v2.7.0
         with:
           cache-on-failure: true
-          shared-key: ${{ env.POLKA_VERSION }}
-          key: "release"
+          shared-key: ${{ env.POLKA_VERSION }}-release
 
       - name: Check Build Trappist node
         run: |
@@ -63,8 +62,7 @@ jobs:
         uses: Swatinem/rust-cache@v2.7.0
         with:
           cache-on-failure: true
-          shared-key: ${{ env.POLKA_VERSION }}
-          key: "debug"
+          shared-key: ${{ env.POLKA_VERSION }}-debug
 
       - name: Run Trappist tests
         run: |
