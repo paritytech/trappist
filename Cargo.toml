@@ -4,6 +4,7 @@ members = [
 	"runtime/stout",
 	"runtime/trappist",
 	"primitives/xcm",
+	"integration-tests/emulated",
 ]
 exclude = [
 	"xcm-simulator"
@@ -164,6 +165,7 @@ pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", bra
 parachains-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0", default-features = false }
 parachain-info = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0", default-features = false }
 cumulus-pallet-session-benchmarking = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0", default-features = false, version = "3.0.0" }
+xcm-emulator = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0", default-features = false }
 
 # Polkadot
 polkadot-cli = { git = "https://github.com/paritytech/polkadot", features = ["rococo-native"], branch = "release-v1.0.0" }
