@@ -4,8 +4,8 @@ use xcm_emulator::assert_expected_events;
 
 #[allow(dead_code)]
 fn overview() {
-	type MockNetwork = PolkadotMockNet;
-	type RelayChain = Polkadot;
+	type MockNetwork = RococoMockNet;
+	type RelayChain = Rococo;
 	type Para = ParaA;
 
 	type TestExt = dyn xcm_emulator::TestExt;
