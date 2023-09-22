@@ -146,7 +146,7 @@ decl_test_networks! {
 	// Polkadot
 	pub struct PolkadotMockNet {
 		relay_chain = Polkadot,
-		parachains = vec![ ParaA, ParaB, ],
+		parachains = vec![ ParaA, ParaB, AssetHubRococo, ],
 		bridge = ()
 	},
 	// Kusama
