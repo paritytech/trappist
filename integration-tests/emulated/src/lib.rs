@@ -1,5 +1,5 @@
 use frame_support::{sp_io, sp_tracing};
-use integration_tests_common::{constants::XCM_V3, AccountId, Balance};
+use integration_tests_common::{constants::XCM_V3, AccountId, Balance,AssetHubPolkadot};
 use sp_core::{sr25519, storage::Storage, Get};
 use sp_runtime::BuildStorage;
 use xcm_emulator::{
@@ -115,6 +115,29 @@ decl_test_parachains! {
 			ParachainInfo: stout_runtime::ParachainInfo,
 		},
 		pallets_extra = {}
+	},
+
+	// AssetHub
+	pub struct AssetHubRococo {
+		genesis = integration_tests_common::constants::asset_hub_polkadot::genesis(),
+		on_init = (),
+		runtime = {
+			Runtime: asset_hub_polkadot_runtime::Runtime,
+			RuntimeOrigin: asset_hub_polkadot_runtime::RuntimeOrigin,
+			RuntimeCall: asset_hub_polkadot_runtime::RuntimeCall,
+			RuntimeEvent: asset_hub_polkadot_runtime::RuntimeEvent,
+			XcmpMessageHandler: asset_hub_polkadot_runtime::XcmpQueue,
+			DmpMessageHandler: asset_hub_polkadot_runtime::DmpQueue,
+			LocationToAccountId: asset_hub_polkadot_runtime::xcm_config::LocationToAccountId,
+			System: asset_hub_polkadot_runtime::System,
+			Balances: asset_hub_polkadot_runtime::Balances,
+			ParachainSystem: asset_hub_polkadot_runtime::ParachainSystem,
+			ParachainInfo: asset_hub_polkadot_runtime::ParachainInfo,
+		},
+		pallets_extra = {
+			PolkadotXcm: asset_hub_polkadot_runtime::PolkadotXcm,
+			Assets: asset_hub_polkadot_runtime::Assets,
+		}
 	}
 }
 

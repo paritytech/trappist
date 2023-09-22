@@ -4,7 +4,7 @@ members = [
 	"runtime/stout",
 	"runtime/trappist",
 	"primitives/xcm",
-	"integration-tests/emulated",
+	"integration-tests/emulated"
 ]
 exclude = [
 	"xcm-simulator"
