@@ -5795,6 +5795,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-asset-rate"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate?branch=polkadot-v1.0.0#948fbd2fd1233dc26dbb9f9bbc1d2cca2c03945d"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-asset-registry"
 version = "0.0.1"
 dependencies = [
@@ -12939,6 +12952,7 @@ dependencies = [
  "hex-literal 0.4.1",
  "kusama-runtime-constants",
  "log",
+ "pallet-asset-rate",
  "pallet-asset-registry",
  "pallet-asset-tx-payment",
  "pallet-assets",

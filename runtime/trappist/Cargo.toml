@@ -70,6 +70,7 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-uniques = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-treasury = { workspace = true }
+pallet-asset-rate = { workspace = true }
 
 # Cumulus dependencies
 assets-common = { workspace = true }

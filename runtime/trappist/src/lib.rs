@@ -662,6 +662,18 @@ impl pallet_lockdown_mode::Config for Runtime {
 	type WeightInfo = weights::pallet_lockdown_mode::WeightInfo<Runtime>;
 }
 
+// impl pallet_asset_rate::Config for Runtime {
+// 	type WeightInfo = ();
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type CreateOrigin = frame_system::EnsureRoot<Self::AccountId>;
+// 	type RemoveOrigin = frame_system::EnsureRoot<Self::AccountId>;
+// 	type UpdateOrigin = frame_system::EnsureRoot<Self::AccountId>;
+// 	type Currency = Balances;
+// 	type AssetKind = u32;
+// 	#[cfg(feature = "runtime-benchmarks")]
+// 	type BenchmarkHelper = ();
+// }
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -678,6 +690,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 11,
 		AssetTxPayment: pallet_asset_tx_payment::{Pallet, Storage, Event<T>} = 12,
+		// AssetRate: pallet_asset_rate = 13,
 
 		// Collator support. The order of these 5 are important and shall not change.
 		Authorship: pallet_authorship::{Pallet, Storage} = 20,
