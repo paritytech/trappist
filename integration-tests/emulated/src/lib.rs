@@ -1,5 +1,5 @@
 use frame_support::{sp_io, sp_tracing};
-use integration_tests_common::{constants::XCM_V3, AccountId, Balance,AssetHubPolkadot};
+use integration_tests_common::{constants::XCM_V3, AccountId, Balance};
 use sp_core::{sr25519, storage::Storage, Get};
 use sp_runtime::BuildStorage;
 use xcm_emulator::{
