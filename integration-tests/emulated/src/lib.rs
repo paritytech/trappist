@@ -1,11 +1,11 @@
 use frame_support::{sp_io, sp_tracing};
-use integration_tests_common::{constants::XCM_V3, AccountId, Balance};
+use integration_tests_common::{AccountId, Balance};
 use sp_core::{sr25519, storage::Storage, Get};
 use sp_runtime::BuildStorage;
 use xcm_emulator::{
-	bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains, Ancestor,
-	BridgeMessageHandler, MultiLocation, ParaId, Parachain, Parent, RelayChain, TestExt, XcmHash,
-	X1,
+	bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains, get_account_id_from_seed,
+	Ancestor, BridgeMessageHandler, MultiLocation, ParaId, Parachain, Parent, RelayChain, TestExt,
+	XcmHash, X1,
 };
 use xcm_executor::traits::ConvertLocation;
 
