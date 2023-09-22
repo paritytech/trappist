@@ -102,18 +102,23 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	// });
 
 	// let mut beneficiary_balance = 0;
-	// Trappist::execute_with(|| {
-	// 	// Create derivative asset on Trappist Parachain
-	// 	assert_ok!(create_derivative_asset_on_trappist(txUSD, ALICE.into(), ASSET_MIN_BALANCE));
+	ParaA::execute_with(|| {
+		// Create fungible asset on Asset Hub
+		assert_ok!(<ParaA as ParaAPallet>::Assets::create(
+			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			txUSD.into(),
+			alice_account.clone().into(),
+			ASSET_MIN_BALANCE
+		));
 
-	// 	// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
-	// 	// Parachain) via Asset Registry
-	// 	assert_ok!(register_reserve_asset_on_trappist(ALICE, txUSD, xUSD));
-	// 	assert!(trappist::AssetRegistry::asset_id_multilocation(txUSD).is_some());
+		// 	// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
+		// 	// Parachain) via Asset Registry
+		// 	assert_ok!(register_reserve_asset_on_trappist(ALICE, txUSD, xUSD));
+		// 	assert!(trappist::AssetRegistry::asset_id_multilocation(txUSD).is_some());
 
-	// 	// Check beneficiary balance
-	// 	beneficiary_balance = trappist::Assets::balance(txUSD, &ALICE);
-	// });
+		// 	// Check beneficiary balance
+		// 	beneficiary_balance = trappist::Assets::balance(txUSD, &ALICE);
+	});
 
 	// const AMOUNT: u128 = 20_000_000_000;
 
@@ -157,7 +162,6 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	// 	);
 	// });
 }
-
 
 static INIT: std::sync::Once = std::sync::Once::new();
 fn init_tracing() {

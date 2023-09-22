@@ -95,6 +95,7 @@ decl_test_parachains! {
 		},
 		pallets_extra = {
 			XcmPallet: trappist_runtime::PolkadotXcm,
+			Assets: trappist_runtime::Assets,
 		}
 	},
 	// Parachain B
@@ -178,7 +179,7 @@ fn para_a_genesis() -> Storage {
 			balances: integration_tests_common::constants::accounts::init_balances()
 				.iter()
 				.cloned()
-				.map(|k| (k, ED * 4096))
+				.map(|k| (k, ED * 1_000_000_000))
 				.collect(),
 		},
 		parachain_info: trappist_runtime::ParachainInfoConfig {
