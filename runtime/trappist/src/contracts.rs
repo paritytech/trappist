@@ -15,6 +15,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{
+	constants::currency::deposit, weights, Balance, Balances, RandomnessCollectiveFlip, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
+};
 use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Nothing},
@@ -27,10 +31,6 @@ use pallet_contracts::{
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_runtime::Perbill;
-use crate::{
-	constants::currency::deposit, weights, Balance, Balances, RandomnessCollectiveFlip, Runtime,
-	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
-};
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.

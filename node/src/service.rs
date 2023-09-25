@@ -135,10 +135,7 @@ where
 		&Configuration,
 		Option<TelemetryHandle>,
 		&TaskManager,
-	) -> Result<
-		sc_consensus::DefaultImportQueue<Block>,
-		sc_service::Error,
-	>,
+	) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error>,
 {
 	let telemetry = config
 		.telemetry_endpoints
@@ -244,10 +241,7 @@ where
 		&Configuration,
 		Option<TelemetryHandle>,
 		&TaskManager,
-	) -> Result<
-		sc_consensus::DefaultImportQueue<Block>,
-		sc_service::Error,
-	>,
+	) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error>,
 	SC: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
 		ParachainBlockImport<RuntimeApi>,
@@ -301,7 +295,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			relay_chain_interface: relay_chain_interface.clone(),
 			import_queue: params.import_queue,
-			sybil_resistance_level
+			sybil_resistance_level,
 		})
 		.await?;
 
@@ -596,7 +590,7 @@ where
 		},
 		hwbench,
 	)
-		.await
+	.await
 }
 
 /// Build the import queue for Aura-based parachains.

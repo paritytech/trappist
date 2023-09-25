@@ -412,7 +412,9 @@ pub fn run() -> Result<()> {
 				let id = ParaId::from(para_id);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::AccountId>::into_account_truncating(
+						&id,
+					);
 
 				let block: crate::service::Block =
 					generate_genesis_block(&*config.chain_spec, sp_runtime::StateVersion::V1)
@@ -429,14 +431,13 @@ pub fn run() -> Result<()> {
 				info!("Parachain genesis state: {}", genesis_state);
 				info!("Is collating: {}", if config.role.is_authority() { "yes" } else { "no" });
 
-
 				dispatch_runtime!(config.chain_spec.runtime(), |runtime| {
 					crate::service::start_aura_node::<runtime::RuntimeApi, AuraId>(
 						config,
 						polkadot_config,
 						collator_options,
 						id,
-						hwbench
+						hwbench,
 					)
 					.await
 					.map(|r| r.0)

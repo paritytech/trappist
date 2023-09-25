@@ -15,23 +15,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use frame_support::{
-	parameter_types,
-	traits::{ConstU32, Nothing},
-};
-use pallet_contracts::{
-	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
-};
-
-#[cfg(feature = "runtime-benchmarks")]
-use pallet_contracts::NoopMigration;
-pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
-use sp_core::ConstBool;
-use sp_runtime::Perbill;
 use crate::{
 	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
 	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
 };
+use frame_support::{
+	parameter_types,
+	traits::{ConstU32, Nothing},
+};
+#[cfg(feature = "runtime-benchmarks")]
+use pallet_contracts::NoopMigration;
+use pallet_contracts::{
+	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
+};
+pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
+use sp_core::ConstBool;
+use sp_runtime::Perbill;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
