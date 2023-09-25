@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# PDD: Tracing
+# Tracing
 tracing = { version = "0.1.37" }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 
@@ -16,12 +16,14 @@ sp-runtime = { workspace = true }
 # Cumulus
 cumulus-ping = { workspace = true }
 integration-tests-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0" }
+xcm-emulator = { workspace = true }
 
 # Polkadot
 polkadot-parachain = { default-features = false, git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
 xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
 xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
 pallet-xcm = { workspace = true }
+xcm-primitives = { workspace = true }
 
 # PDD: Runtimes
 polkadot-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
@@ -31,5 +33,6 @@ asset-hub-polkadot-runtime = { git = "https://github.com/paritytech/cumulus", br
 trappist-runtime = { path = "../../runtime/trappist" }
 stout-runtime = { path = "../../runtime/stout" }
 
-# PDD: Local via Patch
-xcm-emulator = { workspace = true }
+# Local
+pallet-asset-registry = { workspace = true }
+

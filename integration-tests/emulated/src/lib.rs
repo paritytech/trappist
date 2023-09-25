@@ -96,6 +96,8 @@ decl_test_parachains! {
 		pallets_extra = {
 			XcmPallet: trappist_runtime::PolkadotXcm,
 			Assets: trappist_runtime::Assets,
+			Sudo: trappist_runtime::Sudo,
+			AssetRegistry: trappist_runtime::AssetRegistry,
 		}
 	},
 	// Parachain B
@@ -207,6 +209,9 @@ fn para_a_genesis() -> Storage {
 					)
 				})
 				.collect(),
+		},
+		sudo: trappist_runtime::SudoConfig {
+			key: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
 		},
 		polkadot_xcm: trappist_runtime::PolkadotXcmConfig {
 			safe_xcm_version: Some(xcm::prelude::XCM_VERSION),

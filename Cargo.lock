@@ -4917,6 +4917,7 @@ dependencies = [
  "frame-support",
  "integration-tests-common",
  "kusama-runtime",
+ "pallet-asset-registry",
  "pallet-xcm",
  "polkadot-parachain",
  "polkadot-runtime",
@@ -4930,6 +4931,7 @@ dependencies = [
  "xcm",
  "xcm-emulator",
  "xcm-executor",
+ "xcm-primitives",
 ]
 
 [[package]]
