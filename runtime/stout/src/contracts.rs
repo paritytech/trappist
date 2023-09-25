@@ -27,10 +27,10 @@ use pallet_contracts::{
 use pallet_contracts::NoopMigration;
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_core::ConstBool;
-
+use sp_runtime::Perbill;
 use crate::{
 	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
-	RuntimeCall, RuntimeEvent, Timestamp,
+	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
 };
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
@@ -42,6 +42,7 @@ parameter_types! {
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub MySchedule: Schedule<Runtime> = Default::default();
 	pub const DefaultDepositLimit: Balance = deposit(1024, 1024 * 1024);
+	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 }
 
 impl Config for Runtime {
@@ -74,4 +75,9 @@ impl Config for Runtime {
 	type Migrations = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type MaxDelegateDependencies = ConstU32<32>;
+	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
+	type Debug = ();
+	type Environment = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 }

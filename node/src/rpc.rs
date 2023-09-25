@@ -60,7 +60,7 @@ where
 	C::Api: pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>,
 	P: TransactionPool + Sync + Send + 'static,
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
-	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
+	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
 	use frame_rpc_system::{System, SystemApiServer};
 	use pallet_dex_rpc::{Dex, DexApiServer};

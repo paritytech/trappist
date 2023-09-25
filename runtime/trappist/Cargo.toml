@@ -91,7 +91,7 @@ cumulus-pallet-session-benchmarking = { workspace = true }
 kusama-runtime-constants = { workspace = true }
 pallet-xcm = { workspace = true }
 polkadot-core-primitives = { workspace = true }
-polkadot-parachain = { workspace = true }
+polkadot-parachain-primitives = { workspace = true }
 polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
@@ -174,7 +174,7 @@ std = [
 	"cumulus-pallet-dmp-queue/std",
 	"parachain-info/std",
 	"parachains-common/std",
-	"polkadot-parachain/std",
+	"polkadot-parachain-primitives/std",
 	"polkadot-runtime-common/std",
 	"xcm-builder/std",
 	"xcm-executor/std",

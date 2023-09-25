@@ -22,14 +22,14 @@ use frame_support::{
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_contracts::NoopMigration;
 use pallet_contracts::{
-	migration::{v10, v11, v12},
+	migration::{v12, v13, v14, v15},
 	Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
-
+use sp_runtime::Perbill;
 use crate::{
 	constants::currency::deposit, weights, Balance, Balances, RandomnessCollectiveFlip, Runtime,
-	RuntimeCall, RuntimeEvent, Timestamp,
+	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
 };
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
@@ -41,6 +41,7 @@ parameter_types! {
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub MySchedule: Schedule<Runtime> = Default::default();
 	pub const DefaultDepositLimit: Balance = deposit(1024, 1024 * 1024);
+	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 }
 
 impl Config for Runtime {
@@ -70,7 +71,17 @@ impl Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (v10::Migration<Self>, v11::Migration<Self>, v12::Migration<Self>);
+	type Migrations = (
+		v12::Migration<Self, Balances>,
+		v13::Migration<Self>,
+		v14::Migration<Self, Balances>,
+		v15::Migration<Self>,
+	);
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type MaxDelegateDependencies = ConstU32<32>;
+	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
+	type Debug = ();
+	type Environment = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 }
