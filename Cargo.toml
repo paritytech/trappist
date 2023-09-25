@@ -8,6 +8,7 @@ members = [
 exclude = [
 	"xcm-simulator"
 ]
+resolver = "2"
 
 [profile.release]
 panic = "unwind"
@@ -16,6 +17,9 @@ panic = "unwind"
 inherits = "release"
 lto = true
 codegen-units = 1
+
+[profile.test]
+debug = 0
 
 [workspace.package]
 authors = ["Trappist Network <https://github.com/TrappistNetwork>"]
