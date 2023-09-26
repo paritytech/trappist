@@ -37,8 +37,8 @@ pub use xcm::{
 };
 use xcm_executor::traits::WeightBounds;
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 
 // #[cfg(test)]
 // mod tests;
