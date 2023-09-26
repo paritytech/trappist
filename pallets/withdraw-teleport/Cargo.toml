@@ -34,6 +34,7 @@ sp-runtime = { workspace = true }
 default = ["std"]
 std = [
 	"parity-scale-codec/std",
+	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",
