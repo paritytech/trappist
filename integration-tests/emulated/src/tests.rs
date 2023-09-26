@@ -1,8 +1,12 @@
 use super::*;
-use frame_support::assert_ok;
+use frame_support::{assert_ok, instances::Instance1, traits::PalletInfoAccess};
 use integration_tests_common::{constants::XCM_V3, ALICE};
-use xcm_emulator::{assert_expected_events, GeneralIndex, PalletInstance, X3};
+use xcm_emulator::{
+	assert_expected_events, AccountId32, GeneralIndex, Here, NetworkId::Polkadot, PalletInstance,
+	WeightLimit, X1, X2, X3,
+};
 use xcm_primitives::AssetMultiLocationGetter;
+use parity_scale_codec::Encode;
 
 #[allow(dead_code)]
 fn overview() {
@@ -86,34 +90,73 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		);
 	});
 
-	// Relay::execute_with(|| {
-	// 	// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
-	// 	paras_sudo_wrapper_sudo_queue_downward_xcm(asset_reserve::RuntimeCall::Assets(
-	// 		pallet_assets::Call::<asset_reserve::Runtime>::force_asset_status {
-	// 			id: xUSD,
-	// 			owner: ALICE.into(),
-	// 			issuer: ALICE.into(),
-	// 			admin: ALICE.into(),
-	// 			freezer: ALICE.into(),
-	// 			min_balance: ASSET_MIN_BALANCE,
-	// 			is_sufficient: true,
-	// 			is_frozen: false,
-	// 		},
-	// 	));
+	// let sufficient_call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
+	// 	<AssetHubRococo as Parachain>::Runtime,
+	// 	Instance1,
+	// >::force_asset_status {
+	// 	id: xUSD.into(),
+	// 	owner: alice_account.clone().into(),
+	// 	issuer: alice_account.clone().into(),
+	// 	admin: alice_account.clone().into(),
+	// 	freezer: alice_account.clone().into(),
+	// 	min_balance: ASSET_MIN_BALANCE,
+	// 	is_sufficient: true,
+	// 	is_frozen: false,
 	// });
+
+	let call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
+		<AssetHubRococo as Parachain>::Runtime,
+		Instance1,
+	>::force_asset_status {
+		id: xUSD.into(),
+		owner: alice_account.clone().into(),
+		issuer: alice_account.clone().into(),
+		admin: alice_account.clone().into(),
+		freezer: alice_account.clone().into(),
+		min_balance: ASSET_MIN_BALANCE,
+		is_sufficient: true,
+		is_frozen: false,
+	})
+	.encode()
+	.into();
+
+	// XcmPallet send arguments
+	let sudo_origin = <Rococo as RelayChain>::RuntimeOrigin::root();
+	let assets_para_destination: VersionedMultiLocation =
+		Rococo::child_location_of(AssetHubRococo::para_id()).into();
+
+	let weight_limit = WeightLimit::Unlimited;
+	let require_weight_at_most = Weight::from_parts(1000000000, 200000);
+	let origin_kind = OriginKind::Superuser;
+	let check_origin = None;
+
+	let xcm = VersionedXcm::from(Xcm(vec![
+		UnpaidExecution { weight_limit, check_origin },
+		Transact { require_weight_at_most, origin_kind, call },
+	]));
+
+	Rococo::execute_with(|| {
+		// Declare xUSD (on Reserve Parachain) as self-sufficient via Relay Chain
+		assert_ok!(<Rococo as RococoPallet>::XcmPallet::send(
+			sudo_origin,
+			bx!(assets_para_destination),
+			bx!(xcm),
+		));
+	});
 
 	let mut beneficiary_balance = 0;
 
-	let call = <ParaA as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-		<ParaA as Parachain>::Runtime,
-	>::register_reserve_asset {
-		asset_id: txUSD,
-		asset_multi_location: (
-			Parent,
-			X3(Parachain(1000), PalletInstance(50), GeneralIndex(xUSD as u128)),
-		)
-			.into(),
-	});
+	let asset_registry_call =
+		<ParaA as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<ParaA as Parachain>::Runtime,
+		>::register_reserve_asset {
+			asset_id: txUSD,
+			asset_multi_location: (
+				Parent,
+				X3(Parachain(1000), PalletInstance(50), GeneralIndex(xUSD as u128)),
+			)
+				.into(),
+		});
 
 	ParaA::execute_with(|| {
 		// Create fungible asset on Asset Hub
@@ -128,35 +171,44 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		// Parachain) via Asset Registry
 		assert_ok!(<ParaA as ParaAPallet>::Sudo::sudo(
 			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
-			Box::new(call),
+			Box::new(asset_registry_call),
 		),);
 		assert!(<ParaA as ParaAPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
 
 		// // Check beneficiary balance
-		beneficiary_balance = <ParaA as ParaAPallet>::Assets::balance(txUSD, &alice_account.clone());
+		beneficiary_balance =
+			<ParaA as ParaAPallet>::Assets::balance(txUSD, &alice_account.clone());
 	});
 
 	const AMOUNT: u128 = 20_000_000_000;
 
 	AssetHubRococo::execute_with(|| {
 		// Reserve parachain should be able to reserve-transfer an asset to Trappist Parachain
-		// assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::PolkadotXcm::limited_reserve_transfer_assets(
-		// 	<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
-		// 	Box::new((Parent, Parachain(1836)).into()),
-		// 	Box::new(X1(AccountId32 { network: Any, id: ALICE.into() }).into().into()),
-		// 	Box::new(
-		// 		(
-		// 			X2(
-		// 				PalletInstance(<AssetHubRococo as AssetHubRococoPallet>::Assets::index() as u8),
-		// 				GeneralIndex(xUSD as u128)
-		// 			),
-		// 			AMOUNT
-		// 		)
-		// 			.into()
-		// 	),
-		// 	0,
-		// 	WeightLimit::Unlimited,
-		// ));
+		assert_ok!(
+			<AssetHubRococo as AssetHubRococoPallet>::PolkadotXcm::limited_reserve_transfer_assets(
+				<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+				Box::new((Parent, Parachain(1836)).into()),
+				Box::new(
+					X1(AccountId32 { network: Polkadot.into(), id: alice_account.clone().into() })
+						.into(),
+				),
+				Box::new(
+					vec![(
+						X2(
+							PalletInstance(
+								<AssetHubRococo as AssetHubRococoPallet>::Assets::index() as u8
+							),
+							GeneralIndex(xUSD as u128)
+						),
+						AMOUNT
+					)
+						.into()]
+					.into()
+				),
+				0,
+				WeightLimit::Unlimited,
+			)
+		);
 
 		// Ensure send amount moved to sovereign account
 		// let sovereign_account = asset_reserve::sovereign_account(TRAPPIST_PARA_ID);
