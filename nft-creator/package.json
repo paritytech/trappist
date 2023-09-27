@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@polkadot/api": "^10.9.1",
+    "@polkadot/keyring": "^12.5.1",
+    "@polkadot/types": "^10.9.1",
+    "@polkadot/util-crypto": "^12.5.1",
+    "beer-names": "^1.0.1",
+    "multiformats": "^9",
+    "superb": "^4.0.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}

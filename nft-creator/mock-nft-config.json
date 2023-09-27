@@ -1,0 +1,6 @@
+{
+    "collectionId": 5,
+    "numNfts": 100,
+    "metadataDir": "nft-metadata",
+    "substrateEndpoint": "ws://127.0.0.1:9920"
+}
