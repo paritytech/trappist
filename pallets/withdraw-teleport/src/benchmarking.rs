@@ -15,9 +15,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn withdraw_and_teleport() -> Result<(), BenchmarkError> {
-		let asset: MultiAsset = (MultiLocation::new(0, Here), 10_000).into();
-		let send_origin =
-			T::ExecuteXcmOrigin::try_successful_origin().map_err(|_| BenchmarkError::Weightless)?;
+		let asset: MultiAsset = (MultiLocation::new(0, Here), 1_000).into();
 		let recipient = [0u8; 32];
 		let versioned_dest: VersionedMultiLocation = T::ReachableDest::get()
 			.ok_or(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?
@@ -25,11 +23,13 @@ mod benchmarks {
 		let versioned_beneficiary: VersionedMultiLocation =
 			AccountId32 { network: None, id: recipient.into() }.into();
 		let versioned_assets: VersionedMultiAssets = asset.into();
-		let amount: u32 = 50_000_000;
+		let amount: u32 = 1_000;
+		let caller = whitelisted_caller();
+		T::Currency::make_free_balance_be(&caller, 100_000_000u32.into());
 
 		#[extrinsic_call]
 		withdraw_and_teleport(
-			send_origin as <T as frame_system::Config>::RuntimeOrigin,
+			RawOrigin::Signed(caller.clone()),
 			Box::new(versioned_dest),
 			Box::new(versioned_beneficiary),
 			amount.into(),

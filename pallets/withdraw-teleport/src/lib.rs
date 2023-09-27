@@ -26,7 +26,6 @@ use frame_support::{
 	dispatch::DispatchResult,
 	ensure, log,
 	traits::{Contains, EnsureOrigin, Get},
-	LOG_TARGET
 };
 use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
@@ -217,7 +216,10 @@ impl<T: Config> Pallet<T> {
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);
 		let outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
-		outcome.clone().ensure_complete().map_err(|e|{log::debug!("{e:?}"); Error::<T>::FailedToExecuteXcm})?;
+		outcome.clone().ensure_complete().map_err(|e| {
+			log::debug!("{e:?}");
+			Error::<T>::FailedToExecuteXcm
+		})?;
 		Self::deposit_event(Event::Attempted { outcome });
 
 		// Use pallet-xcm send for sending message.
