@@ -109,7 +109,7 @@ impl frame_system::Config for Test {
 	type DbWeight = ();
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = pallet_balances::AccountData<u64>;
+	type AccountData = pallet_balances::AccountData<u32>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
@@ -121,9 +121,9 @@ impl frame_system::Config for Test {
 impl pallet_balances::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
-	type Balance = u64;
+	type Balance = u32;
 	type DustRemoval = ();
-	type ExistentialDeposit = ConstU64<1>;
+	type ExistentialDeposit = ConstU32<1>;
 	type AccountStore = System;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = ();
@@ -245,10 +245,12 @@ impl origin::Config for Test {}
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
-	pallet_balances::GenesisConfig::<Test> { balances: vec![(account("Alice", 0, 0), 100)] }
-		.assimilate_storage(&mut t)
-		.unwrap();
-	pallet_xcm::GenesisConfig::<Test> { safe_xcm_version: Some(2), ..Default::default() }
+	pallet_balances::GenesisConfig::<Test> {
+		balances: vec![(account("Alice", 1, 1), 100_000_000)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+	pallet_xcm::GenesisConfig::<Test> { safe_xcm_version: Some(3), ..Default::default() }
 		.assimilate_storage(&mut t)
 		.unwrap();
 

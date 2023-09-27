@@ -6998,14 +6998,18 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "pallet-balances",
  "pallet-xcm",
  "parity-scale-codec",
+ "polkadot-parachain",
+ "polkadot-runtime-parachains",
  "scale-info",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
  "xcm",
+ "xcm-builder",
  "xcm-executor",
 ]
 

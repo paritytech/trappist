@@ -16,9 +16,10 @@ mod benchmarks {
 	#[benchmark]
 	fn withdraw_and_teleport() -> Result<(), BenchmarkError> {
 		let asset: MultiAsset = (MultiLocation::new(1, Here), 10).into();
-		let caller: T::AccountId = account("caller", 0, 0);
+		let caller: T::AccountId = account("Alice", 0, 0);
 		let initial_balance: u32 = 1_000_000_000;
 		T::Currency::make_free_balance_be(&caller, initial_balance.into());
+		assert_eq!(T::Currency::free_balance(&caller), initial_balance.clone().into());
 
 		let recipient = [0u8; 32];
 		let versioned_dest: VersionedMultiLocation = T::ReachableDest::get()
@@ -40,7 +41,7 @@ mod benchmarks {
 		);
 		// TODO: Change to asset check as SetFeesMode might impact the native balance
 		let remaining_balance = initial_balance - amount;
-		//assert_eq!(T::Currency::free_balance(&caller), remaining_balance.into());
+		assert_eq!(T::Currency::free_balance(&caller), remaining_balance.into());
 		Ok(())
 	}
 
