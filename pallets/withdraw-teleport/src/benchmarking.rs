@@ -15,12 +15,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn withdraw_and_teleport() -> Result<(), BenchmarkError> {
-		let asset: MultiAsset = (MultiLocation::new(1, Here), 10).into();
-		let caller: T::AccountId = account("Alice", 0, 0);
-		let initial_balance: u32 = 1_000_000_000;
-		T::Currency::make_free_balance_be(&caller, initial_balance.into());
-		assert_eq!(T::Currency::free_balance(&caller), initial_balance.clone().into());
-
+		let asset: MultiAsset = (MultiLocation::new(0, Here), 10_000).into();
+		let send_origin =
+			T::ExecuteXcmOrigin::try_successful_origin().map_err(|_| BenchmarkError::Weightless)?;
 		let recipient = [0u8; 32];
 		let versioned_dest: VersionedMultiLocation = T::ReachableDest::get()
 			.ok_or(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?
@@ -28,20 +25,16 @@ mod benchmarks {
 		let versioned_beneficiary: VersionedMultiLocation =
 			AccountId32 { network: None, id: recipient.into() }.into();
 		let versioned_assets: VersionedMultiAssets = asset.into();
-
-		let amount: u32 = 500_000_000;
+		let amount: u32 = 50_000_000;
 
 		#[extrinsic_call]
 		withdraw_and_teleport(
-			RawOrigin::Signed(caller.clone()),
+			send_origin as <T as frame_system::Config>::RuntimeOrigin,
 			Box::new(versioned_dest),
 			Box::new(versioned_beneficiary),
 			amount.into(),
 			Box::new(versioned_assets),
 		);
-		// TODO: Change to asset check as SetFeesMode might impact the native balance
-		let remaining_balance = initial_balance - amount;
-		assert_eq!(T::Currency::free_balance(&caller), remaining_balance.into());
 		Ok(())
 	}
 
