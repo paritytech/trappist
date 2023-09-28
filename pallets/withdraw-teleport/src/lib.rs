@@ -102,7 +102,30 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(<T as pallet::Config>::WeightInfo::withdraw_and_teleport())]
+		#[pallet::weight({
+			let native_asset = MultiAsset {
+				id: AssetId::Concrete(MultiLocation::here()),
+				fun: Fungibility::Fungible(*native_asset_amount),
+			};
+			let native_assets = MultiAssets::from(vec![native_asset.clone()]);
+			let maybe_assets: Result<MultiAssets, ()> = (*fee_asset.clone()).try_into();
+			match maybe_assets {
+				Ok(assets) => {
+					use sp_std::vec;
+					let mut message = Xcm(vec![
+						WithdrawAsset(native_assets.clone()),
+						SetFeesMode { jit_withdraw: true },
+						// Burn the native asset.
+						BurnAsset(native_assets),
+						// Burn the fee asset derivative.
+						WithdrawAsset(assets.clone()),
+						BurnAsset(assets),
+					]);
+					T::Weigher::weight(&mut message).map_or(Weight::MAX, |w| <T as pallet::Config>::WeightInfo::withdraw_and_teleport().saturating_add(w))
+				}
+				_ => Weight::MAX,
+			}
+		})]
 		pub fn withdraw_and_teleport(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,

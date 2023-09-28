@@ -39,6 +39,7 @@ mod benchmarks {
 		);
 
 		let remaining_balance = initial_balance - amount.into() - (fee_amount as u32).into();
+		// Send or execution error would derive on balances amounts not being deducted from caller.
 		assert_eq!(T::Currency::free_balance(&caller), remaining_balance);
 		Ok(())
 	}
