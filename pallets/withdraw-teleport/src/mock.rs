@@ -42,9 +42,12 @@ construct_runtime!(
 thread_local! {
 	pub static SENT_XCM: RefCell<Vec<(MultiLocation, Xcm<()>)>> = RefCell::new(Vec::new());
 }
+
+#[allow(dead_code)]
 pub(crate) fn sent_xcm() -> Vec<(MultiLocation, Xcm<()>)> {
 	SENT_XCM.with(|q| (*q.borrow()).clone())
 }
+#[allow(dead_code)]
 pub(crate) fn take_sent_xcm() -> Vec<(MultiLocation, Xcm<()>)> {
 	SENT_XCM.with(|q| {
 		let mut r = Vec::new();
