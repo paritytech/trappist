@@ -115,9 +115,7 @@ pub mod pallet {
 					let mut message = Xcm(vec![
 						WithdrawAsset(native_assets.clone()),
 						SetFeesMode { jit_withdraw: true },
-						// Burn the native asset.
 						BurnAsset(native_assets),
-						// Burn the fee asset derivative.
 						WithdrawAsset(assets.clone()),
 						BurnAsset(assets),
 					]);
