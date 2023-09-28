@@ -58,7 +58,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_xcm::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		type WeightInfo: WeightInfo; 
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
@@ -138,6 +138,10 @@ impl<T: Config> Pallet<T> {
 		//Unbox fee asset
 		let fee_asset: MultiAssets =
 			(*fee_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
+
+		// Limit the number of fee assets to 1.
+		ensure!(fee_asset.len() > 0, pallet_xcm::Error::<T>::Empty);
+		ensure!(fee_asset.len() < 2, pallet_xcm::Error::<T>::TooManyAssets);
 
 		//Create assets
 
