@@ -651,6 +651,7 @@ impl pallet_treasury::Config for Runtime {
 
 impl pallet_withdraw_teleport::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_withdraw_teleport::WeightInfo<Runtime>;
 }
 
 impl pallet_lockdown_mode::Config for Runtime {

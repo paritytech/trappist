@@ -44,6 +44,7 @@ pub mod pallet_treasury;
 pub mod pallet_uniques;
 pub mod pallet_utility;
 pub mod trappist_runtime_benchmarks;
+pub mod pallet_withdraw_teleport;
 pub mod xcm;
 
 pub struct TrappistDropAssetsWeigher();

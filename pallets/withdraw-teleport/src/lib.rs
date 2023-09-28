@@ -45,9 +45,8 @@ mod mock;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
-
-// pub mod weights;
-// pub use weights::*;
+pub mod weights;
+pub use weights::*;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -59,6 +58,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_xcm::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type WeightInfo: WeightInfo; 
 	}
 
 	#[pallet::error]
@@ -102,7 +102,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(<pallet_xcm::TestWeightInfo as pallet_xcm::WeightInfo>::teleport_assets())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::withdraw_and_teleport())]
 		pub fn withdraw_and_teleport(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
