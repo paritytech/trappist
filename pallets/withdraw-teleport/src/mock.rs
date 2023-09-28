@@ -238,6 +238,7 @@ impl pallet_xcm::Config for Test {
 
 impl pallet_withdraw_teleport::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_withdraw_teleport::weights::SubstrateWeight<Test>;
 }
 
 impl origin::Config for Test {}
