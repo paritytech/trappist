@@ -2,7 +2,7 @@ import beer from "beer-names";
 import superb from "superb";
 import fs from "fs";
 
-import { NftMetadata } from "./metadata-interface";
+import { NftMetadata } from "./interfaces/metadata-interface";
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { NftCreator } from "./nft-creator";
 

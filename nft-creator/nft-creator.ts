@@ -1,5 +1,5 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
-import { NftAttribute, NftMetadata } from "./metadata-interface";
+import { NftAttribute, NftMetadata } from "./interfaces/metadata-interface";
 import { KeyringPair } from "@polkadot/keyring/types";
 
 import * as fs from 'fs';
@@ -9,7 +9,6 @@ import { sha256 } from 'multiformats/hashes/sha2'
 
 export class NftCreator {
     private dotApi: ApiPromise;
-    private keyring: Keyring;
     private signer: KeyringPair;
 
     constructor(dotApi: ApiPromise, signer: KeyringPair) {
@@ -17,24 +16,25 @@ export class NftCreator {
         this.signer = signer;
     }
 
-    async createNftCollection(id: number) {
+    async createNftCollection(id: number): Promise<any> {
         const nftCall = this.dotApi.tx.uniques.create(id, this.signer.address);
 
-        const txHash = await nftCall.signAndSend(this.signer, { nonce: -1 });
+        // return txHash
+        return await nftCall.signAndSend(this.signer, { nonce: -1 });
     }
 
-    async setItemAttributes(id: number, itemId: number, attributes: NftAttribute[]) {
+    async setItemAttributes(id: number, itemId: number, attributes: NftAttribute[]): Promise<any> {
         for (let attribute of attributes) {
             const nftCall = this.dotApi.tx.uniques.setAttribute(id, itemId, attribute.trait_type, attribute.value);
 
-            const txHash = await nftCall.signAndSend(this.signer, { nonce: -1 });
+            return await nftCall.signAndSend(this.signer, { nonce: -1 });
         }
     }
 
-    async setItemMetadata(id: number, itemId: number, data: string, isFrozen: boolean = false) {
+    async setItemMetadata(id: number, itemId: number, data: string, isFrozen: boolean = false): Promise<any> {
         const nftCall = this.dotApi.tx.uniques.setMetadata(id, itemId, data, isFrozen);
 
-        const txHash = await nftCall.signAndSend(this.signer, { nonce: -1 });
+        return await nftCall.signAndSend(this.signer, { nonce: -1 });
     }
 
     async bulkCreateNfts(id: number, dir: string, max: number) {
