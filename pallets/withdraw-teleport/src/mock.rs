@@ -2,7 +2,7 @@ use crate as pallet_withdraw_teleport;
 use frame_benchmarking::account;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU16, ConstU32, ConstU64, Everything, Nothing},
+	traits::{ConstU128, ConstU16, ConstU32, ConstU64, Everything, Nothing},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
@@ -109,7 +109,7 @@ impl frame_system::Config for Test {
 	type DbWeight = ();
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = pallet_balances::AccountData<u32>;
+	type AccountData = pallet_balances::AccountData<u128>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
@@ -121,9 +121,9 @@ impl frame_system::Config for Test {
 impl pallet_balances::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
-	type Balance = u32;
+	type Balance = Balance;
 	type DustRemoval = ();
-	type ExistentialDeposit = ConstU32<1>;
+	type ExistentialDeposit = ConstU128<1>;
 	type AccountStore = System;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = ();

@@ -15,7 +15,8 @@ mod benchmarks {
 
 	#[benchmark]
 	fn withdraw_and_teleport() -> Result<(), BenchmarkError> {
-		let asset: MultiAsset = (MultiLocation::new(0, Here), 1_000).into();
+		let fee_amount = 1_000;
+		let asset: MultiAsset = (MultiLocation::new(0, Here), fee_amount.clone()).into();
 		let recipient = [0u8; 32];
 		let versioned_dest: VersionedMultiLocation = T::ReachableDest::get()
 			.ok_or(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?
@@ -26,6 +27,7 @@ mod benchmarks {
 		let amount: u32 = 1_000;
 		let caller = whitelisted_caller();
 		T::Currency::make_free_balance_be(&caller, 100_000_000u32.into());
+		let initial_balance = T::Currency::free_balance(&caller);
 
 		#[extrinsic_call]
 		withdraw_and_teleport(
@@ -35,6 +37,9 @@ mod benchmarks {
 			amount.into(),
 			Box::new(versioned_assets),
 		);
+
+		let remaining_balance = initial_balance - amount.into() - (fee_amount as u32).into();
+		assert_eq!(T::Currency::free_balance(&caller), remaining_balance);
 		Ok(())
 	}
 
