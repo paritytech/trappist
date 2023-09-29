@@ -16,3 +16,7 @@ export function createDirSync(dir: string, clearDir: boolean = false) {
 export function stripSlashes(path: string) {
     return path.replace(/\/$/, "");
 }
+
+export function stripExtension(path: string) {
+    return path.replace(/\.\w+$/, '');
+}

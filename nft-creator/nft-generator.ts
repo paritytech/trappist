@@ -4,7 +4,7 @@ import fs from "fs";
 import { DescriptionGenerator, NameGenerator } from "./interfaces/name-and-description";
 import { NftAttribute, NftMetadata } from "./interfaces/metadata-interface";
 import { Config } from "./interfaces/config";
-import { createDirSync, stripSlashes } from "./utils";
+import { createDirSync, stripSlashes, stripExtension} from "./utils";
 
 export class NftGenerator {
     config: Config;
@@ -49,7 +49,7 @@ export class NftGenerator {
                 // remove the number prefix (00- ,01-, etc.)
                 trait_type: traits[i][0].replace(/^\d+-/, ''),
                 // remove file extension
-                value: traits[i][1][currentTraitIndexes[i]].replace(/\.\w+$/, '')
+                value: stripExtension(traits[i][1][currentTraitIndexes[i]])
             })
         }
 

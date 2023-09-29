@@ -1,6 +1,6 @@
 export interface Config {
     substrateEndpoint: string;
-    collectionId: string;
+    collectionId: number;
     numNfts: number;
     imageInfo: {
         traitsDir: string;

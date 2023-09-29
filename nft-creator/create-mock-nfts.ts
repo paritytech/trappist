@@ -95,12 +95,12 @@ async function main() {
     // generate metadata for `numNfts`. Save the metadata files to `metadataDir`
     generateMockNfts(config.numNfts, config.out.metadataDir);
 
-    let nftCreator = new NftCreator(dotApi, signer, new MockIpfs());
+    let nftCreator = new NftCreator(config, dotApi, signer, new MockIpfs());
 
     console.log("Creating NFT collection");
-    await nftCreator.createNftCollection(config.collectionId);
+    await nftCreator.createNftCollection();
     console.log("Creating NFTs...");
-    await nftCreator.bulkCreateNfts(config.collectionId, config.out.metadataDir, config.numNfts);
+    await nftCreator.bulkCreateNfts(config.numNfts);
     console.log("Done!");
 }
 

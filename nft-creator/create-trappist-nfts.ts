@@ -56,12 +56,12 @@ async function main() {
     const generator = new NftGenerator(config, new TrappistNftNameGenerator(), new TrappistDescriptionGenerator());
     await generator.generateNfts(10);
 
-    let nftCreator = new NftCreator(dotApi, signer, new MockIpfs());
+    let nftCreator = new NftCreator(config, dotApi, signer, new MockIpfs());
 
     console.log("Creating NFT collection");
-    await nftCreator.createNftCollection(config.collectionId);
+    await nftCreator.createNftCollection();
     console.log("Creating NFTs...");
-    await nftCreator.bulkCreateNfts(config.collectionId, config.out.metadataDir, config.numNfts);
+    await nftCreator.bulkCreateNfts(config.numNfts);
     console.log("Done!");
 }
 
