@@ -68,7 +68,10 @@ decl_test_relay_chains! {
 			System: rococo_runtime::System,
 			Balances: rococo_runtime::Balances,
 		},
-		pallets_extra = {}
+		pallets_extra = {
+			XcmPallet: rococo_runtime::XcmPallet,
+			Sudo: rococo_runtime::Sudo,
+		}
 	}
 }
 

@@ -1,12 +1,13 @@
 use super::*;
 use frame_support::{assert_ok, instances::Instance1, traits::PalletInfoAccess};
 use integration_tests_common::{constants::XCM_V3, ALICE};
+use parity_scale_codec::Encode;
+use xcm::{VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
-	assert_expected_events, AccountId32, GeneralIndex, Here, NetworkId::Polkadot, PalletInstance,
-	WeightLimit, X1, X2, X3,
+	assert_expected_events, AccountId32, GeneralIndex, Here, NetworkId::Polkadot, OriginKind,
+	PalletInstance, Transact, UnpaidExecution, Weight, WeightLimit, Xcm, X1, X2, X3,
 };
 use xcm_primitives::AssetMultiLocationGetter;
-use parity_scale_codec::Encode;
 
 #[allow(dead_code)]
 fn overview() {
@@ -21,7 +22,7 @@ fn overview() {
 }
 
 #[allow(non_upper_case_globals)]
-const xUSD: u32 = 1;
+const xUSD: u32 = 1984;
 #[allow(non_upper_case_globals)]
 const txUSD: u32 = 10;
 
@@ -189,8 +190,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 				<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 				Box::new((Parent, Parachain(1836)).into()),
 				Box::new(
-					X1(AccountId32 { network: Polkadot.into(), id: alice_account.clone().into() })
-						.into(),
+					X1(AccountId32 { network: None, id: alice_account.clone().into() }).into(),
 				),
 				Box::new(
 					vec![(
@@ -211,8 +211,8 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		);
 
 		// Ensure send amount moved to sovereign account
-		// let sovereign_account = asset_reserve::sovereign_account(TRAPPIST_PARA_ID);
-		// assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), AMOUNT);
+		// let sovereign_account = <AssetHubRococo as Parachain>::sovereign_account(1836.into());
+		// assert_eq!(<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(xUSD, &sovereign_account), AMOUNT);
 	});
 
 	// const EST_FEES: u128 = 1_600_000_000 * 10;
