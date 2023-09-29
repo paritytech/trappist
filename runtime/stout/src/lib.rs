@@ -439,9 +439,9 @@ parameter_types! {
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub const CollectionDeposit: Balance = 100 * UNITS;
 	pub const ItemDeposit: Balance = 1 * UNITS;
-	pub const StringLimit: u32 = 50;
+	pub const StringLimit: u32 = 128;
 	pub const KeyLimit: u32 = 32;
-	pub const ValueLimit: u32 = 256;
+	pub const ValueLimit: u32 = 64;
 }
 
 impl pallet_uniques::Config for Runtime {
