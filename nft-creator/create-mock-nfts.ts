@@ -3,8 +3,14 @@ import superb from "superb";
 import fs from "fs";
 
 import { NftMetadata } from "./interfaces/metadata-interface";
+import { IpfsManager } from "./interfaces/ipfs-manager";
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { NftCreator } from "./nft-creator";
+import { createDirSync } from "./utils";
+
+import { CID } from "multiformats/cid";
+import * as json from 'multiformats/codecs/json'
+import { sha256 } from 'multiformats/hashes/sha2'
 
 const config = require("./mock-nft-config.json");
 
@@ -27,17 +33,10 @@ const colors = [
 ];
 
 // Generates mock NFT metadata files and saves them to `outputDir`
-function generateMockNfts(amount: number, outputDir: string, wipeDir: boolean = true) {
+function generateMockNfts(amount: number, outputDir: string, cleanDir: boolean = true) {
     // remove trailing slashes
     outputDir = outputDir.replace(/\/$/, "");
-    if (!fs.existsSync(outputDir)) {
-        // If the directory doesn't exist, create it
-        fs.mkdirSync(outputDir, { recursive: true });
-    } else if (wipeDir) {
-        // If the directory exists, wipe it
-        fs.rmdirSync(outputDir, { recursive: true });
-        fs.mkdirSync(outputDir, { recursive: true });
-    }
+    createDirSync(outputDir, cleanDir);
 
     for (let i = 1; i <= amount; i++) {
         const randomName = beer.random();
@@ -71,6 +70,21 @@ function generateMockNfts(amount: number, outputDir: string, wipeDir: boolean = 
     }
 }
 
+class MockIpfs implements IpfsManager {
+    // Mock implementation. There is no actual uploading
+    async uploadContent(content: string): Promise<CID> {
+        const bytes = json.encode(content);
+
+        const hash = await sha256.digest(bytes);
+        return CID.create(1, json.code, hash);
+    }
+
+    async uploadFile(filePath: string): Promise<CID> {
+        // simple implementation, just read the file and get CID
+        return this.uploadContent(fs.readFileSync(filePath, 'utf8'));
+    }
+}
+
 async function main() {
     const wsProvider = new WsProvider(config.substrateEndpoint);
     const dotApi = await ApiPromise.create({ provider: wsProvider });
@@ -79,14 +93,14 @@ async function main() {
     const signer = keyring.addFromUri('//Alice');
 
     // generate metadata for `numNfts`. Save the metadata files to `metadataDir`
-    generateMockNfts(config.numNfts, config.metadataDir);
+    generateMockNfts(config.numNfts, config.out.metadataDir);
 
-    let nftCreator = new NftCreator(dotApi, signer);
+    let nftCreator = new NftCreator(dotApi, signer, new MockIpfs());
 
     console.log("Creating NFT collection");
     await nftCreator.createNftCollection(config.collectionId);
     console.log("Creating NFTs...");
-    await nftCreator.bulkCreateNfts(config.collectionId, config.metadataDir, config.numNfts);
+    await nftCreator.bulkCreateNfts(config.collectionId, config.out.metadataDir, config.numNfts);
     console.log("Done!");
 }
 

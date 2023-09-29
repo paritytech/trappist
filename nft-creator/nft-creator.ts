@@ -1,5 +1,6 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { NftAttribute, NftMetadata } from "./interfaces/metadata-interface";
+import { IpfsManager } from "./interfaces/ipfs-manager";
 import { KeyringPair } from "@polkadot/keyring/types";
 
 import * as fs from 'fs';
@@ -10,10 +11,12 @@ import { sha256 } from 'multiformats/hashes/sha2'
 export class NftCreator {
     private dotApi: ApiPromise;
     private signer: KeyringPair;
+    private ipfsManager: IpfsManager;
 
-    constructor(dotApi: ApiPromise, signer: KeyringPair) {
+    constructor(dotApi: ApiPromise, signer: KeyringPair, ipfsManager: IpfsManager) {
         this.dotApi = dotApi;
         this.signer = signer;
+        this.ipfsManager = ipfsManager;
     }
 
     async createNftCollection(id: number): Promise<any> {
@@ -27,7 +30,7 @@ export class NftCreator {
         for (let attribute of attributes) {
             const nftCall = this.dotApi.tx.uniques.setAttribute(id, itemId, attribute.trait_type, attribute.value);
 
-            return await nftCall.signAndSend(this.signer, { nonce: -1 });
+            await nftCall.signAndSend(this.signer, { nonce: -1 });
         }
     }
 
@@ -50,17 +53,11 @@ export class NftCreator {
             const content = fs.readFileSync(dir + "/" + fileName, 'utf8');
             const metadata: NftMetadata = JSON.parse(content);
 
-            const cid = await generateContentHash(metadata);
+            const metadataCid = await this.ipfsManager.uploadContent(content);
+            // TODO: handle images
 
-            await this.setItemMetadata(id, metadata.itemId, cid.toString());
+            await this.setItemMetadata(id, metadata.itemId, metadataCid.toString());
             await this.setItemAttributes(id, metadata.itemId, metadata.attributes);
         };
     }
-}
-
-async function generateContentHash(metadata: NftMetadata): Promise<CID> {
-    const bytes = json.encode(metadata);
-
-    const hash = await sha256.digest(bytes);
-    return CID.create(1, json.code, hash);
 }

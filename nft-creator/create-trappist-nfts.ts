@@ -2,13 +2,17 @@ import beer from "beer-names";
 import superb from "superb";
 import fs from "fs";
 
-import { NftMetadata } from "./interfaces/metadata-interface";
+import { IpfsManager } from "./interfaces/ipfs-manager";
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { NftCreator } from "./nft-creator";
 import { NftGenerator } from "./nft-generator";
 import { NameGenerator, DescriptionGenerator } from "./interfaces/name-and-description";
 
-const config = require("./mock-nft-config.json");
+import { CID } from "multiformats/cid";
+import * as json from 'multiformats/codecs/json'
+import { sha256 } from 'multiformats/hashes/sha2'
+
+const config = require("./trappist-nft-config.json");
 
 
 class TrappistNftNameGenerator implements NameGenerator {
@@ -27,6 +31,21 @@ class TrappistDescriptionGenerator implements DescriptionGenerator {
     }
 }
 
+class MockIpfs implements IpfsManager {
+    // Mock implementation. There is no actual uploading
+    async uploadContent(content: string): Promise<CID> {
+        const bytes = json.encode(content);
+
+        const hash = await sha256.digest(bytes);
+        return CID.create(1, json.code, hash);
+    }
+
+    async uploadFile(filePath: string): Promise<CID> {
+        // simple implementation, just read the file and get CID
+        return this.uploadContent(fs.readFileSync(filePath, 'utf8'));
+    }
+}
+
 async function main() {
     const wsProvider = new WsProvider(config.substrateEndpoint);
     const dotApi = await ApiPromise.create({ provider: wsProvider });
@@ -34,15 +53,15 @@ async function main() {
     const keyring = new Keyring({ type: 'sr25519' });
     const signer = keyring.addFromUri('//Alice');
 
-    const generator = new NftGenerator("trappist-nfts/traits", "trappist-nfts/images", "trappist-nfts/metadata", 1028, new TrappistNftNameGenerator(), new TrappistDescriptionGenerator());
-    generator.generateNfts(10);
+    const generator = new NftGenerator(config, new TrappistNftNameGenerator(), new TrappistDescriptionGenerator());
+    await generator.generateNfts(10);
 
-    let nftCreator = new NftCreator(dotApi, signer);
+    let nftCreator = new NftCreator(dotApi, signer, new MockIpfs());
 
     console.log("Creating NFT collection");
     await nftCreator.createNftCollection(config.collectionId);
     console.log("Creating NFTs...");
-    await nftCreator.bulkCreateNfts(config.collectionId, config.metadataDir, config.numNfts);
+    await nftCreator.bulkCreateNfts(config.collectionId, config.out.metadataDir, config.numNfts);
     console.log("Done!");
 }
 

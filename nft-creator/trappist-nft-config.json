@@ -1,0 +1,13 @@
+{
+    "collectionId": 6,
+    "numNfts": 10,
+    "imageInfo": {
+        "traitsDir": "trappist-nfts/traits",
+        "width": 1028
+    },
+    "out": {
+        "metadataDir": "trappist-nfts/metadata",
+        "imageDir": "trappist-nfts/images"
+    },
+    "substrateEndpoint": "ws://127.0.0.1:9920"
+}

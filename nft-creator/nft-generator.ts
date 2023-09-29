@@ -1,23 +1,28 @@
-import { NftAttribute, NftMetadata } from "./interfaces/metadata-interface";
 import mergeImg from "merge-img";
 import fs from "fs";
+
 import { DescriptionGenerator, NameGenerator } from "./interfaces/name-and-description";
+import { NftAttribute, NftMetadata } from "./interfaces/metadata-interface";
+import { Config } from "./interfaces/config";
+import { createDirSync, stripSlashes } from "./utils";
 
 export class NftGenerator {
-    traitsDir: string;
-    imageDir: string;
-    metadataDir: string;
-    imageWidth: number;
+    config: Config;
     nameGenerator: NameGenerator;
     descriptionGenerator: DescriptionGenerator;
 
-    constructor(traitsDir: string, imageDir: string, metadataDir: string, imageWidth: number, nameGenerator: NameGenerator, descriptionGenerator: DescriptionGenerator) {
-        this.traitsDir = traitsDir;
-        this.imageDir = imageDir;
-        this.metadataDir = metadataDir;
-        this.imageWidth = imageWidth;
+    constructor(config: Config, nameGenerator: NameGenerator, descriptionGenerator: DescriptionGenerator) {
+        this.config = config;
         this.nameGenerator = nameGenerator;
         this.descriptionGenerator = descriptionGenerator;
+
+        // strip slashes
+        this.config.imageInfo.traitsDir = stripSlashes(this.config.imageInfo.traitsDir);
+        this.config.out.imageDir = stripSlashes(this.config.out.imageDir);
+        this.config.out.metadataDir = stripSlashes(this.config.out.metadataDir);
+
+        createDirSync(this.config.out.imageDir, true);
+        createDirSync(this.config.out.metadataDir, true);
     }
 
     // inspiration from https://github.com/UniqueNetwork/nft-workshop/blob/master/step2-image-generator.js#L9
@@ -28,7 +33,7 @@ export class NftGenerator {
             imgs.push(
                 {
                     src: images[i],
-                    offsetX: (i == 0) ? 0 : -this.imageWidth,
+                    offsetX: (i == 0) ? 0 : -this.config.imageInfo.width,
                     offsetY: 0,
                 }
             )
@@ -59,7 +64,7 @@ export class NftGenerator {
 
 
     async generateNfts(numNfts: number) {
-        const traitCategories = fs.readdirSync(this.traitsDir);
+        const traitCategories = fs.readdirSync(this.config.imageInfo.traitsDir);
         // [traitCategory1, [trait1, ...], ...]
         let traits: [string, string[]][] = [];
         let maxNftCombos = 0;
@@ -68,7 +73,7 @@ export class NftGenerator {
 
         // collect traits for each category
         for (const i in traitCategories) {
-            let traitFiles = fs.readdirSync(this.traitsDir + "/" + traitCategories[i]);
+            let traitFiles = fs.readdirSync(this.config.imageInfo.traitsDir + "/" + traitCategories[i]);
             // remove any files that aren't .png
             traitFiles = traitFiles.filter((file) => file.endsWith(".png"));
             const newEntry: [string, string[]] = [traitCategories[i], traitFiles];
@@ -89,7 +94,7 @@ export class NftGenerator {
                 const randTrait = Math.floor(Math.random() * traitFiles.length);
                 const randomTrait = traitFiles[randTrait];
 
-                currentTraits.push(this.traitsDir + "/" + traitName + "/" + randomTrait);
+                currentTraits.push(this.config.imageInfo.traitsDir + "/" + traitName + "/" + randomTrait);
                 currentTraitIndexes.push(randTrait);
             }
 
@@ -110,9 +115,9 @@ export class NftGenerator {
             // pad id with 0's for file name
             const nftId = i.toString().padStart(numNfts.toString().length, "0");
             const nftName = nftId + "_" + metadata.name;
-            const metadataFileName = this.metadataDir + "/" + nftName + ".json";
+            const metadataFileName = this.config.out.metadataDir + "/" + nftName + ".json";
             fs.writeFileSync(metadataFileName, JSON.stringify(metadata, null, 2));
-            await img.write(this.imageDir + "/" + nftName + ".png");
+            await img.write(this.config.out.imageDir + "/" + nftName + ".png");
         }
     }
 }
