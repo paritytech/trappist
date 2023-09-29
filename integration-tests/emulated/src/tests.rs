@@ -4,8 +4,8 @@ use integration_tests_common::{constants::XCM_V3, ALICE};
 use parity_scale_codec::Encode;
 use xcm::{VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
-	assert_expected_events, AccountId32, GeneralIndex, Here, NetworkId::Polkadot, OriginKind,
-	PalletInstance, Transact, UnpaidExecution, Weight, WeightLimit, Xcm, X1, X2, X3,
+	assert_expected_events, AccountId32, GeneralIndex, OriginKind, PalletInstance, Transact,
+	UnpaidExecution, Weight, WeightLimit, Xcm, X1, X2, X3,
 };
 use xcm_primitives::AssetMultiLocationGetter;
 
@@ -90,20 +90,6 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 			MINT_AMOUNT
 		);
 	});
-
-	// let sufficient_call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
-	// 	<AssetHubRococo as Parachain>::Runtime,
-	// 	Instance1,
-	// >::force_asset_status {
-	// 	id: xUSD.into(),
-	// 	owner: alice_account.clone().into(),
-	// 	issuer: alice_account.clone().into(),
-	// 	admin: alice_account.clone().into(),
-	// 	freezer: alice_account.clone().into(),
-	// 	min_balance: ASSET_MIN_BALANCE,
-	// 	is_sufficient: true,
-	// 	is_frozen: false,
-	// });
 
 	let call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
 		<AssetHubRococo as Parachain>::Runtime,
@@ -211,24 +197,29 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		);
 
 		// Ensure send amount moved to sovereign account
-		// let sovereign_account = <AssetHubRococo as Parachain>::sovereign_account(1836.into());
-		// assert_eq!(<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(xUSD, &sovereign_account), AMOUNT);
+		let sovereign_account = AssetHubRococo::sovereign_account_id_of(MultiLocation {
+			parents: 1,
+			interior: Parachain(1836u32.into()).into(),
+		});
+		assert_eq!(
+			<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(xUSD, &sovereign_account),
+			AMOUNT
+		);
 	});
 
 	// const EST_FEES: u128 = 1_600_000_000 * 10;
-	// Trappist::execute_with(|| {
-	// 	// Ensure beneficiary account balance increased
-	// 	let current_balance = trappist::Assets::balance(txUSD, &ALICE);
-	// 	assert_balance(current_balance, beneficiary_balance + AMOUNT, EST_FEES);
-	// 	println!(
-	// 		"Reserve-transfer: initial balance {} transfer amount {} current balance {} estimated fees {} actual fees {}",
-	// 		beneficiary_balance.separate_with_commas(),
-	// 		AMOUNT.separate_with_commas(),
-	// 		current_balance.separate_with_commas(),
-	// 		EST_FEES.separate_with_commas(),
-	// 		(beneficiary_balance + AMOUNT - current_balance).separate_with_commas()
-	// 	);
-	// });
+	ParaA::execute_with(|| {
+		// Ensure beneficiary account balance increased
+		let current_balance = <ParaA as ParaAPallet>::Assets::balance(txUSD, alice_account);
+		assert!(current_balance > 0u128.into());
+		println!(
+			"Reserve-transfer: initial balance {} transfer amount {} current balance {} actual fees {}",
+			beneficiary_balance,
+			AMOUNT,
+			current_balance,
+			(beneficiary_balance + AMOUNT - current_balance)
+		);
+	});
 }
 
 static INIT: std::sync::Once = std::sync::Once::new();
