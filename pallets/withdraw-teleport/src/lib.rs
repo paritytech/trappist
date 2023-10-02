@@ -29,6 +29,7 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
+use pallet_xcm::WeightInfo as XcmWeightInfo;
 use parity_scale_codec::Encode;
 use sp_std::{boxed::Box, vec};
 pub use xcm::{
@@ -109,6 +110,7 @@ pub mod pallet {
 			};
 			let native_assets = MultiAssets::from(vec![native_asset.clone()]);
 			let maybe_assets: Result<MultiAssets, ()> = (*fee_asset.clone()).try_into();
+			let send_weight = <T as pallet_xcm::Config>::WeightInfo::send();
 			match maybe_assets {
 				Ok(assets) => {
 					use sp_std::vec;
@@ -119,7 +121,7 @@ pub mod pallet {
 						WithdrawAsset(assets.clone()),
 						BurnAsset(assets),
 					]);
-					T::Weigher::weight(&mut message).map_or(Weight::MAX, |w| <T as pallet::Config>::WeightInfo::withdraw_and_teleport().saturating_add(w))
+					T::Weigher::weight(&mut message).map_or(Weight::MAX, |w| <T as pallet::Config>::WeightInfo::withdraw_and_teleport().saturating_add(w).saturating_add(send_weight))
 				}
 				_ => Weight::MAX,
 			}
