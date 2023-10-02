@@ -1,13 +1,17 @@
-use frame_support::{sp_io, sp_tracing};
-use integration_tests_common::{AccountId, Balance};
+use frame_support::{assert_ok, instances::Instance1, sp_io, sp_tracing, traits::PalletInfoAccess};
+use integration_tests_common::{constants::XCM_V3, AccountId, Balance, ALICE};
+use parity_scale_codec::Encode;
 use sp_core::{sr25519, storage::Storage, Get};
 use sp_runtime::BuildStorage;
+use xcm::{VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
-	bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains, get_account_id_from_seed,
-	Ancestor, BridgeMessageHandler, MultiLocation, ParaId, Parachain, Parent, RelayChain, TestExt,
-	XcmHash, X1,
+	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains,
+	get_account_id_from_seed, AccountId32, Ancestor, BridgeMessageHandler, GeneralIndex,
+	MultiLocation, OriginKind, PalletInstance, ParaId, Parachain, Parent, RelayChain, TestExt,
+	Transact, UnpaidExecution, Weight, WeightLimit, Xcm, XcmHash, X1, X2, X3,
 };
 use xcm_executor::traits::ConvertLocation;
+use xcm_primitives::AssetMultiLocationGetter;
 
 #[cfg(test)]
 mod tests;
@@ -79,10 +83,8 @@ decl_test_relay_chains! {
 decl_test_parachains! {
 	// Parachain A
 	pub struct ParaA {
-		// PDD: genesis config
 		genesis = para_a_genesis(),
 		on_init = (),
-		// PDD: actual parachain runtime
 		runtime = {
 			Runtime: trappist_runtime::Runtime,
 			RuntimeOrigin: trappist_runtime::RuntimeOrigin,
@@ -120,7 +122,12 @@ decl_test_parachains! {
 			ParachainSystem: stout_runtime::ParachainSystem,
 			ParachainInfo: stout_runtime::ParachainInfo,
 		},
-		pallets_extra = {}
+		pallets_extra = {
+			XcmPallet: stout_runtime::PolkadotXcm,
+			Assets: stout_runtime::Assets,
+			Sudo: stout_runtime::Sudo,
+			AssetRegistry: stout_runtime::AssetRegistry,
+		}
 	},
 
 	// AssetHub
@@ -241,7 +248,7 @@ fn para_b_genesis() -> Storage {
 			balances: integration_tests_common::constants::accounts::init_balances()
 				.iter()
 				.cloned()
-				.map(|k| (k, ED * 4096))
+				.map(|k| (k, ED * 1_000_000_000))
 				.collect(),
 		},
 		parachain_info: stout_runtime::ParachainInfoConfig {
@@ -269,6 +276,9 @@ fn para_b_genesis() -> Storage {
 					)
 				})
 				.collect(),
+		},
+		sudo: stout_runtime::SudoConfig {
+			key: Some(get_account_id_from_seed::<sr25519::Public>("Alice")),
 		},
 		polkadot_xcm: stout_runtime::PolkadotXcmConfig {
 			safe_xcm_version: Some(xcm::prelude::XCM_VERSION),

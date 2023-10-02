@@ -1,8 +1,15 @@
 use super::*;
 
-mod set_xcm_version;
 mod reserve_asset_transfer;
+mod set_xcm_version;
 
+#[allow(non_upper_case_globals)]
+const xUSD: u32 = 1984;
+#[allow(non_upper_case_globals)]
+const txUSD: u32 = 10;
+
+const ASSET_HUB_ID: u32 = 1_000;
+const TRAPPIST_ID: u32 = 1_836;
 
 static INIT: std::sync::Once = std::sync::Once::new();
 fn init_tracing() {
