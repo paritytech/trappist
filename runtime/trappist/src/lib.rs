@@ -651,6 +651,7 @@ impl pallet_treasury::Config for Runtime {
 
 impl pallet_withdraw_teleport::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_withdraw_teleport::WeightInfo<Runtime>;
 }
 
 impl pallet_lockdown_mode::Config for Runtime {
@@ -774,6 +775,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_withdraw_teleport, WithdrawTeleport]
 		// XCM
 		// NOTE: Make sure you point to the individual modules below.
 		[pallet_xcm_benchmarks::fungible, XcmBalances]

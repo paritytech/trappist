@@ -24,11 +24,12 @@
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
 use frame_support::{
 	dispatch::DispatchResult,
-	ensure,
+	ensure, log,
 	traits::{Contains, EnsureOrigin, Get},
 };
 use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
+use pallet_xcm::WeightInfo as XcmWeightInfo;
 use parity_scale_codec::Encode;
 use sp_std::{boxed::Box, vec};
 pub use xcm::{
@@ -37,16 +38,16 @@ pub use xcm::{
 };
 use xcm_executor::traits::WeightBounds;
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 
 // #[cfg(test)]
 // mod tests;
 
-// #[cfg(feature = "runtime-benchmarks")]
-// mod benchmarking;
-// pub mod weights;
-// pub use weights::*;
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
+pub mod weights;
+pub use weights::*;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -58,6 +59,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_xcm::Config {
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
@@ -65,7 +67,7 @@ pub mod pallet {
 		/// An error ocured during send
 		SendError,
 		/// Failed to execute
-		FailedToExecute,
+		FailedToExecuteXcm,
 	}
 
 	#[pallet::event]
@@ -101,7 +103,29 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(<pallet_xcm::TestWeightInfo as pallet_xcm::WeightInfo>::teleport_assets())]
+		#[pallet::weight({
+			let native_asset = MultiAsset {
+				id: AssetId::Concrete(MultiLocation::here()),
+				fun: Fungibility::Fungible(*native_asset_amount),
+			};
+			let native_assets = MultiAssets::from(vec![native_asset.clone()]);
+			let maybe_assets: Result<MultiAssets, ()> = (*fee_asset.clone()).try_into();
+			let send_weight = <T as pallet_xcm::Config>::WeightInfo::send();
+			match maybe_assets {
+				Ok(assets) => {
+					use sp_std::vec;
+					let mut message = Xcm(vec![
+						WithdrawAsset(native_assets.clone()),
+						SetFeesMode { jit_withdraw: true },
+						BurnAsset(native_assets),
+						WithdrawAsset(assets.clone()),
+						BurnAsset(assets),
+					]);
+					T::Weigher::weight(&mut message).map_or(Weight::MAX, |w| <T as pallet::Config>::WeightInfo::withdraw_and_teleport().saturating_add(w).saturating_add(send_weight))
+				}
+				_ => Weight::MAX,
+			}
+		})]
 		pub fn withdraw_and_teleport(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
@@ -137,6 +161,10 @@ impl<T: Config> Pallet<T> {
 		//Unbox fee asset
 		let fee_asset: MultiAssets =
 			(*fee_asset).try_into().map_err(|()| pallet_xcm::Error::<T>::BadVersion)?;
+
+		// Limit the number of fee assets to 1.
+		ensure!(fee_asset.len() > 0, pallet_xcm::Error::<T>::Empty);
+		ensure!(fee_asset.len() < 2, pallet_xcm::Error::<T>::TooManyAssets);
 
 		//Create assets
 
@@ -215,7 +243,10 @@ impl<T: Config> Pallet<T> {
 		let hash = message.using_encoded(sp_io::hashing::blake2_256);
 		let outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
-		outcome.clone().ensure_complete().map_err(|_| Error::<T>::FailedToExecute)?;
+		outcome.clone().ensure_complete().map_err(|e| {
+			log::debug!("{e:?}");
+			Error::<T>::FailedToExecuteXcm
+		})?;
 		Self::deposit_event(Event::Attempted { outcome });
 
 		// Use pallet-xcm send for sending message.
