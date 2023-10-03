@@ -206,6 +206,10 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		parents: 1,
 		interior: Parachain(TRAPPIST_ID.into()).into(),
 	});
+	let stout_sovereign_account = AssetHubRococo::sovereign_account_id_of(MultiLocation {
+		parents: 1,
+		interior: Parachain(STOUT_ID.into()).into(),
+	});
 
 	const ASSET_MIN_BALANCE: Balance = 1_000_000_000;
 	const MINT_AMOUNT: u128 = 100_000_000_000;
@@ -441,17 +445,15 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 			]))),
 			(MAX_WEIGHT as u64).into(),
 		));
-	});
 
-	// 	// // Check send amount moved to sovereign account
-	// 	// let sovereign_account = asset_reserve::sovereign_account(TRAPPIST_PARA_ID);
-	// 	// assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), AMOUNT);
-	// });
+		// Check send amount moved to sovereign account
+		assert_eq!(<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(xUSD, &stout_sovereign_account), MINT_AMOUNT);
+	});
 
 	ParaB::execute_with(|| {
 		// Ensure beneficiary received amount, less fees
 		let current_balance = <ParaB as ParaBPallet>::Assets::balance(txUSD, &alice_account);
-		// assert_balance(current_balance, beneficiary_balance + MINT_AMOUNT, EXECUTION_COST);
+		assert!(current_balance > 0u128.into());
 		println!(
 			"Two-hop Reserve-transfer: initial balance {} transfer amount {} current balance {} estimated fees {} actual fees {}",
 			beneficiary_balance.separate_with_commas(),
