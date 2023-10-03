@@ -3,12 +3,15 @@ use integration_tests_common::{constants::XCM_V3, AccountId, Balance, ALICE};
 use parity_scale_codec::Encode;
 use sp_core::{sr25519, storage::Storage, Get};
 use sp_runtime::BuildStorage;
+use thousands::Separable;
 use xcm::{VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
 	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains,
-	get_account_id_from_seed, AccountId32, Ancestor, BridgeMessageHandler, GeneralIndex,
+	get_account_id_from_seed, AccountId32, All, AllCounted, Ancestor, BridgeMessageHandler,
+	BuyExecution, DepositAsset, DepositReserveAsset, GeneralIndex, InitiateReserveWithdraw,
 	MultiLocation, OriginKind, PalletInstance, ParaId, Parachain, Parent, RelayChain, TestExt,
-	Transact, UnpaidExecution, Weight, WeightLimit, Xcm, XcmHash, X1, X2, X3,
+	Transact, Unlimited, UnpaidExecution, Weight, WeightLimit, Wild, WithdrawAsset, Xcm, XcmHash,
+	X1, X2, X3,
 };
 use xcm_executor::traits::ConvertLocation;
 use xcm_primitives::AssetMultiLocationGetter;

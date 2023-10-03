@@ -10,6 +10,7 @@ const txUSD: u32 = 10;
 
 const ASSET_HUB_ID: u32 = 1_000;
 const TRAPPIST_ID: u32 = 1_836;
+const STOUT_ID: u32 = 3_000;
 
 static INIT: std::sync::Once = std::sync::Once::new();
 fn init_tracing() {

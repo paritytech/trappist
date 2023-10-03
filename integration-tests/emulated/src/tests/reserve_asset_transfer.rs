@@ -300,7 +300,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		});
 
 	let mut beneficiary_balance = 0;
-	
+
 	ParaB::execute_with(|| {
 		// Create fungible asset on Asset Hub
 		assert_ok!(<ParaB as ParaBPallet>::Assets::create(
@@ -323,139 +323,142 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 			<ParaB as ParaBPallet>::Assets::balance(txUSD, &alice_account.clone());
 	});
 
-	// let trappist_asset_registry_call =
-	// 	<ParaA as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-	// 		<ParaA as Parachain>::Runtime,
-	// 	>::register_reserve_asset {
-	// 		asset_id: txUSD,
-	// 		asset_multi_location: (
-	// 			Parent,
-	// 			X3(
-	// 				Parachain(ASSET_HUB_ID),
-	// 				PalletInstance(<AssetHubRococo as AssetHubRococoPallet>::Assets::index() as u8),
-	// 				GeneralIndex(xUSD as u128),
-	// 			),
-	// 		)
-	// 			.into(),
-	// 	});
+	let trappist_asset_registry_call =
+		<ParaA as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<ParaA as Parachain>::Runtime,
+		>::register_reserve_asset {
+			asset_id: txUSD,
+			asset_multi_location: (
+				Parent,
+				X3(
+					Parachain(ASSET_HUB_ID),
+					PalletInstance(<AssetHubRococo as AssetHubRococoPallet>::Assets::index() as u8),
+					GeneralIndex(xUSD as u128),
+				),
+			)
+				.into(),
+		});
 
-	// ParaA::execute_with(|| {
-	// 	// Create fungible asset on Asset Hub
-	// 	assert_ok!(<ParaA as ParaAPallet>::Assets::create(
-	// 		<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
-	// 		txUSD.into(),
-	// 		alice_account.clone().into(),
-	// 		ASSET_MIN_BALANCE
-	// 	));
+	const MAX_WEIGHT: u128 = 1_000_000_000 * 2; // 1,000,000,000 per instruction
+	const EXECUTION_COST: u128 = 65_000_000_000;
 
-	// 	// Mint fungible asset
-	// 	assert_ok!(<ParaA as ParaAPallet>::Assets::mint(
-	// 		<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
-	// 		txUSD.into(),
-	// 		alice_account.clone().into(),
-	// 		MINT_AMOUNT
-	// 	));
+	ParaA::execute_with(|| {
+		// Create fungible asset on Asset Hub
+		assert_ok!(<ParaA as ParaAPallet>::Assets::create(
+			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			txUSD.into(),
+			alice_account.clone().into(),
+			ASSET_MIN_BALANCE
+		));
 
-	// 	// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
-	// 	// Parachain) via Asset Registry
-	// 	assert_ok!(<ParaA as ParaAPallet>::Sudo::sudo(
-	// 		<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
-	// 		Box::new(trappist_asset_registry_call),
-	// 	),);
-	// 	assert!(<ParaA as ParaAPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
+		// Mint fungible asset
+		assert_ok!(<ParaA as ParaAPallet>::Assets::mint(
+			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			txUSD.into(),
+			alice_account.clone().into(),
+			MINT_AMOUNT
+		));
 
-	// 	// // Check beneficiary balance
-	// 	beneficiary_balance =
-	// 		<ParaA as ParaAPallet>::Assets::balance(txUSD, &alice_account.clone());
-	// });
+		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
+		// Parachain) via Asset Registry
+		assert_ok!(<ParaA as ParaAPallet>::Sudo::sudo(
+			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			Box::new(trappist_asset_registry_call),
+		),);
+		assert!(<ParaA as ParaAPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
 
-	// const MAX_WEIGHT: u128 = 1_000_000_000 * 2; // 1,000,000,000 per instruction
-	// const EXECUTION_COST: u128 = 65_000_000_000;
+		// // Check beneficiary balance
+		beneficiary_balance =
+			<ParaA as ParaAPallet>::Assets::balance(txUSD, &alice_account.clone());
 
-	// Trappist::execute_with(|| {
-	// 	// Create derivative asset on Trappist Parachain
-	// 	assert_ok!(create_derivative_asset_on_trappist(txUSD, ALICE.into(), ASSET_MIN_BALANCE));
-
-	// 	// Mint derivative asset on Trappist Parachain
-	// 	assert_ok!(trappist::Assets::mint(
-	// 		trappist::RuntimeOrigin::signed(ALICE),
-	// 		txUSD.into(),
-	// 		ALICE.into(),
-	// 		AMOUNT * 2
-	// 	));
-	// 	assert_eq!(trappist::Assets::balance(txUSD, &ALICE), AMOUNT * 2);
-
-	// 	// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
-	// 	// Parachain) via Asset Registry
-	// 	assert_ok!(register_reserve_asset_on_trappist(ALICE, txUSD, xUSD));
-	// 	assert!(trappist::AssetRegistry::asset_id_multilocation(txUSD).is_some());
-
-	// 	// Trappist parachain should be able to reserve-transfer an asset to Tertiary Parachain
-	// 	assert_ok!(trappist::PolkadotXcm::execute(
-	// 		trappist::RuntimeOrigin::signed(ALICE),
-	// 		Box::new(VersionedXcm::from(Xcm(vec![
-	// 			WithdrawAsset(
-	// 				(
-	// 					(
-	// 						Parent,
-	// 						X3(
-	// 							Parachain(ASSET_RESERVE_PARA_ID),
-	// 							PalletInstance(asset_reserve::Assets::index() as u8),
-	// 							GeneralIndex(xUSD as u128)
-	// 						)
-	// 					),
-	// 					AMOUNT
-	// 				)
-	// 					.into()
-	// 			),
-	// 			InitiateReserveWithdraw {
-	// 				assets: Wild(All),
-	// 				reserve: (Parent, Parachain(ASSET_RESERVE_PARA_ID)).into(),
-	// 				xcm: Xcm(vec![
-	// 					BuyExecution {
-	// 						fees: (
-	// 							X2(
-	// 								PalletInstance(asset_reserve::Assets::index() as u8),
-	// 								GeneralIndex(xUSD as u128)
-	// 							),
-	// 							EXECUTION_COST
-	// 						)
-	// 							.into(),
-	// 						weight_limit: Unlimited
-	// 					},
-	// 					DepositReserveAsset {
-	// 						assets: Wild(All),
-	// 						max_assets: 1,
-	// 						dest: (Parent, Parachain(STOUT_PARA_ID)).into(),
-	// 						xcm: Xcm(vec![DepositAsset {
-	// 							assets: Wild(All),
-	// 							max_assets: 1,
-	// 							beneficiary: X1(AccountId32 { network: Any, id: ALICE.into() })
-	// 								.into()
-	// 						}])
-	// 					}
-	// 				])
-	// 			},
-	// 		]))),
-	// 		MAX_WEIGHT as u64
-	// 	));
+		// Trappist parachain should be able to reserve-transfer an asset to Tertiary Parachain
+		assert_ok!(<ParaA as ParaAPallet>::XcmPallet::execute(
+			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			Box::new(VersionedXcm::from(Xcm(vec![
+				WithdrawAsset(
+					(
+						(
+							Parent,
+							X3(
+								Parachain(ASSET_HUB_ID),
+								PalletInstance(
+									<AssetHubRococo as AssetHubRococoPallet>::Assets::index() as u8
+								),
+								GeneralIndex(xUSD as u128)
+							)
+						),
+						MINT_AMOUNT
+					)
+						.into()
+				),
+				InitiateReserveWithdraw {
+					assets: Wild(AllCounted(1)),
+					reserve: (Parent, Parachain(ASSET_HUB_ID)).into(),
+					xcm: Xcm(vec![
+						BuyExecution {
+							fees: (
+								X2(
+									PalletInstance(
+										<AssetHubRococo as AssetHubRococoPallet>::Assets::index()
+											as u8
+									),
+									GeneralIndex(xUSD as u128)
+								),
+								EXECUTION_COST
+							)
+								.into(),
+							weight_limit: Unlimited
+						},
+						DepositReserveAsset {
+							assets: Wild(AllCounted(1)),
+							dest: (Parent, Parachain(STOUT_ID)).into(),
+							xcm: Xcm(vec![
+								BuyExecution {
+									fees: (
+										(Parent,
+										X3(
+											Parachain(ASSET_HUB_ID),
+											PalletInstance(<AssetHubRococo as AssetHubRococoPallet>::Assets::index() as u8),
+											GeneralIndex(xUSD as u128),
+										)),
+										EXECUTION_COST
+									)
+										.into(),
+									weight_limit: Unlimited
+								},
+								DepositAsset {
+								assets: Wild(AllCounted(1)),
+								beneficiary: X1(AccountId32 {
+									network: None,
+									id: alice_account.clone().into()
+								})
+								.into()
+							}
+							])
+						}
+					])
+				},
+			]))),
+			(MAX_WEIGHT as u64).into(),
+		));
+	});
 
 	// 	// // Check send amount moved to sovereign account
 	// 	// let sovereign_account = asset_reserve::sovereign_account(TRAPPIST_PARA_ID);
 	// 	// assert_eq!(asset_reserve::Assets::balance(xUSD, &sovereign_account), AMOUNT);
 	// });
 
-	// Stout::execute_with(|| {
-	// 	// Ensure beneficiary received amount, less fees
-	// 	let current_balance = stout::Assets::balance(pxUSD, &ALICE);
-	// 	assert_balance(current_balance, beneficiary_balance + AMOUNT, EXECUTION_COST);
-	// 	println!(
-	// 		"Two-hop Reserve-transfer: initial balance {} transfer amount {} current balance {} estimated fees {} actual fees {}",
-	// 		beneficiary_balance.separate_with_commas(),
-	// 		AMOUNT.separate_with_commas(),
-	// 		current_balance.separate_with_commas(),
-	// 		EXECUTION_COST.separate_with_commas(),
-	// 		(beneficiary_balance + AMOUNT - current_balance).separate_with_commas()
-	// 	);
-	// });
+	ParaB::execute_with(|| {
+		// Ensure beneficiary received amount, less fees
+		let current_balance = <ParaB as ParaBPallet>::Assets::balance(txUSD, &alice_account);
+		// assert_balance(current_balance, beneficiary_balance + MINT_AMOUNT, EXECUTION_COST);
+		println!(
+			"Two-hop Reserve-transfer: initial balance {} transfer amount {} current balance {} estimated fees {} actual fees {}",
+			beneficiary_balance.separate_with_commas(),
+			MINT_AMOUNT.separate_with_commas(),
+			current_balance.separate_with_commas(),
+			EXECUTION_COST.separate_with_commas(),
+			(beneficiary_balance + MINT_AMOUNT - current_balance).separate_with_commas()
+		);
+	});
 }
