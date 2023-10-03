@@ -2,6 +2,7 @@ use super::*;
 
 mod reserve_asset_transfer;
 mod set_xcm_version;
+mod misc;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1984;
@@ -33,4 +34,13 @@ fn init_tracing() {
 			.with_test_writer()
 			.init();
 	});
+}
+
+fn output_events<Runtime: frame_system::Config>() {
+	const TARGET: &str = "system::events";
+	let events = frame_system::Pallet::<Runtime>::events();
+	log::trace!(target: TARGET, "{} events", events.len());
+	for event in events {
+		log::trace!(target: TARGET, "{:?}", event)
+	}
 }

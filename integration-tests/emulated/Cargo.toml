@@ -12,6 +12,7 @@ tracing = { version = "0.1.37" }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 
 # Substrate
+frame-system = { workspace = true }
 frame-support = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
