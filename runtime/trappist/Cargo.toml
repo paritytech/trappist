@@ -251,4 +251,5 @@ try-runtime = [
 	"pallet-preimage/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
+	"pallet-withdraw-teleport/try-runtime",
 ]
