@@ -64,11 +64,11 @@ impl<T: frame_system::Config> pallet_withdraw_teleport::WeightInfo for WeightInf
 	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn withdraw_and_teleport() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `177`
-		//  Estimated: `3642`
-		// Minimum execution time: 94_878_000 picoseconds.
-		Weight::from_parts(97_451_000, 0)
-			.saturating_add(Weight::from_parts(0, 3642))
+		//  Measured:  `211`
+		//  Estimated: `3676`
+		// Minimum execution time: 91_216_000 picoseconds.
+		Weight::from_parts(93_677_000, 0)
+			.saturating_add(Weight::from_parts(0, 3676))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}

@@ -58,8 +58,8 @@ impl<T: frame_system::Config> trappist_runtime_benchmarks::WeightInfo for Weight
 		// Proof Size summary in bytes:
 		//  Measured:  `131`
 		//  Estimated: `4087`
-		// Minimum execution time: 8_638_000 picoseconds.
-		Weight::from_parts(8_888_000, 0)
+		// Minimum execution time: 8_659_000 picoseconds.
+		Weight::from_parts(8_947_000, 0)
 			.saturating_add(Weight::from_parts(0, 4087))
 			.saturating_add(T::DbWeight::get().reads(2))
 	}
@@ -69,8 +69,8 @@ impl<T: frame_system::Config> trappist_runtime_benchmarks::WeightInfo for Weight
 		// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `4087`
-		// Minimum execution time: 4_652_000 picoseconds.
-		Weight::from_parts(4_925_000, 0)
+		// Minimum execution time: 4_500_000 picoseconds.
+		Weight::from_parts(4_670_000, 0)
 			.saturating_add(Weight::from_parts(0, 4087))
 			.saturating_add(T::DbWeight::get().reads(1))
 	}
@@ -78,8 +78,8 @@ impl<T: frame_system::Config> trappist_runtime_benchmarks::WeightInfo for Weight
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 1_230_000 picoseconds.
-		Weight::from_parts(1_272_000, 0)
+		// Minimum execution time: 1_084_000 picoseconds.
+		Weight::from_parts(1_135_000, 0)
 			.saturating_add(Weight::from_parts(0, 0))
 	}
 }
