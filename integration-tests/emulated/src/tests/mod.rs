@@ -1,8 +1,9 @@
 use super::*;
 
+mod misc;
 mod reserve_asset_transfer;
 mod set_xcm_version;
-mod misc;
+mod xcm_asset_trap;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1984;

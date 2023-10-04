@@ -8,7 +8,7 @@ fn event_collection_works() {
 
 	const AMOUNT: u128 = 1_000_000_000 * 10;
 	const MAX_WEIGHT: u128 = 1_000_000_000;
-    let alice_account: sp_runtime::AccountId32 = get_account_id_from_seed::<sr25519::Public>(ALICE);
+	let alice_account: sp_runtime::AccountId32 = get_account_id_from_seed::<sr25519::Public>(ALICE);
 
 	ParaA::execute_with(|| {
 		assert_ok!(<ParaA as ParaAPallet>::XcmPallet::execute(

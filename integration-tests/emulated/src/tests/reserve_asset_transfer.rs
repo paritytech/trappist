@@ -447,7 +447,13 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		));
 
 		// Check send amount moved to sovereign account
-		assert_eq!(<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(xUSD, &stout_sovereign_account), MINT_AMOUNT);
+		assert_eq!(
+			<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(
+				xUSD,
+				&stout_sovereign_account
+			),
+			MINT_AMOUNT
+		);
 	});
 
 	ParaB::execute_with(|| {
