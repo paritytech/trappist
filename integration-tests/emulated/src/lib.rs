@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use frame_support::{
 	assert_ok, instances::Instance1, log, sp_io, sp_tracing, traits::PalletInfoAccess,
 };
@@ -90,7 +91,7 @@ decl_test_relay_chains! {
 // PDD: parachains
 decl_test_parachains! {
 	// Parachain A
-	pub struct ParaA {
+	pub struct Trappist {
 		genesis = para_a_genesis(),
 		on_init = (),
 		runtime = {
@@ -114,7 +115,7 @@ decl_test_parachains! {
 		}
 	},
 	// Parachain B
-	pub struct ParaB {
+	pub struct Stout {
 		genesis = para_b_genesis(),
 		on_init = (),
 		runtime = {
@@ -179,7 +180,7 @@ decl_test_networks! {
 	// Rococo
 	pub struct RococoMockNet {
 		relay_chain = Rococo,
-		parachains = vec![ParaA, ParaB, AssetHubRococo,],
+		parachains = vec![Trappist, Stout, AssetHubRococo,],
 		bridge = ()
 	}
 }

@@ -5,10 +5,10 @@ fn overview() {
 	type MockNetwork = RococoMockNet;
 	type RelayChain = Rococo;
 	type AssetReseve = AssetHubRococo;
-	type Para = ParaA;
+	type Para = Trappist;
 	type TestExt = dyn xcm_emulator::TestExt;
 	let _messagesemulator = xcm_emulator::DOWNWARD_MESSAGES;
-	type RuntimeA = <ParaA as Parachain>::Runtime;
+	type RuntimeA = <Trappist as Parachain>::Runtime;
 	type XcmPallet = pallet_xcm::Pallet<RuntimeA>;
 }
 
@@ -18,8 +18,10 @@ fn overview() {
 fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	init_tracing();
 
+	//Reboot test network to init
 	RococoMockNet::reset();
 
+	// Get account from const seed. Funded on genesis config.
 	let alice_account: sp_runtime::AccountId32 = get_account_id_from_seed::<sr25519::Public>(ALICE);
 
 	const ASSET_MIN_BALANCE: Balance = 1_000_000_000;
@@ -97,8 +99,8 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	let mut beneficiary_balance = 0;
 
 	let asset_registry_call =
-		<ParaA as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-			<ParaA as Parachain>::Runtime,
+		<Trappist as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<Trappist as Parachain>::Runtime,
 		>::register_reserve_asset {
 			asset_id: txUSD,
 			asset_multi_location: (
@@ -112,10 +114,10 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 				.into(),
 		});
 
-	ParaA::execute_with(|| {
+	Trappist::execute_with(|| {
 		// Create fungible asset on Asset Hub
-		assert_ok!(<ParaA as ParaAPallet>::Assets::create(
-			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Trappist as TrappistPallet>::Assets::create(
+			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -123,15 +125,17 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 
 		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
 		// Parachain) via Asset Registry
-		assert_ok!(<ParaA as ParaAPallet>::Sudo::sudo(
-			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Trappist as TrappistPallet>::Sudo::sudo(
+			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(asset_registry_call),
 		),);
-		assert!(<ParaA as ParaAPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
+		assert!(
+			<Trappist as TrappistPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some()
+		);
 
 		// // Check beneficiary balance
 		beneficiary_balance =
-			<ParaA as ParaAPallet>::Assets::balance(txUSD, &alice_account.clone());
+			<Trappist as TrappistPallet>::Assets::balance(txUSD, &alice_account.clone());
 	});
 
 	// Reserve asset transfer from Asset Hub to Trappist
@@ -179,9 +183,9 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	// Check that balance increased on Trappist
 
 	// const EST_FEES: u128 = 1_600_000_000 * 10;
-	ParaA::execute_with(|| {
+	Trappist::execute_with(|| {
 		// Ensure beneficiary account balance increased
-		let current_balance = <ParaA as ParaAPallet>::Assets::balance(txUSD, alice_account);
+		let current_balance = <Trappist as TrappistPallet>::Assets::balance(txUSD, alice_account);
 		assert!(current_balance > 0u128.into());
 		println!(
 			"Reserve-transfer: initial balance {} transfer amount {} current balance {} actual fees {}",
@@ -288,8 +292,8 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	});
 
 	let stout_asset_registry_call =
-		<ParaB as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-			<ParaB as Parachain>::Runtime,
+		<Stout as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<Stout as Parachain>::Runtime,
 		>::register_reserve_asset {
 			asset_id: txUSD,
 			asset_multi_location: (
@@ -305,10 +309,10 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 
 	let mut beneficiary_balance = 0;
 
-	ParaB::execute_with(|| {
+	Stout::execute_with(|| {
 		// Create fungible asset on Asset Hub
-		assert_ok!(<ParaB as ParaBPallet>::Assets::create(
-			<ParaB as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Stout as StoutPallet>::Assets::create(
+			<Stout as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -316,20 +320,20 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 
 		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
 		// Parachain) via Asset Registry
-		assert_ok!(<ParaB as ParaBPallet>::Sudo::sudo(
-			<ParaB as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Stout as StoutPallet>::Sudo::sudo(
+			<Stout as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(stout_asset_registry_call),
 		),);
-		assert!(<ParaB as ParaBPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
+		assert!(<Stout as StoutPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
 
 		// // Check beneficiary balance
 		beneficiary_balance =
-			<ParaB as ParaBPallet>::Assets::balance(txUSD, &alice_account.clone());
+			<Stout as StoutPallet>::Assets::balance(txUSD, &alice_account.clone());
 	});
 
 	let trappist_asset_registry_call =
-		<ParaA as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-			<ParaA as Parachain>::Runtime,
+		<Trappist as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<Trappist as Parachain>::Runtime,
 		>::register_reserve_asset {
 			asset_id: txUSD,
 			asset_multi_location: (
@@ -346,18 +350,18 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	const MAX_WEIGHT: u128 = 1_000_000_000 * 2; // 1,000,000,000 per instruction
 	const EXECUTION_COST: u128 = 65_000_000_000;
 
-	ParaA::execute_with(|| {
+	Trappist::execute_with(|| {
 		// Create fungible asset on Asset Hub
-		assert_ok!(<ParaA as ParaAPallet>::Assets::create(
-			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Trappist as TrappistPallet>::Assets::create(
+			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
 		));
 
 		// Mint fungible asset
-		assert_ok!(<ParaA as ParaAPallet>::Assets::mint(
-			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Trappist as TrappistPallet>::Assets::mint(
+			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			MINT_AMOUNT
@@ -365,19 +369,21 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 
 		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
 		// Parachain) via Asset Registry
-		assert_ok!(<ParaA as ParaAPallet>::Sudo::sudo(
-			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Trappist as TrappistPallet>::Sudo::sudo(
+			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(trappist_asset_registry_call),
 		),);
-		assert!(<ParaA as ParaAPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
+		assert!(
+			<Trappist as TrappistPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some()
+		);
 
 		// // Check beneficiary balance
 		beneficiary_balance =
-			<ParaA as ParaAPallet>::Assets::balance(txUSD, &alice_account.clone());
+			<Trappist as TrappistPallet>::Assets::balance(txUSD, &alice_account.clone());
 
 		// Trappist parachain should be able to reserve-transfer an asset to Tertiary Parachain
-		assert_ok!(<ParaA as ParaAPallet>::XcmPallet::execute(
-			<ParaA as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<Trappist as TrappistPallet>::XcmPallet::execute(
+			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(VersionedXcm::from(Xcm(vec![
 				WithdrawAsset(
 					(
@@ -456,9 +462,9 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		);
 	});
 
-	ParaB::execute_with(|| {
+	Stout::execute_with(|| {
 		// Ensure beneficiary received amount, less fees
-		let current_balance = <ParaB as ParaBPallet>::Assets::balance(txUSD, &alice_account);
+		let current_balance = <Stout as StoutPallet>::Assets::balance(txUSD, &alice_account);
 		assert!(current_balance > 0u128.into());
 		println!(
 			"Two-hop Reserve-transfer: initial balance {} transfer amount {} current balance {} estimated fees {} actual fees {}",
