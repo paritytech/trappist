@@ -46,6 +46,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 			MINT_AMOUNT
 		));
 
+		// Assert balance update
 		assert_eq!(
 			<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(xUSD, &alice_account),
 			MINT_AMOUNT
@@ -54,6 +55,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 
 	// Make asset sufficient from Relay to Reserve Parachain
 
+	// Pallet Asset called to be transacted from Relay to Reserve Parachain
 	let call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
 		<AssetHubRococo as Parachain>::Runtime,
 		Instance1,
@@ -70,7 +72,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	.encode()
 	.into();
 
-	// XcmPallet send arguments
+	// Send arguments to be sent from Relay to Reserve Parachain via pallet-xcm
 	let sudo_origin = <Rococo as RelayChain>::RuntimeOrigin::root();
 	let assets_para_destination: VersionedMultiLocation =
 		Rococo::child_location_of(AssetHubRococo::para_id()).into();
@@ -80,6 +82,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	let origin_kind = OriginKind::Superuser;
 	let check_origin = None;
 
+	// Reserve barrier requires explicit unpaid execution and accepts parent governance as source
 	let xcm = VersionedXcm::from(Xcm(vec![
 		UnpaidExecution { weight_limit, check_origin },
 		Transact { require_weight_at_most, origin_kind, call },
@@ -98,6 +101,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 
 	let mut beneficiary_balance = 0;
 
+	// Call for asset regitry to be mapped to Trappist - Requires sudo
 	let asset_registry_call =
 		<Trappist as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
 			<Trappist as Parachain>::Runtime,
@@ -181,8 +185,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	});
 
 	// Check that balance increased on Trappist
-
-	// const EST_FEES: u128 = 1_600_000_000 * 10;
+	
 	Trappist::execute_with(|| {
 		// Ensure beneficiary account balance increased
 		let current_balance = <Trappist as TrappistPallet>::Assets::balance(txUSD, alice_account);
@@ -382,9 +385,11 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 			<Trappist as TrappistPallet>::Assets::balance(txUSD, &alice_account.clone());
 
 		// Trappist parachain should be able to reserve-transfer an asset to Tertiary Parachain
+		// Call must be hand constructed as pallet-xcm reserve-transfer call does not support third party reserve
 		assert_ok!(<Trappist as TrappistPallet>::XcmPallet::execute(
 			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(VersionedXcm::from(Xcm(vec![
+				// Withdraw asset from Trappist Parachain
 				WithdrawAsset(
 					(
 						(
@@ -401,10 +406,13 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 					)
 						.into()
 				),
+				// Initiate reserve-transfer of asset 
 				InitiateReserveWithdraw {
 					assets: Wild(AllCounted(1)),
 					reserve: (Parent, Parachain(ASSET_HUB_ID)).into(),
+					// This part of the message is intended to be executed on Asset Hub 
 					xcm: Xcm(vec![
+						// Buy execution from Asset Hub
 						BuyExecution {
 							fees: (
 								X2(
@@ -419,10 +427,13 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 								.into(),
 							weight_limit: Unlimited
 						},
+						// At this point tokens are moved from one sovereign account to another
 						DepositReserveAsset {
 							assets: Wild(AllCounted(1)),
 							dest: (Parent, Parachain(STOUT_ID)).into(),
+							// This part of the message is intended to be executed by Stout
 							xcm: Xcm(vec![
+								// Buy execution on Stout
 								BuyExecution {
 									fees: (
 										(Parent,
@@ -436,6 +447,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 										.into(),
 									weight_limit: Unlimited
 								},
+								// Deposit asset (derivative) to beneficiary account
 								DepositAsset {
 								assets: Wild(AllCounted(1)),
 								beneficiary: X1(AccountId32 {
