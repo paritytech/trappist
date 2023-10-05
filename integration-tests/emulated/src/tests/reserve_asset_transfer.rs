@@ -185,7 +185,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	});
 
 	// Check that balance increased on Trappist
-	
+
 	Trappist::execute_with(|| {
 		// Ensure beneficiary account balance increased
 		let current_balance = <Trappist as TrappistPallet>::Assets::balance(txUSD, alice_account);
@@ -406,11 +406,11 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 					)
 						.into()
 				),
-				// Initiate reserve-transfer of asset 
+				// Initiate reserve-transfer of asset
 				InitiateReserveWithdraw {
 					assets: Wild(AllCounted(1)),
 					reserve: (Parent, Parachain(ASSET_HUB_ID)).into(),
-					// This part of the message is intended to be executed on Asset Hub 
+					// This part of the message is intended to be executed on Asset Hub
 					xcm: Xcm(vec![
 						// Buy execution from Asset Hub
 						BuyExecution {
