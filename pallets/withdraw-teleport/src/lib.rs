@@ -24,10 +24,11 @@
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
 use frame_support::{
 	dispatch::DispatchResult,
-	ensure, log,
+	ensure,
 	traits::{Contains, EnsureOrigin, Get},
 };
 use frame_system::pallet_prelude::OriginFor;
+use log;
 pub use pallet::*;
 use pallet_xcm::WeightInfo as XcmWeightInfo;
 use parity_scale_codec::Encode;

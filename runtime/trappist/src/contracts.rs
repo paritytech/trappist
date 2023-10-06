@@ -26,7 +26,7 @@ use frame_support::{
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_contracts::NoopMigration;
 use pallet_contracts::{
-	migration::{v12, v13, v14, v15},
+	migration::{v13, v14, v15},
 	Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
@@ -71,12 +71,7 @@ impl Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (
-		v12::Migration<Self, Balances>,
-		v13::Migration<Self>,
-		v14::Migration<Self, Balances>,
-		v15::Migration<Self>,
-	);
+	type Migrations = (v13::Migration<Self>, v14::Migration<Self, Balances>, v15::Migration<Self>);
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);
 	type MaxDelegateDependencies = ConstU32<32>;
