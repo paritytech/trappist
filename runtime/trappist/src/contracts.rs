@@ -15,6 +15,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{
+	constants::currency::deposit, weights, Balance, Balances, RandomnessCollectiveFlip, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
+};
 use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Nothing},
@@ -22,15 +26,11 @@ use frame_support::{
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_contracts::NoopMigration;
 use pallet_contracts::{
-	migration::{v10, v11, v12},
+	migration::{v13, v14, v15},
 	Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
-
-use crate::{
-	constants::currency::deposit, weights, Balance, Balances, RandomnessCollectiveFlip, Runtime,
-	RuntimeCall, RuntimeEvent, Timestamp,
-};
+use sp_runtime::Perbill;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
@@ -41,6 +41,7 @@ parameter_types! {
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub MySchedule: Schedule<Runtime> = Default::default();
 	pub const DefaultDepositLimit: Balance = deposit(1024, 1024 * 1024);
+	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 }
 
 impl Config for Runtime {
@@ -70,7 +71,12 @@ impl Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (v10::Migration<Self>, v11::Migration<Self>, v12::Migration<Self>);
+	type Migrations = (v13::Migration<Self>, v14::Migration<Self, Balances>, v15::Migration<Self>);
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type MaxDelegateDependencies = ConstU32<32>;
+	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
+	type Debug = ();
+	type Environment = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 }

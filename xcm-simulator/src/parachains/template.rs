@@ -25,7 +25,7 @@ use polkadot_parachain::primitives::Sibling;
 use sp_core::H256;
 use sp_runtime::{testing::Header, traits::IdentityLookup, AccountId32};
 use sp_std::prelude::*;
-use statemine_runtime::common::BlockNumber;
+use asset_hub_kusama::common::BlockNumber;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowUnpaidExecutionFrom, CurrencyAdapter as XcmCurrencyAdapter,

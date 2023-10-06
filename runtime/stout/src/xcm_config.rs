@@ -35,7 +35,7 @@ use parachains_common::{impls::DealWithFees, AssetIdForTrustBackedAssets};
 use xcm_executor::traits::JustTry;
 
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use polkadot_parachain::primitives::Sibling;
+use polkadot_parachain_primitives::primitives::Sibling;
 use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 
