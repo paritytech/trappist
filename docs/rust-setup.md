@@ -2,7 +2,7 @@
 title: Installation
 ---
 
-This guide is for reference only, please check the latest information on getting starting with Substrate 
+This guide is for reference only, please check the latest information on getting starting with Substrate
 [here](https://docs.substrate.io/v3/getting-started/installation/).
 
 This page will guide you through the **2 steps** needed to prepare a computer for **Substrate** development.
@@ -157,7 +157,7 @@ runtimes. You will need to configure your Rust compiler to use
 compile Substrate runtime code to the Wasm target.
 
 > There are upstream issues in Rust that need to be resolved before all of Substrate can use the stable Rust toolchain.
-> [This is our tracking issue](https://github.com/paritytech/substrate/issues/1252) if you're curious as to why and how this will be resolved.
+> [This is our tracking issue](https://github.com/paritytech/polkadot-sdk/issues/1252) if you're curious as to why and how this will be resolved.
 
 #### Latest nightly for Substrate `master`
 
@@ -186,7 +186,7 @@ dependencies, you should use a specific Rust nightly version that is known to be
 compatible with the version of Substrate they are using; this version will vary from project to
 project and different projects may use different mechanisms to communicate this version to
 developers. For instance, the Polkadot client specifies this information in its
-[release notes](https://github.com/paritytech/polkadot/releases).
+[release notes](https://github.com/paritytech/polkadot-sdk/releases).
 
 ```bash
 # Specify the specific nightly toolchain in the date below:

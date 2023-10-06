@@ -5,11 +5,11 @@
 
 **Trappist** is a web3 developer playground for experimenting with [cross-chain applications and services](https://polkadot.network/cross-chain-communication/) built on the technologies spearheaded by the [Polkadot Network](https://polkadot.network/), namely:
 * [Substrate](https://substrate.io/), a Blockchain framework that enables developers to quickly and easily build future proof blockchains optimized for any use case.
-* [Cumulus](https://github.com/paritytech/cumulus), a set of tools for writing Substrate-based Polkadot parachains.
+* [Cumulus](https://github.com/paritytech/polkadot-sdk/tree/master/cumulus), a set of tools for writing Substrate-based Polkadot parachains.
 * [XCM](https://polkadot.network/cross-chain-communication/), a common language for secure messaging across Polkadot  parachains, and with external networks via bridges.
 * [Rococo](https://polkadot.network/blog/statemint-becomes-first-common-good-parachain-on-polkadot/), Polkadot’s Parachain Testnet.
 * [Statemint](https://polkadot.network/blog/statemint-becomes-first-common-good-parachain-on-polkadot/), Polkadot's common good parachain which provides functionality for deploying and transferring assets — both Fungible and Non-Fungible Tokens (NFTs).
-* [Contracts Pallet](https://github.com/paritytech/substrate/tree/master/frame/contracts), enable WebAssembly smart-contracts executions.
+* [Contracts Pallet](https://github.com/paritytech/polkadot-sdk/tree/master/substrate/frame/contracts), enable WebAssembly smart-contracts executions.
 * [ink!](https://paritytech.github.io/ink/), an eDSL to write smart contracts in Rust for blockchains built on the Substrate framework.
 
 Altogether those technologies enable an array of exciting cross-chain applications & services:
@@ -55,15 +55,15 @@ First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
 Use the following command to build the Trappist collator binary:
 
-```bash 
+```bash
 cargo build --release
 ```
 
 ### XCM Playground via Zombienet
 
 Create a `bin` directory into the root of this repository and place the following binaries inside of it:
-- `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot/releases))
-- `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/cumulus))
+- `polkadot` (which you can download from [the releases](https://github.com/paritytech/polkadot-sdk/releases))
+- `polkadot-parachain` (which you will build from [cumulus](https://github.com/paritytech/polkadot-sdk))
 
 Download the [latest release of zombienet](https://github.com/paritytech/zombienet/releases/) into the root of this repository and make it executable:
 ```bash
