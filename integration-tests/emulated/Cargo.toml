@@ -20,21 +20,21 @@ pallet-assets = { workspace = true }
 
 # Cumulus
 cumulus-ping = { workspace = true }
-integration-tests-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0" }
+integration-tests-common = { workspace = true }
 xcm-emulator = { workspace = true }
 
 # Polkadot
-polkadot-parachain = { default-features = false, git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
-xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
+polkadot-parachain-primitives = { workspace = true }
+xcm = { workspace = true }
+xcm-executor = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # PDD: Runtimes
-polkadot-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
-kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
-rococo-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v1.0.0" }
-asset-hub-polkadot-runtime = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v1.0.0" }
+polkadot-runtime-common = { workspace = true }
+parachains-common = { workspace = true }
+rococo-runtime = { workspace = true }
+asset-hub-polkadot-runtime = { workspace = true }
 trappist-runtime = { path = "../../runtime/trappist" }
 stout-runtime = { path = "../../runtime/stout" }
 
