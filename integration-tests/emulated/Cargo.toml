@@ -34,6 +34,7 @@ xcm-primitives = { workspace = true }
 polkadot-runtime-common = { workspace = true }
 parachains-common = { workspace = true }
 rococo-runtime = { workspace = true }
+asset-hub-kusama-runtime = { workspace = true }
 asset-hub-polkadot-runtime = { workspace = true }
 trappist-runtime = { path = "../../runtime/trappist" }
 stout-runtime = { path = "../../runtime/stout" }

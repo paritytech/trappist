@@ -1,8 +1,4 @@
-#![allow(dead_code)]
-use frame_support::{
-	assert_ok, instances::Instance1, log, sp_io, sp_tracing, traits::PalletInfoAccess,
-};
-use integration_tests_common::{constants::XCM_V3, AccountId, Balance, ALICE};
+use parachains_common::Balance;
 use parity_scale_codec::Encode;
 use sp_core::{sr25519, storage::Storage, Get};
 use sp_runtime::{
@@ -10,14 +6,26 @@ use sp_runtime::{
 	BuildStorage,
 };
 use thousands::Separable;
+use xcm::opaque::lts::{
+	prelude::{
+		BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw, Transact,
+		UnpaidExecution, WithdrawAsset, Xcm,
+	},
+	AssetId::Concrete,
+	Fungibility::Fungible,
+	Junction::{GeneralIndex, PalletInstance},
+	Junctions::{Here, X1, X2, X3},
+	MultiAsset,
+	MultiAssetFilter::Wild,
+	OriginKind,
+	WeightLimit::Unlimited,
+	WildMultiAsset::AllCounted,
+};
 use xcm::{VersionedMultiAssets, VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
-	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains,
-	get_account_id_from_seed, AccountId32, AllCounted, Ancestor, BridgeMessageHandler,
-	BuyExecution, Concrete, DepositAsset, DepositReserveAsset, Fungible, GeneralIndex, Here,
-	InitiateReserveWithdraw, MultiAsset, MultiAssets, MultiLocation, OriginKind, PalletInstance,
-	ParaId, Parachain, Parent, RelayChain, TestExt, Transact, Unlimited, UnpaidExecution, Weight,
-	WeightLimit, Wild, WithdrawAsset, Xcm, XcmHash, X1, X2, X3,
+	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains, log, sp_tracing, AccountId32, Ancestor, BridgeMessageHandler,
+	DefaultMessageProcessor, Hooks, MultiAssets, MultiLocation, ParaId, Parachain, Parent,
+	RelayChain, TestExt, Weight, WeightLimit, XcmHash, helpers::get_account_id_from_seed,
 };
 use xcm_executor::{traits::ConvertLocation, Assets};
 use xcm_primitives::AssetMultiLocationGetter;
@@ -25,65 +33,21 @@ use xcm_primitives::AssetMultiLocationGetter;
 #[cfg(test)]
 mod tests;
 
-// PDD: relay chains
 decl_test_relay_chains! {
-	// Polkadot
-	#[api_version(5)]
-	pub struct Polkadot {
-		genesis = integration_tests_common::constants::polkadot::genesis(),
-		on_init = (),
-		// PDD: actual Polkadot runtime
-		runtime = {
-			Runtime: polkadot_runtime::Runtime,
-			RuntimeOrigin: polkadot_runtime::RuntimeOrigin,
-			RuntimeCall: polkadot_runtime::RuntimeCall,
-			RuntimeEvent: polkadot_runtime::RuntimeEvent,
-			MessageQueue: polkadot_runtime::MessageQueue,
-			XcmConfig: polkadot_runtime::xcm_config::XcmConfig,
-			SovereignAccountOf: polkadot_runtime::xcm_config::SovereignAccountOf,
-			System: polkadot_runtime::System,
-			Balances: polkadot_runtime::Balances,
-		},
-		// PDD: pallet type helper
-		pallets_extra = {}
-	},
-	// Kusama
-	#[api_version(5)]
-	pub struct Kusama {
-		genesis = integration_tests_common::constants::kusama::genesis(),
-		on_init = (),
-		runtime = {
-			Runtime: kusama_runtime::Runtime,
-			RuntimeOrigin: kusama_runtime::RuntimeOrigin,
-			RuntimeCall: kusama_runtime::RuntimeCall,
-			RuntimeEvent: kusama_runtime::RuntimeEvent,
-			MessageQueue: kusama_runtime::MessageQueue,
-			XcmConfig: kusama_runtime::xcm_config::XcmConfig,
-			SovereignAccountOf: kusama_runtime::xcm_config::SovereignAccountOf,
-			System: kusama_runtime::System,
-			Balances: kusama_runtime::Balances,
-		},
-		pallets_extra = {}
-	},
 	// Rococo
 	#[api_version(5)]
 	pub struct Rococo {
 		genesis = integration_tests_common::constants::rococo::genesis(),
 		on_init = (),
-		runtime = {
-			Runtime: rococo_runtime::Runtime,
-			RuntimeOrigin: rococo_runtime::RuntimeOrigin,
-			RuntimeCall: rococo_runtime::RuntimeCall,
-			RuntimeEvent: rococo_runtime::RuntimeEvent,
-			MessageQueue: rococo_runtime::MessageQueue,
-			XcmConfig: rococo_runtime::xcm_config::XcmConfig,
+		runtime = rococo_runtime,
+		core = {
+			MessageProcessor: DefaultMessageProcessor<Rococo>,
 			SovereignAccountOf: rococo_runtime::xcm_config::LocationConverter,
-			System: rococo_runtime::System,
-			Balances: rococo_runtime::Balances,
 		},
-		pallets_extra = {
+		pallets = {
 			XcmPallet: rococo_runtime::XcmPallet,
 			Sudo: rococo_runtime::Sudo,
+			Balances: rococo_runtime::Balances,
 		}
 	}
 }
@@ -94,89 +58,63 @@ decl_test_parachains! {
 	pub struct Trappist {
 		genesis = para_a_genesis(),
 		on_init = (),
-		runtime = {
-			Runtime: trappist_runtime::Runtime,
-			RuntimeOrigin: trappist_runtime::RuntimeOrigin,
-			RuntimeCall: trappist_runtime::RuntimeCall,
-			RuntimeEvent: trappist_runtime::RuntimeEvent,
+		runtime = trappist_runtime,
+		core = {
 			XcmpMessageHandler: trappist_runtime::XcmpQueue,
 			DmpMessageHandler: trappist_runtime::DmpQueue,
 			LocationToAccountId: trappist_runtime::xcm_config::LocationToAccountId,
-			System: trappist_runtime::System,
-			Balances: trappist_runtime::Balances,
-			ParachainSystem: trappist_runtime::ParachainSystem,
 			ParachainInfo: trappist_runtime::ParachainInfo,
 		},
-		pallets_extra = {
+		pallets= {
 			XcmPallet: trappist_runtime::PolkadotXcm,
 			Assets: trappist_runtime::Assets,
 			Sudo: trappist_runtime::Sudo,
 			AssetRegistry: trappist_runtime::AssetRegistry,
+			Balances: trappist_runtime::Balances,
 		}
 	},
 	// Parachain B
 	pub struct Stout {
 		genesis = para_b_genesis(),
 		on_init = (),
-		runtime = {
-			Runtime: stout_runtime::Runtime,
-			RuntimeOrigin: stout_runtime::RuntimeOrigin,
-			RuntimeCall: stout_runtime::RuntimeCall,
-			RuntimeEvent: stout_runtime::RuntimeEvent,
+		runtime = stout_runtime,
+		core = {
 			XcmpMessageHandler: stout_runtime::XcmpQueue,
 			DmpMessageHandler: stout_runtime::DmpQueue,
 			LocationToAccountId: stout_runtime::xcm_config::LocationToAccountId,
-			System: stout_runtime::System,
-			Balances: stout_runtime::Balances,
-			ParachainSystem: stout_runtime::ParachainSystem,
 			ParachainInfo: stout_runtime::ParachainInfo,
 		},
-		pallets_extra = {
+		pallets= {
 			XcmPallet: stout_runtime::PolkadotXcm,
 			Assets: stout_runtime::Assets,
 			Sudo: stout_runtime::Sudo,
 			AssetRegistry: stout_runtime::AssetRegistry,
+			Balances: stout_runtime::Balances,
 		}
 	},
 
 	// AssetHub
 	pub struct AssetHubRococo {
-		genesis = integration_tests_common::constants::asset_hub_polkadot::genesis(),
-		on_init = (),
-		runtime = {
-			Runtime: asset_hub_polkadot_runtime::Runtime,
-			RuntimeOrigin: asset_hub_polkadot_runtime::RuntimeOrigin,
-			RuntimeCall: asset_hub_polkadot_runtime::RuntimeCall,
-			RuntimeEvent: asset_hub_polkadot_runtime::RuntimeEvent,
-			XcmpMessageHandler: asset_hub_polkadot_runtime::XcmpQueue,
-			DmpMessageHandler: asset_hub_polkadot_runtime::DmpQueue,
-			LocationToAccountId: asset_hub_polkadot_runtime::xcm_config::LocationToAccountId,
-			System: asset_hub_polkadot_runtime::System,
-			Balances: asset_hub_polkadot_runtime::Balances,
-			ParachainSystem: asset_hub_polkadot_runtime::ParachainSystem,
-			ParachainInfo: asset_hub_polkadot_runtime::ParachainInfo,
+		genesis = integration_tests_common::constants::asset_hub_kusama::genesis(),
+		on_init = {
+			asset_hub_polkadot_runtime::AuraExt::on_initialize(1);
 		},
-		pallets_extra = {
-			PolkadotXcm: asset_hub_polkadot_runtime::PolkadotXcm,
-			Assets: asset_hub_polkadot_runtime::Assets,
+		runtime = asset_hub_kusama_runtime,
+		core = {
+			XcmpMessageHandler: asset_hub_kusama_runtime::XcmpQueue,
+			DmpMessageHandler: asset_hub_kusama_runtime::DmpQueue,
+			LocationToAccountId: asset_hub_kusama_runtime::xcm_config::LocationToAccountId,
+			ParachainInfo: asset_hub_kusama_runtime::ParachainInfo,
+		},
+		pallets = {
+			PolkadotXcm: asset_hub_kusama_runtime::PolkadotXcm,
+			Assets: asset_hub_kusama_runtime::Assets,
 		}
-	}
+	},
 }
 
-// PDD: define network(s)
+//Define network(s)
 decl_test_networks! {
-	// Polkadot
-	pub struct PolkadotMockNet {
-		relay_chain = Polkadot,
-		parachains = vec![  ],
-		bridge = ()
-	},
-	// Kusama
-	pub struct KusamaMockNet {
-		relay_chain = Kusama,
-		parachains = vec![],
-		bridge = ()
-	},
 	// Rococo
 	pub struct RococoMockNet {
 		relay_chain = Rococo,
