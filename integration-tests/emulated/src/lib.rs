@@ -23,9 +23,10 @@ use xcm::opaque::lts::{
 };
 use xcm::{VersionedMultiAssets, VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
-	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains, log, sp_tracing, AccountId32, Ancestor, BridgeMessageHandler,
-	DefaultMessageProcessor, Hooks, MultiAssets, MultiLocation, ParaId, Parachain, Parent,
-	RelayChain, TestExt, Weight, WeightLimit, XcmHash, helpers::get_account_id_from_seed,
+	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains,
+	helpers::get_account_id_from_seed, log, sp_tracing, AccountId32, Ancestor,
+	BridgeMessageHandler, DefaultMessageProcessor, Hooks, MultiAssets, MultiLocation, ParaId,
+	Parachain, Parent, RelayChain, TestExt, Weight, WeightLimit, XcmHash,
 };
 use xcm_executor::{traits::ConvertLocation, Assets};
 use xcm_primitives::AssetMultiLocationGetter;
@@ -57,7 +58,8 @@ decl_test_parachains! {
 	// Parachain A
 	pub struct Trappist {
 		genesis = para_a_genesis(),
-		on_init = (),
+		on_init = {trappist_runtime::AuraExt::on_initialize(1);}
+		,
 		runtime = trappist_runtime,
 		core = {
 			XcmpMessageHandler: trappist_runtime::XcmpQueue,
@@ -76,7 +78,7 @@ decl_test_parachains! {
 	// Parachain B
 	pub struct Stout {
 		genesis = para_b_genesis(),
-		on_init = (),
+		on_init = {stout_runtime::AuraExt::on_initialize(1);},
 		runtime = stout_runtime,
 		core = {
 			XcmpMessageHandler: stout_runtime::XcmpQueue,

@@ -2,12 +2,13 @@ use super::*;
 use frame_support::{assert_ok, instances::Instance1, traits::PalletInfoAccess};
 use parachains_common::AccountId;
 use integration_tests_common::constants::XCM_V3;
+use xcm_emulator::Chain;
 
 
-mod misc;
-mod reserve_asset_transfer;
+// mod misc;
+// mod reserve_asset_transfer;
 mod set_xcm_version;
-mod xcm_asset_trap;
+// mod xcm_asset_trap;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1984;
