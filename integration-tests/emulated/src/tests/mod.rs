@@ -5,10 +5,10 @@ use parachains_common::AccountId;
 use xcm_emulator::{Chain, Network, Parachain};
 use xcm_primitives::AssetMultiLocationGetter;
 
-// mod misc;
+mod misc;
 mod reserve_asset_transfer;
 mod set_xcm_version;
-// mod xcm_asset_trap;
+mod xcm_asset_trap;
 
 #[allow(non_upper_case_globals)]
 const xUSD: u32 = 1984;
