@@ -8,7 +8,7 @@ fn overview() {
 	type Para = Trappist;
 	type TestExt = dyn xcm_emulator::TestExt;
 	let _messagesemulator = xcm_emulator::DOWNWARD_MESSAGES;
-	type RuntimeA = <Trappist as Parachain>::Runtime;
+	type RuntimeA = <Trappist as Chain>::Runtime;
 	type XcmPallet = pallet_xcm::Pallet<RuntimeA>;
 }
 
@@ -32,7 +32,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	AssetHubRococo::execute_with(|| {
 		// Create fungible asset on Asset Hub
 		assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::Assets::create(
-			<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			xUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -40,7 +40,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 
 		// Mint fungible asset
 		assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::Assets::mint(
-			<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			xUSD.into(),
 			alice_account.clone().into(),
 			MINT_AMOUNT
@@ -56,8 +56,8 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	// Make asset sufficient from Relay to Reserve Parachain
 
 	// Pallet Asset called to be transacted from Relay to Reserve Parachain
-	let call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
-		<AssetHubRococo as Parachain>::Runtime,
+	let call = <AssetHubRococo as Chain>::RuntimeCall::Assets(pallet_assets::Call::<
+		<AssetHubRococo as Chain>::Runtime,
 		Instance1,
 	>::force_asset_status {
 		id: xUSD.into(),
@@ -73,7 +73,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	.into();
 
 	// Send arguments to be sent from Relay to Reserve Parachain via pallet-xcm
-	let sudo_origin = <Rococo as RelayChain>::RuntimeOrigin::root();
+	let sudo_origin = <Rococo as Chain>::RuntimeOrigin::root();
 	let assets_para_destination: VersionedMultiLocation =
 		Rococo::child_location_of(AssetHubRococo::para_id()).into();
 
@@ -103,8 +103,8 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 
 	// Call for asset regitry to be mapped to Trappist - Requires sudo
 	let asset_registry_call =
-		<Trappist as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-			<Trappist as Parachain>::Runtime,
+		<Trappist as Chain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<Trappist as Chain>::Runtime,
 		>::register_reserve_asset {
 			asset_id: txUSD,
 			asset_multi_location: (
@@ -121,7 +121,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 	Trappist::execute_with(|| {
 		// Create fungible asset on Asset Hub
 		assert_ok!(<Trappist as TrappistPallet>::Assets::create(
-			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Trappist as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -130,7 +130,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
 		// Parachain) via Asset Registry
 		assert_ok!(<Trappist as TrappistPallet>::Sudo::sudo(
-			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Trappist as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(asset_registry_call),
 		),);
 		assert!(
@@ -150,7 +150,7 @@ fn reserve_transfer_asset_from_asset_reserve_parachain_to_trappist_parachain() {
 		// Reserve parachain should be able to reserve-transfer an asset to Trappist Parachain
 		assert_ok!(
 			<AssetHubRococo as AssetHubRococoPallet>::PolkadotXcm::limited_reserve_transfer_assets(
-				<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+				<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 				Box::new((Parent, Parachain(TRAPPIST_ID)).into()),
 				Box::new(
 					X1(AccountId32 { network: None, id: alice_account.clone().into() }).into(),
@@ -225,7 +225,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Create and mint fungible asset on Reserve Parachain
 		// Create fungible asset on Asset Hub
 		assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::Assets::create(
-			<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			xUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -233,29 +233,29 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 
 		// Mint fungible asset
 		assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::Assets::mint(
-			<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			xUSD.into(),
 			alice_account.clone().into(),
 			MINT_AMOUNT * 2
 		));
 
-		assert_ok!(<AssetHubRococo as Parachain>::Balances::transfer(
-			<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+		assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::Balances::transfer(
+			<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			trappist_sovereign_account.clone().into(),
 			ASSET_MIN_BALANCE
 		));
 
 		// Touch parachain account
 		assert_ok!(<AssetHubRococo as AssetHubRococoPallet>::Assets::transfer(
-			<AssetHubRococo as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<AssetHubRococo as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			xUSD.into(),
 			trappist_sovereign_account.into(),
 			MINT_AMOUNT
 		));
 	});
 
-	let call = <AssetHubRococo as Parachain>::RuntimeCall::Assets(pallet_assets::Call::<
-		<AssetHubRococo as Parachain>::Runtime,
+	let call = <AssetHubRococo as Chain>::RuntimeCall::Assets(pallet_assets::Call::<
+		<AssetHubRococo as Chain>::Runtime,
 		Instance1,
 	>::force_asset_status {
 		id: xUSD.into(),
@@ -271,7 +271,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	.into();
 
 	// XcmPallet send arguments
-	let sudo_origin = <Rococo as RelayChain>::RuntimeOrigin::root();
+	let sudo_origin = <Rococo as Chain>::RuntimeOrigin::root();
 	let assets_para_destination: VersionedMultiLocation =
 		Rococo::child_location_of(AssetHubRococo::para_id()).into();
 
@@ -295,8 +295,8 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	});
 
 	let stout_asset_registry_call =
-		<Stout as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-			<Stout as Parachain>::Runtime,
+		<Stout as Chain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<Stout as Chain>::Runtime,
 		>::register_reserve_asset {
 			asset_id: txUSD,
 			asset_multi_location: (
@@ -315,7 +315,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	Stout::execute_with(|| {
 		// Create fungible asset on Asset Hub
 		assert_ok!(<Stout as StoutPallet>::Assets::create(
-			<Stout as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Stout as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -324,7 +324,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
 		// Parachain) via Asset Registry
 		assert_ok!(<Stout as StoutPallet>::Sudo::sudo(
-			<Stout as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Stout as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(stout_asset_registry_call),
 		),);
 		assert!(<Stout as StoutPallet>::AssetRegistry::get_asset_multi_location(txUSD).is_some());
@@ -335,8 +335,8 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	});
 
 	let trappist_asset_registry_call =
-		<Trappist as Parachain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
-			<Trappist as Parachain>::Runtime,
+		<Trappist as Chain>::RuntimeCall::AssetRegistry(pallet_asset_registry::Call::<
+			<Trappist as Chain>::Runtime,
 		>::register_reserve_asset {
 			asset_id: txUSD,
 			asset_multi_location: (
@@ -356,7 +356,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 	Trappist::execute_with(|| {
 		// Create fungible asset on Asset Hub
 		assert_ok!(<Trappist as TrappistPallet>::Assets::create(
-			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Trappist as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			ASSET_MIN_BALANCE
@@ -364,7 +364,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 
 		// Mint fungible asset
 		assert_ok!(<Trappist as TrappistPallet>::Assets::mint(
-			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Trappist as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			txUSD.into(),
 			alice_account.clone().into(),
 			MINT_AMOUNT
@@ -373,7 +373,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Map derivative asset (txUSD) to multi-location (xUSD within Assets pallet on Reserve
 		// Parachain) via Asset Registry
 		assert_ok!(<Trappist as TrappistPallet>::Sudo::sudo(
-			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Trappist as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(trappist_asset_registry_call),
 		),);
 		assert!(
@@ -387,7 +387,7 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 		// Trappist parachain should be able to reserve-transfer an asset to Tertiary Parachain
 		// Call must be hand constructed as pallet-xcm reserve-transfer call does not support third party reserve
 		assert_ok!(<Trappist as TrappistPallet>::XcmPallet::execute(
-			<Trappist as Parachain>::RuntimeOrigin::signed(alice_account.clone()),
+			<Trappist as Chain>::RuntimeOrigin::signed(alice_account.clone()),
 			Box::new(VersionedXcm::from(Xcm(vec![
 				// Withdraw asset from Trappist Parachain
 				WithdrawAsset(
@@ -463,14 +463,16 @@ fn two_hop_reserve_transfer_from_trappist_parachain_to_tertiary_parachain() {
 			]))),
 			(MAX_WEIGHT as u64).into(),
 		));
+	});
 
+	AssetHubRococo::execute_with(|| {
 		// Check send amount moved to sovereign account
 		assert_eq!(
 			<AssetHubRococo as AssetHubRococoPallet>::Assets::balance(
 				xUSD,
 				&stout_sovereign_account
 			),
-			MINT_AMOUNT
+			92813999939 //Mint amount minus fees
 		);
 	});
 

@@ -1,12 +1,12 @@
 use super::*;
 use frame_support::{assert_ok, instances::Instance1, traits::PalletInfoAccess};
+use integration_tests_common::constants::{accounts::ALICE, XCM_V3};
 use parachains_common::AccountId;
-use integration_tests_common::constants::XCM_V3;
-use xcm_emulator::Chain;
-
+use xcm_emulator::{Chain, Network, Parachain};
+use xcm_primitives::AssetMultiLocationGetter;
 
 // mod misc;
-// mod reserve_asset_transfer;
+mod reserve_asset_transfer;
 mod set_xcm_version;
 // mod xcm_asset_trap;
 

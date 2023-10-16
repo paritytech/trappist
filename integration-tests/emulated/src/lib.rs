@@ -13,7 +13,7 @@ use xcm::opaque::lts::{
 	},
 	AssetId::Concrete,
 	Fungibility::Fungible,
-	Junction::{GeneralIndex, PalletInstance},
+	Junction::{AccountId32, GeneralIndex, PalletInstance, Parachain},
 	Junctions::{Here, X1, X2, X3},
 	MultiAsset,
 	MultiAssetFilter::Wild,
@@ -24,12 +24,11 @@ use xcm::opaque::lts::{
 use xcm::{VersionedMultiAssets, VersionedMultiLocation, VersionedXcm};
 use xcm_emulator::{
 	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains,
-	helpers::get_account_id_from_seed, log, sp_tracing, AccountId32, Ancestor,
-	BridgeMessageHandler, DefaultMessageProcessor, Hooks, MultiAssets, MultiLocation, ParaId,
-	Parachain, Parent, RelayChain, TestExt, Weight, WeightLimit, XcmHash,
+	helpers::get_account_id_from_seed, log, sp_tracing, Ancestor, BridgeMessageHandler,
+	DefaultMessageProcessor, Hooks, MultiAssets, MultiLocation, ParaId, Parent, RelayChain,
+	TestExt, Weight, WeightLimit, XcmHash,
 };
 use xcm_executor::{traits::ConvertLocation, Assets};
-use xcm_primitives::AssetMultiLocationGetter;
 
 #[cfg(test)]
 mod tests;
@@ -111,6 +110,7 @@ decl_test_parachains! {
 		pallets = {
 			PolkadotXcm: asset_hub_kusama_runtime::PolkadotXcm,
 			Assets: asset_hub_kusama_runtime::Assets,
+			Balances: asset_hub_kusama_runtime::Balances,
 		}
 	},
 }
