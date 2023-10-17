@@ -1,5 +1,5 @@
 use crate::tests::*;
-/* 
+/*
 // make sure we can trap a native asset
 #[test]
 fn native_trap_works() {
@@ -80,7 +80,7 @@ fn native_dust_trap_doesnt_work() {
 	});
 }
 
-/* 
+/*
 // make sure we can trap known derivative fungibles
 #[test]
 fn fungible_trap_works() {
