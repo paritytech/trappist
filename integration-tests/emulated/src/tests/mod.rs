@@ -51,15 +51,7 @@ fn init_tracing() {
 			.with_max_level(tracing::Level::TRACE)
 			// Comment out this line to see all traces
 			.with_env_filter(
-				vec![
-					"xcm=trace",
-					// PDD: xcm-emulator
-					"events=trace",
-					"hrmp=trace",
-					"dmp=trace",
-					"ump=trace",
-				]
-				.join(","),
+				vec!["xcm=trace", "events=trace", "hrmp=trace", "dmp=trace", "ump=trace"].join(","),
 			)
 			.with_test_writer()
 			.init();

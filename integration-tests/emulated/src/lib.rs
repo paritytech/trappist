@@ -28,7 +28,7 @@ decl_test_relay_chains! {
 	}
 }
 
-// PDD: parachains
+// Declare Parachains
 decl_test_parachains! {
 	// Parachain A
 	pub struct Trappist {

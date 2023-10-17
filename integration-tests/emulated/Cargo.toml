@@ -19,7 +19,6 @@ sp-runtime = { workspace = true }
 pallet-assets = { workspace = true }
 
 # Cumulus
-cumulus-ping = { workspace = true }
 integration-tests-common = { workspace = true }
 xcm-emulator = { workspace = true }
 
@@ -30,7 +29,7 @@ xcm-executor = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm-primitives = { workspace = true }
 
-# PDD: Runtimes
+# Runtimes
 polkadot-runtime-common = { workspace = true }
 parachains-common = { workspace = true }
 rococo-runtime = { workspace = true }
@@ -42,3 +41,19 @@ stout-runtime = { path = "../../runtime/stout" }
 # Local
 pallet-asset-registry = { workspace = true }
 
+[features]
+runtime-benchmarks = [
+    "polkadot-runtime-common/runtime-benchmarks",
+    "rococo-runtime/runtime-benchmarks",
+    "asset-hub-kusama-runtime/runtime-benchmarks",
+    "asset-hub-polkadot-runtime/runtime-benchmarks",
+    "trappist-runtime/runtime-benchmarks",
+    "stout-runtime/runtime-benchmarks",
+    "polkadot-parachain-primitives/runtime-benchmarks",
+    "pallet-xcm/runtime-benchmarks",
+    "integration-tests-common/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
+    "pallet-assets/runtime-benchmarks",
+]

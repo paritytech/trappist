@@ -1,17 +1,5 @@
 use crate::tests::*;
 
-#[allow(dead_code)]
-fn overview() {
-	type MockNetwork = RococoMockNet;
-	type RelayChain = Rococo;
-	type AssetReseve = AssetHubRococo;
-	type Para = Trappist;
-	type TestExt = dyn xcm_emulator::TestExt;
-	let _messagesemulator = xcm_emulator::DOWNWARD_MESSAGES;
-	type RuntimeA = <Trappist as Chain>::Runtime;
-	type XcmPallet = pallet_xcm::Pallet<RuntimeA>;
-}
-
 // Initiates a reserve-transfer of some asset on the asset reserve parachain to the trappist
 // parachain (HRMP)
 #[test]
