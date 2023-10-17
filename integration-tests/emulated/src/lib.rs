@@ -1,34 +1,10 @@
 use parachains_common::Balance;
-use parity_scale_codec::Encode;
-use sp_core::{sr25519, storage::Storage, Get};
-use sp_runtime::{
-	traits::{BlakeTwo256, Hash},
-	BuildStorage,
-};
-use thousands::Separable;
-use xcm::opaque::lts::{
-	prelude::{
-		BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw, Transact,
-		UnpaidExecution, WithdrawAsset, Xcm,
-	},
-	AssetId::Concrete,
-	Fungibility::Fungible,
-	Junction::{AccountId32, GeneralIndex, PalletInstance, Parachain},
-	Junctions::{Here, X1, X2, X3},
-	MultiAsset,
-	MultiAssetFilter::Wild,
-	OriginKind,
-	WeightLimit::Unlimited,
-	WildMultiAsset::AllCounted,
-};
-use xcm::{VersionedMultiAssets, VersionedMultiLocation, VersionedXcm};
+use sp_core::{sr25519, storage::Storage};
+use sp_runtime::BuildStorage;
 use xcm_emulator::{
-	assert_expected_events, bx, decl_test_networks, decl_test_parachains, decl_test_relay_chains,
-	helpers::get_account_id_from_seed, log, sp_tracing, Ancestor, BridgeMessageHandler,
-	DefaultMessageProcessor, Hooks, MultiAssets, MultiLocation, ParaId, Parent, RelayChain,
-	TestExt, Weight, WeightLimit, XcmHash,
+	decl_test_networks, decl_test_parachains, decl_test_relay_chains,
+	helpers::get_account_id_from_seed, DefaultMessageProcessor, Hooks, ParaId,
 };
-use xcm_executor::{traits::ConvertLocation, Assets};
 
 #[cfg(test)]
 mod tests;

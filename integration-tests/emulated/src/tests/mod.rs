@@ -1,8 +1,32 @@
 use super::*;
 use frame_support::{assert_ok, instances::Instance1, traits::PalletInfoAccess};
 use integration_tests_common::constants::{accounts::ALICE, XCM_V3};
-use parachains_common::AccountId;
-use xcm_emulator::{Chain, Network, Parachain};
+use parity_scale_codec::Encode;
+use sp_runtime::traits::{BlakeTwo256, Hash};
+use thousands::Separable;
+use xcm::{
+	opaque::lts::{
+		prelude::{
+			BuyExecution, DepositAsset, DepositReserveAsset, InitiateReserveWithdraw, Transact,
+			UnpaidExecution, WithdrawAsset, Xcm,
+		},
+		AssetId::Concrete,
+		Fungibility::Fungible,
+		Junction::{AccountId32, GeneralIndex, PalletInstance, Parachain},
+		Junctions::{Here, X1, X2, X3},
+		MultiAsset,
+		MultiAssetFilter::Wild,
+		OriginKind,
+		WeightLimit::Unlimited,
+		WildMultiAsset::AllCounted,
+	},
+	VersionedMultiAssets, VersionedMultiLocation, VersionedXcm,
+};
+use xcm_emulator::{
+	assert_expected_events, bx, log, Chain, MultiAssets, MultiLocation, Network,
+	Parachain as EmulatorParachain, Parent, RelayChain, TestExt, Weight, WeightLimit,
+};
+use xcm_executor::Assets;
 use xcm_primitives::AssetMultiLocationGetter;
 
 mod misc;
