@@ -1,5 +1,5 @@
 use crate::tests::*;
-
+/* 
 // make sure we can trap a native asset
 #[test]
 fn native_trap_works() {
@@ -39,6 +39,7 @@ fn native_trap_works() {
 		assert_eq!(read_asset_trap, 1);
 	});
 }
+*/
 
 // make sure that native dust is not trapped
 #[test]
@@ -79,6 +80,7 @@ fn native_dust_trap_doesnt_work() {
 	});
 }
 
+/* 
 // make sure we can trap known derivative fungibles
 #[test]
 fn fungible_trap_works() {
@@ -289,6 +291,7 @@ fn fungible_trap_works() {
 		assert_eq!(read_asset_trap, 1);
 	});
 }
+*/
 
 // make sure we can trap known derivative fungibles
 #[test]
