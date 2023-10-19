@@ -7,19 +7,19 @@ edition = "2021"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { workspace = true, features = ["derive"] }
-scale-info = { workspace = true }
-sp-runtime = { workspace = true }
-sp-std = { workspace = true }
-frame-benchmarking = { workspace = true }
-frame-support = { workspace = true }
-frame-system = { workspace = true }
+parity-scale-codec = { workspace = true, features = ["derive"] , version = "3.6.4" }
+scale-info = { workspace = true , version = "2.9.0" }
+sp-runtime = { workspace = true , version = "26.0.0" }
+sp-std = { workspace = true , version = "10.0.0" }
+frame-benchmarking = { workspace = true , version = "23.0.0" }
+frame-support = { workspace = true , version = "23.0.0" }
+frame-system = { workspace = true , version = "23.0.0" }
 
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
 
 [dev-dependencies]
-sp-core = { workspace = true }
+sp-core = { workspace = true , version = "23.0.0" }
 
 [features]
 default = ["std"]
