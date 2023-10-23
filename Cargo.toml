@@ -165,7 +165,7 @@ cumulus-primitives-timestamp = { default-features = false, version = "0.2.0" }
 cumulus-primitives-utility = { default-features = false, version = "0.2.0" }
 pallet-collator-selection = { default-features = false, version = "4.0.0" }
 parachains-common = { default-features = false, version = "2.0.0" }
-parachain-info = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
+parachain-info = { package = "staging-parachain-info", default-features = false, version = "0.2.0" }
 cumulus-pallet-session-benchmarking = { default-features = false, version = "4.0.0" }
 
 # Polkadot
