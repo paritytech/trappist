@@ -6,45 +6,45 @@ description = "Examples of xcm-simulator usage."
 edition = "2021"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "3.6.4" }
-scale-info = { version = "2.9.0" , features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "3.0.0" }
+scale-info = { version = "2.1.2", features = ["derive"] }
 thousands = "0.2.0"
 tracing = { version = "0.1.37" }
-tracing-subscriber = { version = "0.2.25" , features = ["env-filter", "tracing-log"] }
+tracing-subscriber = { version = "0.3.16", features = ["env-filter", "tracing-log"] }
 
-frame-system = { version = "23.0.0" }
-frame-support = { version = "23.0.0" }
-pallet-assets = { version = "24.0.0" }
+frame-system = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+frame-support = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+pallet-assets = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 pallet-asset-registry = { version = "0.0.1", path = "../pallets/asset-registry" }
-pallet-balances = { version = "23.0.0" }
-pallet-sudo = { version = "23.0.0" }
-sp-std = { version = "10.0.0" }
-sp-core = { version = "23.0.0" }
-sp-runtime = { version = "26.0.0" }
-sp-io = { version = "25.0.0" }
+pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+pallet-sudo = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+sp-std = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 
-xcm = { package = "staging-xcm", version = "2.0.0" }
-xcm-simulator = { version = "2.0.0" }
-xcm-executor = { package = "staging-xcm-executor", version = "2.0.0" }
-xcm-builder = { package = "staging-xcm-builder", version = "2.0.0" }
-pallet-xcm = { version = "2.0.0" }
+xcm = { package = "staging-xcm", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+xcm-simulator = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 
 # Polkadot
-polkadot-core-primitives = { version = "2.0.0" }
-polkadot-runtime-common = { version = "2.0.0" }
-polkadot-runtime-parachains = { version = "2.0.0" }
-polkadot-parachain-primitives = { version = "1.0.0" }
+polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+polkadot-parachain-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 
 # Cumulus
-cumulus-pallet-xcm = { version = "0.2.0" }
-cumulus-primitives-utility = { version = "0.2.0" }
-pallet-collator-selection = { version = "4.0.0" }
-parachains-common = { version = "2.0.0" }
+cumulus-pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+cumulus-primitives-utility = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+pallet-collator-selection = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+parachains-common = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 
 # Runtimes
-rococo-runtime = { version = "2.0.0" }
-rococo-runtime-constants = { version = "2.0.0" }
-asset-hub-kusama-runtime = { version = "0.10.0" }
+rococo-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+rococo-runtime-constants = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
+asset-hub-kusama-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0" }
 stout-runtime = { path = "../runtime/stout" }
 trappist-runtime = { path = "../runtime/trappist" }
 

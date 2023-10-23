@@ -12,28 +12,28 @@ edition = { workspace = true }
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { workspace = true, features = [ "derive" ] , version = "3.6.4" }
-scale-info = { workspace = true , version = "2.9.0" }
-sp-runtime = { workspace = true , version = "26.0.0" }
-sp-std = { workspace = true , version = "10.0.0" }
-frame-benchmarking = { workspace = true , version = "23.0.0" }
-frame-support = { workspace = true , version = "23.0.0" }
-frame-system = { workspace = true , version = "23.0.0" }
-pallet-xcm = { workspace = true , version = "2.0.0" }
+parity-scale-codec = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+frame-benchmarking = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-xcm = { workspace = true }
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
-sp-io = { workspace = true , version = "25.0.0" }
-log = { workspace = true , version = "0.4.20" }
+sp-io = { workspace = true }
+log = { workspace = true }
 
 
 [dev-dependencies]
-sp-core = { workspace = true , version = "23.0.0" }
-sp-io = { workspace = true , version = "25.0.0" }
-sp-runtime = { workspace = true , version = "26.0.0" }
-pallet-balances = { workspace = true , version = "23.0.0" }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+pallet-balances = { workspace = true }
 xcm-builder = { workspace = true }
-polkadot-parachain-primitives = { workspace = true , version = "1.0.0" }
-polkadot-runtime-parachains = { workspace = true , version = "2.0.0" }
+polkadot-parachain-primitives = { workspace = true }
+polkadot-runtime-parachains = { workspace = true }
 
 [features]
 default = ["std"]

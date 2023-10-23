@@ -17,96 +17,96 @@ name = "trappist-node"
 path = "src/main.rs"
 
 [dependencies]
-async-trait = { workspace = true , version = "0.1.73" }
-clap = { workspace = true , version = "3.2.25" }
-parity-scale-codec = { workspace = true , version = "3.6.4" }
-futures = { workspace = true , version = "0.3.28" }
-hex-literal = { workspace = true , version = "0.3.4" }
-log = { workspace = true , version = "0.4.20" }
-serde = { workspace = true , version = "1.0.188" }
-serde_json = { workspace = true , version = "1.0.105" }
+async-trait = { workspace = true }
+clap = { workspace = true }
+parity-scale-codec = { workspace = true }
+futures = { workspace = true }
+hex-literal = { workspace = true }
+log = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 # Local Dependencies
 trappist-runtime = { workspace = true, optional = true }
 stout-runtime = { workspace = true, optional = true }
-jsonrpsee = { workspace = true, features = ["server"] , version = "0.16.3" }
+jsonrpsee = { workspace = true, features = ["server"] }
 
 # External Dependencies
 pallet-dex-rpc = { workspace = true }
 
 # Substrate
-frame-benchmarking = { workspace = true, features = ["std"] , version = "23.0.0" }
-frame-benchmarking-cli = { workspace = true , version = "27.0.0" }
-sp-runtime = { workspace = true , version = "26.0.0" }
-sp-io = { workspace = true, features = ["std"] , version = "25.0.0" }
-sp-core = { workspace = true, features = ["std"] , version = "23.0.0" }
-sp-consensus = { workspace = true , version = "0.27.0" }
-sp-session = { workspace = true, features = ["std"] , version = "22.0.0" }
-sc-consensus = { workspace = true , version = "0.28.0" }
-sc-cli = { workspace = true , version = "0.31.0" }
-sc-client-api = { workspace = true , version = "23.0.0" }
-sc-executor = { workspace = true , version = "0.27.0" }
-sc-service = { workspace = true , version = "0.30.0" }
-sc-telemetry = { workspace = true , version = "10.0.0" }
-sc-transaction-pool = { workspace = true , version = "23.0.0" }
-sp-transaction-pool = { workspace = true, features = ["std"] , version = "21.0.0" }
-sc-network = { workspace = true , version = "0.29.0" }
-sc-network-sync = { workspace = true , version = "0.28.0" }
-sc-basic-authorship = { workspace = true , version = "0.29.0" }
-sp-timestamp = { workspace = true, features = ["std"] , version = "21.0.0" }
-sp-inherents = { workspace = true , version = "21.0.0" }
-sp-blockchain = { workspace = true , version = "23.0.0" }
-sp-block-builder = { workspace = true, features = ["std"] , version = "21.0.0" }
-sp-keyring = { workspace = true , version = "26.0.0" }
-sp-keystore = { workspace = true, features = ["std"] , version = "0.29.0" }
-sc-chain-spec = { workspace = true , version = "22.0.0" }
-sc-rpc = { workspace = true , version = "24.0.0" }
-sc-tracing = { workspace = true , version = "23.0.0" }
-sp-offchain = { workspace = true, features = ["std"] , version = "21.0.0" }
-sp-api = { workspace = true, features = ["std"] , version = "21.0.0" }
-sp-consensus-aura = { workspace = true, features = ["std"] , version = "0.27.0" }
-sc-sysinfo = { workspace = true , version = "22.0.0" }
-substrate-prometheus-endpoint = { workspace = true , version = "0.14.0" }
-try-runtime-cli = { workspace = true, optional = true , version = "0.33.0" }
-sc-transaction-pool-api = { workspace = true , version = "23.0.0" }
-frame-system = { workspace = true , version = "23.0.0" }
+frame-benchmarking = { workspace = true, features = ["std"] }
+frame-benchmarking-cli = { workspace = true }
+sp-runtime = { workspace = true }
+sp-io = { workspace = true, features = ["std"] }
+sp-core = { workspace = true, features = ["std"] }
+sp-consensus = { workspace = true }
+sp-session = { workspace = true, features = ["std"] }
+sc-consensus = { workspace = true }
+sc-cli = { workspace = true }
+sc-client-api = { workspace = true }
+sc-executor = { workspace = true }
+sc-service = { workspace = true }
+sc-telemetry = { workspace = true }
+sc-transaction-pool = { workspace = true }
+sp-transaction-pool = { workspace = true, features = ["std"] }
+sc-network = { workspace = true }
+sc-network-sync = { workspace = true }
+sc-basic-authorship = { workspace = true }
+sp-timestamp = { workspace = true, features = ["std"] }
+sp-inherents = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-block-builder = { workspace = true, features = ["std"] }
+sp-keyring = { workspace = true }
+sp-keystore = { workspace = true, features = ["std"] }
+sc-chain-spec = { workspace = true }
+sc-rpc = { workspace = true }
+sc-tracing = { workspace = true }
+sp-offchain = { workspace = true, features = ["std"] }
+sp-api = { workspace = true, features = ["std"] }
+sp-consensus-aura = { workspace = true, features = ["std"] }
+sc-sysinfo = { workspace = true }
+substrate-prometheus-endpoint = { workspace = true }
+try-runtime-cli = { workspace = true, optional = true }
+sc-transaction-pool-api = { workspace = true }
+frame-system = { workspace = true }
 frame-rpc-system = { workspace = true }
-pallet-asset-tx-payment = { workspace = true , version = "23.0.0" }
-pallet-transaction-payment-rpc = { workspace = true , version = "25.0.0" }
-substrate-state-trie-migration-rpc = { workspace = true , version = "22.0.0" }
+pallet-asset-tx-payment = { workspace = true }
+pallet-transaction-payment-rpc = { workspace = true }
+substrate-state-trie-migration-rpc = { workspace = true }
 
 # Polkadot
-polkadot-cli = { workspace = true , version = "2.0.0" }
-polkadot-primitives = { workspace = true , version = "2.0.0" }
-polkadot-service = { workspace = true , version = "2.0.0" }
-xcm = { workspace = true, features = ["std"] , version = "2.0.0" }
+polkadot-cli = { workspace = true }
+polkadot-primitives = { workspace = true }
+polkadot-service = { workspace = true }
+xcm = { workspace = true, features = ["std"] }
 
 # Cumulus
-cumulus-client-cli = { workspace = true , version = "0.2.0" }
-cumulus-client-collator = { workspace = true , version = "0.2.0" }
-cumulus-client-consensus-aura = { workspace = true , version = "0.2.0" }
-cumulus-client-consensus-relay-chain = { workspace = true , version = "0.2.0" }
-cumulus-client-consensus-common = { workspace = true , version = "0.2.0" }
-cumulus-client-consensus-proposer = { workspace = true , version = "0.2.0" }
-cumulus-client-service = { workspace = true , version = "0.2.0" }
-cumulus-client-network = { workspace = true , version = "0.2.0" }
-cumulus-primitives-core = { workspace = true, features = ["std"] , version = "0.2.0" }
-cumulus-primitives-parachain-inherent = { workspace = true , version = "0.2.0" }
-cumulus-relay-chain-interface = { workspace = true , version = "0.2.0" }
+cumulus-client-cli = { workspace = true }
+cumulus-client-collator = { workspace = true }
+cumulus-client-consensus-aura = { workspace = true }
+cumulus-client-consensus-relay-chain = { workspace = true }
+cumulus-client-consensus-common = { workspace = true }
+cumulus-client-consensus-proposer = { workspace = true }
+cumulus-client-service = { workspace = true }
+cumulus-client-network = { workspace = true }
+cumulus-primitives-core = { workspace = true, features = ["std"] }
+cumulus-primitives-parachain-inherent = { workspace = true }
+cumulus-relay-chain-interface = { workspace = true }
 
-parachains-common = { workspace = true , version = "2.0.0" }
+parachains-common = { workspace = true }
 
 [build-dependencies]
-substrate-build-script-utils = { workspace = true , version = "7.0.0" }
+substrate-build-script-utils = { workspace = true }
 
 [dev-dependencies]
-assert_cmd = { workspace = true , version = "2.0.12" }
-nix = { workspace = true , version = "0.24.3" }
+assert_cmd = { workspace = true }
+nix = { workspace = true }
 tempfile = "3.3.0"
-tokio = { workspace = true , version = "1.32.0" }
-wait-timeout = { workspace = true , version = "0.2.0" }
+tokio = { workspace = true }
+wait-timeout = { workspace = true }
 # purge_chain_works works with rococo-local and needs to allow this
-polkadot-cli = { workspace = true , version = "2.0.0" }
+polkadot-cli = { workspace = true }
 
 [features]
 default = ["trappist-runtime", "stout-runtime"]
