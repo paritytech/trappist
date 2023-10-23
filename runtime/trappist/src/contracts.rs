@@ -23,12 +23,11 @@ use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Nothing},
 };
+#[cfg(not(feature = "runtime-benchmarks"))]
+use pallet_contracts::migration::{v13, v14, v15};
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_contracts::NoopMigration;
-use pallet_contracts::{
-	migration::{v13, v14, v15},
-	Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
-};
+use pallet_contracts::{Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule};
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_runtime::Perbill;
 
