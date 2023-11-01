@@ -678,9 +678,9 @@ impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
 
 parameter_types! {
 	pub const EnterDuration: BlockNumber = 4 * HOURS;
-	pub const EnterDepositAmount: Balance = 2_000_000 * DOLLARS;
+	pub const EnterDepositAmount: Option<Balance> = None;
 	pub const ExtendDuration: BlockNumber = 2 * HOURS;
-	pub const ExtendDepositAmount: Balance = 1_000_000 * DOLLARS;
+	pub const ExtendDepositAmount: Option<Balance> = None;
 	pub const ReleaseDelay: u32 = 2 * DAYS;
 }
 
@@ -761,8 +761,8 @@ construct_runtime!(
 		Uniques: pallet_uniques = 43,
 		Scheduler: pallet_scheduler = 44,
 		Preimage: pallet_preimage = 45,
-		SafeMode: pallet_safe_mode = 46,
-		TxPause: pallet_tx_pause = 47,
+		SafeMode: pallet_safe_mode = 47,  // 46 used to be the old LockdownMode pallet
+		TxPause: pallet_tx_pause = 48,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 50,
