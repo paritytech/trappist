@@ -83,7 +83,7 @@ impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
 			call,
 			RuntimeCall::Balances(_)
 				| RuntimeCall::Assets(_)
-				| RuntimeCall::Dex(_)
+				| RuntimeCall::AssetConversion(_)
 				| RuntimeCall::PolkadotXcm(_)
 				| RuntimeCall::Treasury(_)
 				| RuntimeCall::Contracts(_)

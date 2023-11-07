@@ -127,7 +127,6 @@ where
 		+ sp_session::SessionKeys<Block>
 		+ sp_api::ApiExt<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ sp_block_builder::BlockBuilder<Block>,
 	BIQ: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
@@ -232,7 +231,6 @@ where
 		+ sp_block_builder::BlockBuilder<Block>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	RB: Fn(Arc<ParachainClient<RuntimeApi>>) -> Result<jsonrpsee::RpcModule<()>, sc_service::Error>,
 	BIQ: FnOnce(
@@ -519,7 +517,6 @@ where
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppCrypto>::Pair as Pair>::Public>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	<<AuraId as AppCrypto>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
@@ -609,7 +606,6 @@ where
 		+ sp_api::ApiExt<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
 		+ sp_block_builder::BlockBuilder<Block>
-		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppCrypto>::Pair as Pair>::Public>,
 	<<AuraId as AppCrypto>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
