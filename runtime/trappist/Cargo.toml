@@ -48,6 +48,7 @@ frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true }
 
 ## Substrate Pallet Dependencies
+pallet-asset-conversion = { workspace = true }
 pallet-assets = { workspace = true }
 pallet-asset-tx-payment = { workspace = true }
 pallet-aura = { workspace = true }
@@ -99,10 +100,6 @@ xcm-executor = { workspace = true }
 xcm-primitives = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 
-# External Pallets
-pallet-dex = { workspace = true }
-pallet-dex-rpc-runtime-api = { workspace = true }
-
 # Trappist Pallets
 pallet-asset-registry = { workspace = true }
 trappist-runtime-benchmarks = { workspace = true }
@@ -134,6 +131,7 @@ std = [
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-try-runtime?/std",
+	"pallet-asset-conversion/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
@@ -144,8 +142,6 @@ std = [
 	"pallet-contracts/std",
 	"pallet-contracts-primitives/std",
 	"pallet-democracy/std",
-	"pallet-dex/std",
-	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-lockdown-mode/std",
 	"pallet-preimage/std",
@@ -189,6 +185,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"trappist-runtime-benchmarks/runtime-benchmarks",
+	"pallet-asset-conversion/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-registry/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
@@ -197,7 +194,6 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
 	"pallet-democracy/runtime-benchmarks",
-	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-lockdown-mode/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
@@ -220,6 +216,7 @@ try-runtime = [
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-support/try-runtime",
+	"pallet-asset-conversion/try-runtime",
 	"pallet-assets/try-runtime",
 	"pallet-asset-registry/try-runtime",
 	"pallet-balances/try-runtime",
@@ -227,7 +224,6 @@ try-runtime = [
 	"pallet-collective/try-runtime",
 	"pallet-contracts/try-runtime",
 	"pallet-democracy/try-runtime",
-	"pallet-dex/try-runtime",
 	"pallet-identity/try-runtime",
 	"pallet-lockdown-mode/try-runtime",
 	"pallet-multisig/try-runtime",

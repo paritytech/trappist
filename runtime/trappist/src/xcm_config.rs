@@ -15,6 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use assets_common::local_and_foreign_assets::MatchesLocalAndForeignAssetsMultiLocation;
+use assets_common::matching::{StartsWith, StartsWithExplicitGlobalConsensus};
 use frame_support::{
 	match_types, parameter_types,
 	traits::{Contains, ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
@@ -71,6 +73,8 @@ parameter_types! {
 		GlobalConsensus(NetworkId::Rococo),
 		Parachain(ParachainInfo::parachain_id().into()),
 	).into();
+	pub TrustBackedAssetsPalletLocation: MultiLocation =
+		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -178,6 +182,12 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
+);
+
+pub type ForeignCreatorsSovereignAccountOf = (
+	SiblingParachainConvertsVia<Sibling, AccountId>,
+	AccountId32Aliases<RelayNetwork, AccountId>,
+	ParentIsPreset<AccountId>,
 );
 
 parameter_types! {
@@ -407,4 +417,77 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
+}
+
+parameter_types! {
+	pub UniversalLocationNetworkId: NetworkId = UniversalLocation::get().global_consensus().unwrap();
+}
+
+/// `AssetId/Balance` converter for `TrustBackedAssets`
+pub type ForeignAssetsConvertedConcreteId = assets_common::ForeignAssetsConvertedConcreteId<
+	(
+		// Ignore `TrustBackedAssets` explicitly
+		StartsWith<TrustBackedAssetsPalletLocation>,
+		// Ignore asset which starts explicitly with our `GlobalConsensus(NetworkId)`, means:
+		// - foreign assets from our consensus should be: `MultiLocation {parents: 1,
+		//   X*(Parachain(xyz), ..)}
+		// - foreign assets outside our consensus with the same `GlobalConsensus(NetworkId)` wont
+		//   be accepted here
+		StartsWithExplicitGlobalConsensus<UniversalLocationNetworkId>,
+	),
+	Balance,
+>;
+
+/// Simple `MultiLocation` matcher for Local and Foreign asset `MultiLocation`.
+pub struct LocalAndForeignAssetsMultiLocationMatcher;
+impl MatchesLocalAndForeignAssetsMultiLocation for LocalAndForeignAssetsMultiLocationMatcher {
+	fn is_local(location: &MultiLocation) -> bool {
+		use assets_common::fungible_conversion::MatchesMultiLocation;
+		TrustBackedAssetsConvertedConcreteId::contains(location)
+	}
+	fn is_foreign(location: &MultiLocation) -> bool {
+		use assets_common::fungible_conversion::MatchesMultiLocation;
+		ForeignAssetsConvertedConcreteId::contains(location)
+	}
+}
+impl Contains<MultiLocation> for LocalAndForeignAssetsMultiLocationMatcher {
+	fn contains(location: &MultiLocation) -> bool {
+		Self::is_local(location) || Self::is_foreign(location)
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkMultiLocationConverter<SelfParaId> {
+	_phantom: sp_std::marker::PhantomData<SelfParaId>,
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl<SelfParaId>
+	pallet_asset_conversion::BenchmarkHelper<MultiLocation, sp_std::boxed::Box<MultiLocation>>
+	for BenchmarkMultiLocationConverter<SelfParaId>
+where
+	SelfParaId: Get<ParaId>,
+{
+	fn asset_id(asset_id: u32) -> MultiLocation {
+		MultiLocation {
+			parents: 1,
+			interior: X3(
+				Parachain(SelfParaId::get().into()),
+				PalletInstance(<Assets as PalletInfoAccess>::index() as u8),
+				GeneralIndex(asset_id.into()),
+			),
+		}
+	}
+	fn multiasset_id(asset_id: u32) -> sp_std::boxed::Box<MultiLocation> {
+		sp_std::boxed::Box::new(Self::asset_id(asset_id))
+	}
+}
+
+/// Simple conversion of `u32` into an `AssetId` for use in benchmarking.
+pub struct XcmBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_assets::BenchmarkHelper<MultiLocation> for XcmBenchmarkHelper {
+	fn create_asset_id_parameter(id: u32) -> MultiLocation {
+		MultiLocation { parents: 1, interior: X1(Parachain(id)) }
+	}
 }

@@ -15,30 +15,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::AllPalletsWithSystem;
-
-use super::{
-	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
-};
+use assets_common::local_and_foreign_assets::MatchesLocalAndForeignAssetsMultiLocation;
+use assets_common::matching::{StartsWith, StartsWithExplicitGlobalConsensus};
+use frame_support::traits::PalletInfoAccess;
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ContainsPair, EitherOfDiverse, Everything, Get, Nothing},
+	traits::{Contains, ContainsPair, EitherOfDiverse, Everything, Get, Nothing},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
+use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
+use parachains_common::{impls::DealWithFees, AssetIdForTrustBackedAssets};
+use polkadot_parachain_primitives::primitives::Sibling;
 use sp_core::ConstU32;
 use sp_std::marker::PhantomData;
-
-use parachains_common::{impls::DealWithFees, AssetIdForTrustBackedAssets};
-
-use xcm_executor::traits::JustTry;
-
-use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use polkadot_parachain_primitives::primitives::Sibling;
 use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
-use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
-
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
@@ -48,9 +39,18 @@ use xcm_builder::{
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
+use xcm_executor::traits::JustTry;
 use xcm_executor::XcmExecutor;
 
+use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
+
 use crate::constants::fee::default_fee_per_second;
+use crate::AllPalletsWithSystem;
+
+use super::{
+	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
+	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
+};
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
@@ -67,6 +67,8 @@ parameter_types! {
 		Parachain(ParachainInfo::parachain_id().into()),
 	).into();
 	pub PlaceholderAccount: AccountId = PolkadotXcm::check_account();
+	pub TrustBackedAssetsPalletLocation: MultiLocation =
+		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 }
 
 /// We allow root and the Relay Chain council to execute privileged collator selection operations.
@@ -171,6 +173,12 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
+);
+
+pub type ForeignCreatorsSovereignAccountOf = (
+	SiblingParachainConvertsVia<Sibling, AccountId>,
+	AccountId32Aliases<RelayNetwork, AccountId>,
+	ParentIsPreset<AccountId>,
 );
 
 parameter_types! {
@@ -368,4 +376,83 @@ impl cumulus_ping::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
+}
+
+parameter_types! {
+	pub AssetsPalletLocation: MultiLocation =
+		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
+	pub UniversalLocationNetworkId: NetworkId = UniversalLocation::get().global_consensus().unwrap();
+}
+
+/// `AssetId/Balancer` converter for `TrustBackedAssets`
+pub type TrustBackedAssetsConvertedConcreteId =
+	assets_common::TrustBackedAssetsConvertedConcreteId<AssetsPalletLocation, Balance>;
+
+/// `AssetId/Balance` converter for `TrustBackedAssets`
+pub type ForeignAssetsConvertedConcreteId = assets_common::ForeignAssetsConvertedConcreteId<
+	(
+		// Ignore `TrustBackedAssets` explicitly
+		StartsWith<TrustBackedAssetsPalletLocation>,
+		// Ignore asset which starts explicitly with our `GlobalConsensus(NetworkId)`, means:
+		// - foreign assets from our consensus should be: `MultiLocation {parents: 1,
+		//   X*(Parachain(xyz), ..)}
+		// - foreign assets outside our consensus with the same `GlobalConsensus(NetworkId)` wont
+		//   be accepted here
+		StartsWithExplicitGlobalConsensus<UniversalLocationNetworkId>,
+	),
+	Balance,
+>;
+
+/// Simple `MultiLocation` matcher for Local and Foreign asset `MultiLocation`.
+pub struct LocalAndForeignAssetsMultiLocationMatcher;
+impl MatchesLocalAndForeignAssetsMultiLocation for LocalAndForeignAssetsMultiLocationMatcher {
+	fn is_local(location: &MultiLocation) -> bool {
+		use assets_common::fungible_conversion::MatchesMultiLocation;
+		TrustBackedAssetsConvertedConcreteId::contains(location)
+	}
+	fn is_foreign(location: &MultiLocation) -> bool {
+		use assets_common::fungible_conversion::MatchesMultiLocation;
+		ForeignAssetsConvertedConcreteId::contains(location)
+	}
+}
+impl Contains<MultiLocation> for LocalAndForeignAssetsMultiLocationMatcher {
+	fn contains(location: &MultiLocation) -> bool {
+		Self::is_local(location) || Self::is_foreign(location)
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkMultiLocationConverter<SelfParaId> {
+	_phantom: sp_std::marker::PhantomData<SelfParaId>,
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl<SelfParaId>
+	pallet_asset_conversion::BenchmarkHelper<MultiLocation, sp_std::boxed::Box<MultiLocation>>
+	for BenchmarkMultiLocationConverter<SelfParaId>
+where
+	SelfParaId: Get<ParaId>,
+{
+	fn asset_id(asset_id: u32) -> MultiLocation {
+		MultiLocation {
+			parents: 1,
+			interior: X3(
+				Parachain(SelfParaId::get().into()),
+				PalletInstance(<Assets as PalletInfoAccess>::index() as u8),
+				GeneralIndex(asset_id.into()),
+			),
+		}
+	}
+	fn multiasset_id(asset_id: u32) -> sp_std::boxed::Box<MultiLocation> {
+		sp_std::boxed::Box::new(Self::asset_id(asset_id))
+	}
+}
+
+/// Simple conversion of `u32` into an `AssetId` for use in benchmarking.
+pub struct XcmBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_assets::BenchmarkHelper<MultiLocation> for XcmBenchmarkHelper {
+	fn create_asset_id_parameter(id: u32) -> MultiLocation {
+		MultiLocation { parents: 1, interior: X1(Parachain(id)) }
+	}
 }

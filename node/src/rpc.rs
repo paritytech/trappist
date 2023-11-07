@@ -19,9 +19,9 @@
 
 use std::sync::Arc;
 
-use parachains_common::{AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, Nonce};
+use parachains_common::{AccountId, Balance, Block, Nonce};
 use sc_client_api::AuxStore;
-pub use sc_rpc::{DenyUnsafe, SubscriptionTaskExecutor};
+pub use sc_rpc::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
@@ -57,13 +57,11 @@ where
 	C::Api: frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: BlockBuilder<Block>,
-	C::Api: pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>,
 	P: TransactionPool + Sync + Send + 'static,
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
 	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
 	use frame_rpc_system::{System, SystemApiServer};
-	use pallet_dex_rpc::{Dex, DexApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
@@ -73,7 +71,6 @@ where
 	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(StateMigration::new(client.clone(), backend, deny_unsafe).into_rpc())?;
-	module.merge(Dex::new(client).into_rpc())?;
 
 	Ok(module)
 }

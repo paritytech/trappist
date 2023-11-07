@@ -16,17 +16,21 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![recursion_limit = "256"]
+#![recursion_limit = "1024"]
 
 #[cfg(feature = "runtime-benchmarks")]
 #[macro_use]
 extern crate frame_benchmarking;
 
+use assets_common::foreign_creators::ForeignCreators;
+use assets_common::local_and_foreign_assets::{LocalAndForeignAssets, MultiLocationConverter};
+use assets_common::matching::FromSiblingParachain;
+use assets_common::{AssetIdForTrustBackedAssetsConvert, MultiLocationForAssetId};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
-	parameter_types,
+	ord_parameter_types, parameter_types,
 	traits::{
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
 		EqualPrivilegeOnly,
@@ -37,7 +41,7 @@ use frame_support::{
 pub use frame_system::Call as SystemCall;
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
+	EnsureRoot, EnsureSigned, EnsureSignedBy,
 };
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
@@ -54,7 +58,7 @@ use sp_core::{crypto::KeyTypeId, ConstBool, ConstU8, OpaqueMetadata};
 pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
+	traits::{AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
@@ -63,14 +67,16 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
+use xcm::latest::MultiLocation;
 
 use constants::{currency::*, fee::WeightToFee};
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
+use weights::{block_weights::BlockExecutionWeight, extrinsic_weights::ExtrinsicBaseWeight};
 use xcm_config::{
-	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
+	CollatorSelectionUpdateOrigin, ForeignCreatorsSovereignAccountOf,
+	LocalAndForeignAssetsMultiLocationMatcher, RelayLocation, TrustBackedAssetsConvertedConcreteId,
+	TrustBackedAssetsPalletLocation,
 };
-
-use crate::weights::{block_weights::BlockExecutionWeight, extrinsic_weights::ExtrinsicBaseWeight};
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -560,23 +566,124 @@ impl pallet_democracy::Config for Runtime {
 }
 
 parameter_types! {
-	pub const DexPalletId: PalletId = PalletId(*b"trap/dex");
+	pub const AssetDeposit: Balance = UNITS / 10; // 1 / 10 UNITS deposit to create asset
+	pub const AssetAccountDeposit: Balance = deposit(1, 16);
+	pub const ApprovalDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const AssetsStringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = deposit(1, 68);
+	pub const MetadataDepositPerByte: Balance = deposit(0, 1);
 }
 
-impl pallet_dex::Config for Runtime {
-	type PalletId = DexPalletId;
+parameter_types! {
+	pub const ForeignAssetsAssetDeposit: Balance = AssetDeposit::get();
+	pub const ForeignAssetsAssetAccountDeposit: Balance = AssetAccountDeposit::get();
+	pub const ForeignAssetsApprovalDeposit: Balance = ApprovalDeposit::get();
+	pub const ForeignAssetsAssetsStringLimit: u32 = AssetsStringLimit::get();
+	pub const ForeignAssetsMetadataDepositBase: Balance = MetadataDepositBase::get();
+	pub const ForeignAssetsMetadataDepositPerByte: Balance = MetadataDepositPerByte::get();
+}
+
+/// Assets managed by some foreign location. Note: we do not declare a `ForeignAssetsCall` type, as
+/// this type is used in proxy definitions. We assume that a foreign location would not want to set
+/// an individual, local account as a proxy for the issuance of their assets. This issuance should
+/// be managed by the foreign location's governance.
+pub type ForeignAssetsInstance = pallet_assets::Instance3;
+impl pallet_assets::Config<ForeignAssetsInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type AssetId = MultiLocationForAssetId;
+	type AssetIdParameter = MultiLocationForAssetId;
+	type Currency = Balances;
+	type CreateOrigin = ForeignCreators<
+		(FromSiblingParachain<parachain_info::Pallet<Runtime>>,),
+		ForeignCreatorsSovereignAccountOf,
+		AccountId,
+	>;
+	type ForceOrigin = AssetsForceOrigin;
+	type AssetDeposit = ForeignAssetsAssetDeposit;
+	type MetadataDepositBase = ForeignAssetsMetadataDepositBase;
+	type MetadataDepositPerByte = ForeignAssetsMetadataDepositPerByte;
+	type ApprovalDeposit = ForeignAssetsApprovalDeposit;
+	type StringLimit = ForeignAssetsAssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = ();
+	type CallbackHandle = ();
+	type AssetAccountDeposit = ForeignAssetsAssetAccountDeposit;
+	type RemoveItemsLimit = ConstU32<1000>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = xcm_config::XcmBenchmarkHelper;
+}
+
+ord_parameter_types! {
+	pub const AssetConversionOrigin: sp_runtime::AccountId32 =
+		AccountIdConversion::<sp_runtime::AccountId32>::into_account_truncating(&AssetConversionPalletId::get());
+}
+
+pub type PoolAssetsInstance = pallet_assets::Instance4;
+impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetId = u32;
+	type AssetIdParameter = u32;
+	type Currency = Balances;
+	type CreateOrigin =
+		AsEnsureOriginWithArg<EnsureSignedBy<AssetConversionOrigin, sp_runtime::AccountId32>>;
+	type ForceOrigin = AssetsForceOrigin;
+	// Deposits are zero because creation/admin is limited to Asset Conversion pallet.
+	type AssetDeposit = ConstU128<0>;
+	type AssetAccountDeposit = ConstU128<0>;
+	type MetadataDepositBase = ConstU128<0>;
+	type MetadataDepositPerByte = ConstU128<0>;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = ConstU32<50>;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = ();
+	type CallbackHandle = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+parameter_types! {
+	pub const AssetConversionPalletId: PalletId = PalletId(*b"py/ascon");
+	pub const AllowMultiAssetPools: bool = false;
+	// should be non-zero if AllowMultiAssetPools is true, otherwise can be zero
+	pub const LiquidityWithdrawalFee: Permill = Permill::from_percent(0);
+}
+
+impl pallet_asset_conversion::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type AssetBalance = AssetBalance;
-	type AssetToCurrencyBalance = sp_runtime::traits::Identity;
-	type CurrencyToAssetBalance = sp_runtime::traits::Identity;
-	type AssetId = AssetIdForTrustBackedAssets;
-	type Assets = Assets;
-	type AssetRegistry = Assets;
-	type WeightInfo = weights::pallet_dex::WeightInfo<Runtime>;
-	type ProviderFeeNumerator = ConstU128<3>;
-	type ProviderFeeDenominator = ConstU128<1000>;
-	type MinDeposit = ConstU128<{ UNITS }>;
+	type Balance = Balance;
+	type AssetBalance = Balance;
+	type HigherPrecisionBalance = u128;
+	type AssetId = MultiLocation;
+	type MultiAssetId = Box<MultiLocation>;
+	type MultiAssetIdConverter =
+		MultiLocationConverter<RelayLocation, LocalAndForeignAssetsMultiLocationMatcher>;
+	type PoolAssetId = u32;
+	type Assets = LocalAndForeignAssets<
+		Assets,
+		AssetIdForTrustBackedAssetsConvert<TrustBackedAssetsPalletLocation>,
+		ForeignAssets,
+	>;
+	type PoolAssets = PoolAssets;
+	type LPFee = ConstU32<3>;
+	type PoolSetupFee = ConstU128<0>;
+	// Asset class deposit fees are sufficient to prevent spam
+	type PoolSetupFeeReceiver = AssetConversionOrigin;
+	// should be non-zero if `AllowMultiAssetPools` is true, otherwise can be zero.
+	type LiquidityWithdrawalFee = LiquidityWithdrawalFee;
+	type MintMinLiquidity = ConstU128<100>;
+	type MaxSwapPathLength = ConstU32<4>;
+	type PalletId = AssetConversionPalletId;
+	type AllowMultiAssetPools = AllowMultiAssetPools;
+	type WeightInfo = pallet_asset_conversion::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper =
+		xcm_config::BenchmarkMultiLocationConverter<parachain_info::Pallet<Runtime>>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -715,15 +822,18 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Event<T>, Storage} = 100,
 
 		// Additional pallets
-		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
 		WithdrawTeleport: pallet_withdraw_teleport = 112,
+		AssetConversion: pallet_asset_conversion = 113,
+		ForeignAssets: pallet_assets::<Instance3> = 114,
+		PoolAssets: pallet_assets::<Instance4> = 115,
 	}
 );
 
 pub mod migrations {
-	use super::*;
 	use frame_support::traits::{GetStorageVersion, OnRuntimeUpgrade, StorageVersion};
+
+	use super::*;
 
 	/// Migrations that set `StorageVersion`s we missed to set.
 	///
@@ -768,7 +878,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]
-		[pallet_dex, Dex]
+		[pallet_asset_conversion, AssetConversion]
 		[pallet_identity, Identity]
 		[pallet_multisig, Multisig]
 		[pallet_uniques, Uniques]
@@ -905,37 +1015,6 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_dex_rpc_runtime_api::DexApi<Block, AssetIdForTrustBackedAssets, Balance, AssetBalance> for Runtime {
-		fn get_currency_to_asset_output_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			currency_amount: Balance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-			Dex::get_currency_to_asset_output_amount(asset_id, currency_amount)
-		}
-
-		fn get_currency_to_asset_input_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			token_amount: AssetBalance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-			Dex::get_currency_to_asset_input_amount(asset_id, token_amount)
-		}
-
-		fn get_asset_to_currency_output_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			token_amount: AssetBalance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-			Dex::get_asset_to_currency_output_amount(asset_id, token_amount)
-		}
-
-		fn get_asset_to_currency_input_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			currency_amount: Balance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-			Dex::get_asset_to_currency_input_amount(asset_id, currency_amount)
-		}
-	}
-
-
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
 			ParachainSystem::collect_collation_info(header)
@@ -967,6 +1046,18 @@ impl_runtime_apis! {
 				)?
 				// collect ... e.g. other tokens
 			].concat().into())
+		}
+	}
+
+	impl pallet_asset_conversion::AssetConversionApi<Block, Balance, u128, Box<MultiLocation>> for Runtime {
+		fn quote_price_exact_tokens_for_tokens(asset1: Box<MultiLocation>, asset2: Box<MultiLocation>, amount: u128, include_fee: bool) -> Option<Balance> {
+			AssetConversion::quote_price_exact_tokens_for_tokens(asset1, asset2, amount, include_fee)
+		}
+		fn quote_price_tokens_for_exact_tokens(asset1: Box<MultiLocation>, asset2: Box<MultiLocation>, amount: u128, include_fee: bool) -> Option<Balance> {
+			AssetConversion::quote_price_tokens_for_exact_tokens(asset1, asset2, amount, include_fee)
+		}
+		fn get_reserves(asset1: Box<MultiLocation>, asset2: Box<MultiLocation>) -> Option<(Balance, Balance)> {
+			AssetConversion::get_reserves(&asset1, &asset2).ok()
 		}
 	}
 
