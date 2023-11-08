@@ -15,6 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use assets_common::ForeignAssetsConvertedConcreteId;
+use assets_common::fungible_conversion::MatchesMultiLocation;
+use assets_common::local_and_foreign_assets::MatchesLocalAndForeignAssetsMultiLocation;
 use frame_support::{
 	match_types, parameter_types,
 	traits::{Contains, ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
@@ -408,3 +411,15 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
+
+/// Simple `MultiLocation` matcher for Local and Foreign asset `MultiLocation`.
+pub struct LocalAndForeignAssetsMultiLocationMatcher;
+impl MatchesLocalAndForeignAssetsMultiLocation for LocalAndForeignAssetsMultiLocationMatcher {
+	fn is_local(location: &MultiLocation) -> bool {
+		true
+	}
+	fn is_foreign(location: &MultiLocation) -> bool {
+		ForeignAssetsConvertedConcreteId::contains(location)
+	}
+}
+
