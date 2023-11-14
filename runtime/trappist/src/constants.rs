@@ -19,10 +19,10 @@
 pub mod consensus {
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 	/// into the relay chain.
-	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
 	/// How many parachain blocks are processed by the relay chain per parent. Limits the
 	/// number of blocks authored per slot.
-	pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 2;
 	/// Relay chain slot duration, in milliseconds.
 	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 }
@@ -46,9 +46,10 @@ pub mod currency {
 
 /// Fee-related.
 pub mod fee {
+	use cumulus_primitives_core::Weight;
 	use frame_support::weights::{
 		constants::{ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_SECOND},
-		FeePolynomial, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		FeePolynomial, WeightToFeeCoefficient, WeightToFeeCoefficients,
 		WeightToFeePolynomial,
 	};
 	use polkadot_core_primitives::Balance;
@@ -60,6 +61,11 @@ pub mod fee {
 
 	/// The block saturation level. Fees will be updates based on this value.
 	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);
+
+	const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+		WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+		cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
+	);
 
 	/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 	/// node's balance type.
@@ -129,4 +135,9 @@ pub mod fee {
 		let base_tx_per_second = (WEIGHT_REF_TIME_PER_SECOND as u128) / base_weight;
 		base_tx_per_second * base_tx_fee()
 	}
+}
+
+pub mod time {
+	pub const MILLISECS_PER_BLOCK: u64 = 12000;
+	pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 }

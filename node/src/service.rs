@@ -19,9 +19,7 @@ use std::{marker::PhantomData, sync::Arc, time::Duration};
 
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_collator::service::CollatorService;
-use cumulus_client_consensus_aura::collators::basic::{
-	self as basic_aura, Params as BasicAuraParams,
-};
+use cumulus_client_consensus_aura::collators::lookahead::{self as aura, Params as AuraParams};
 use cumulus_client_consensus_common::{
 	ParachainBlockImport as TParachainBlockImport, ParachainCandidate, ParachainConsensus,
 };
@@ -32,7 +30,8 @@ use cumulus_client_service::{
 	BuildNetworkParams, CollatorSybilResistance, DARecoveryProfile, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
-	relay_chain::{Hash as PHash, PersistedValidationData},
+	relay_chain::{Hash as PHash, PersistedValidationData, ValidationCode},
+	Junction::Parachain,
 	ParaId,
 };
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
@@ -244,6 +243,7 @@ where
 	) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error>,
 	SC: FnOnce(
 		Arc<ParachainClient<RuntimeApi>>,
+		Arc<ParachainBackend>,
 		ParachainBlockImport<RuntimeApi>,
 		Option<&Registry>,
 		Option<TelemetryHandle>,
@@ -374,6 +374,7 @@ where
 	if validator {
 		start_consensus(
 			client.clone(),
+			backend.clone(),
 			block_import,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
@@ -520,7 +521,8 @@ where
 		+ sp_consensus_aura::AuraApi<Block, <<AuraId as AppCrypto>::Pair as Pair>::Public>
 		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ pallet_dex_rpc::DexRuntimeApi<Block, AssetId, Balance, Balance>
-		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+		+ frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>
+		+ cumulus_primitives_aura::AuraUnincludedSegmentApi<Block>,
 	<<AuraId as AppCrypto>::Pair as Pair>::Signature:
 		TryFrom<Vec<u8>> + std::hash::Hash + sp_runtime::traits::Member + Codec,
 {
@@ -533,6 +535,7 @@ where
 		|_| Ok(RpcModule::new(())),
 		aura_build_import_queue::<_, AuraId>,
 		|client,
+		 backend,
 		 block_import,
 		 prometheus_registry,
 		 telemetry,
@@ -564,11 +567,15 @@ where
 				client.clone(),
 			);
 
-			let params = BasicAuraParams {
+			let params = AuraParams {
 				create_inherent_data_providers: move |_, ()| async move { Ok(()) },
 				block_import,
-				para_client: client,
+				para_client: client.clone(),
+				para_backend: backend.clone(),
 				relay_client: relay_chain_interface,
+				code_hash_provider: move |block_hash| {
+					client.code_at(block_hash).ok().map(ValidationCode).map(|c| c.hash())
+				},
 				sync_oracle,
 				keystore,
 				collator_key,
@@ -578,12 +585,11 @@ where
 				relay_chain_slot_duration,
 				proposer,
 				collator_service,
-				// Very limited proposal time.
-				authoring_duration: Duration::from_millis(500),
+				authoring_duration: Duration::from_millis(1500),
 			};
 
 			let fut =
-				basic_aura::run::<Block, <AuraId as AppCrypto>::Pair, _, _, _, _, _, _, _>(params);
+				aura::run::<Block, <AuraId as AppCrypto>::Pair, _, _, _, _, _, _, _, _, _>(params);
 			task_manager.spawn_essential_handle().spawn("aura", None, fut);
 
 			Ok(())
