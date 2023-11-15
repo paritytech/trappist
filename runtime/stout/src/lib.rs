@@ -37,7 +37,7 @@ use sp_runtime::{
 	ApplyExtrinsicResult, Perbill,
 };
 
-use constants::{consensus::*, currency::*, fee::WeightToFee};
+use constants::{consensus::*, currency::*, fee::*};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -61,7 +61,7 @@ pub use parachains_common as common;
 pub use parachains_common::{
 	impls::{AssetsToBlockAuthor, DealWithFees},
 	opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
+	AVERAGE_ON_INITIALIZE_RATIO, HOURS, MINUTES, NORMAL_DISPATCH_RATIO,
 	SLOT_DURATION,
 };
 use sp_std::prelude::*;

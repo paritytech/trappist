@@ -60,7 +60,7 @@ pub mod fee {
 	/// The block saturation level. Fees will be updates based on this value.
 	pub const TARGET_BLOCK_FULLNESS: Perbill = Perbill::from_percent(25);
 
-	const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 		WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
 		cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
 	);
