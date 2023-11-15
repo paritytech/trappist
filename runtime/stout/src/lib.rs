@@ -27,7 +27,6 @@ mod contracts;
 pub mod xcm_config;
 
 use common::AssetIdForTrustBackedAssets;
-use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, ConstU8, OpaqueMetadata};
 use sp_runtime::{
@@ -37,7 +36,7 @@ use sp_runtime::{
 	ApplyExtrinsicResult, Perbill,
 };
 
-use constants::{consensus::*, currency::*, fee::*};
+use constants::{consensus::*, currency::*, fee::*, time::*};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -62,7 +61,6 @@ pub use parachains_common::{
 	impls::{AssetsToBlockAuthor, DealWithFees},
 	opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header, Signature,
 	AVERAGE_ON_INITIALIZE_RATIO, HOURS, MINUTES, NORMAL_DISPATCH_RATIO,
-	SLOT_DURATION,
 };
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
