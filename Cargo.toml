@@ -1,5 +1,11 @@
 [workspace]
-members = ["node", "runtime/stout", "runtime/trappist", "primitives/xcm"]
+members = [
+	"node",
+	"runtime/stout",
+	"runtime/trappist",
+	"primitives/xcm",
+	"integration-tests/emulated",
+]
 exclude = ["xcm-simulator"]
 resolver = "2"
 
@@ -168,11 +174,20 @@ parachains-common = { default-features = false, version = "2.0.0" }
 parachain-info = { package = "staging-parachain-info", default-features = false, version = "0.2.0" }
 cumulus-pallet-session-benchmarking = { default-features = false, version = "4.0.0" }
 
+
+# Cumulus Xcm Emulator
+xcm-emulator = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
+integration-tests-common = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
+asset-hub-kusama-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
+asset-hub-polkadot-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
+rococo-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
+
 # Polkadot
 polkadot-cli = { features = ["rococo-native"], version = "2.0.0" }
 polkadot-primitives = { version = "2.0.0" }
 polkadot-service = { version = "2.0.0" }
 polkadot-runtime-parachains = { default-features = false, version = "2.0.0" }
+
 
 # Polkadot Dependencies
 kusama-runtime-constants = { default-features = false, version = "2.0.0" }
