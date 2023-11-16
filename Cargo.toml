@@ -32,7 +32,7 @@ license = "Apache License v2"
 
 # common
 async-trait = "0.1"
-clap = { version = "4.4.2" }
+clap = { version = "3.2.25" }
 parity-scale-codec = { version = "3.6.4", default-features = false, features = [
 	"derive",
 ] }
@@ -52,9 +52,9 @@ stout-runtime = { path = "runtime/stout" }
 jsonrpsee = { version = "0.16.3" }
 
 # External Dependencies
-pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "release-crates-io-v1.1.0" }
-pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "release-crates-io-v1.1.0" }
-pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "release-crates-io-v1.1.0" }
+pallet-dex-rpc = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "polkadot-v1.1.0" }
+pallet-dex = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "polkadot-v1.1.0" }
+pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/paritytech/substrate-dex.git", default-features = false, branch = "polkadot-v1.1.0" }
 
 # Trappist Pallets
 pallet-asset-registry = { default-features = false, path = "pallets/asset-registry" }
