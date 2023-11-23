@@ -214,6 +214,8 @@ pub fn testnet_genesis(
 		},
 		treasury: Default::default(),
 		lockdown_mode: LockdownModeConfig { initial_status: false, ..Default::default() },
+		dex: Default::default(),
+		transaction_payment: Default::default(),
 	}
 }
 
@@ -329,5 +331,7 @@ fn trappist_live_genesis(
 		},
 		treasury: Default::default(),
 		lockdown_mode: Default::default(),
+		dex: Default::default(),
+		transaction_payment: Default::default(),
 	}
 }
