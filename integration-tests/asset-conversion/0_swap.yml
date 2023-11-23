@@ -1,0 +1,105 @@
+---
+settings:
+  chains:
+    trappist_parachain: &trappist_parachain
+      wsPort: 9920
+      paraId: 2000
+  variables:
+    system:
+      assets_pallet_instance: &assets_pallet_instance 41
+    assets:
+      hop:
+        # multilocation within trappist of HOP
+        multilocation: &hop_multilocation { parents: 0, interior: Here }
+      local_asset:
+        id: &local_asset_id 200
+        name: &local_asset_name "LocalAsset"
+        symbol: &local_asset_symbol "LAS"
+        decimals: &local_asset_decimals 10
+        min_balance: &local_asset_min_balance 1000000000
+        total_supply: &local_asset_total_supply 250000000000000
+        # multilocation within trappist of the newly created asset
+        multilocation: &local_asset_multilocation { x1: { parents: 0, interior: { pallet_instance: *assets_pallet_instance, general_index: *local_asset_id } } }
+    chains:
+      trappist_parachain:
+        signer: &tp_signer //Alice
+        wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+    swap:
+      hop_liquidity: &hop_liquidity 1000000
+      hop_swap_amount: &hop_swap_amount 100
+      local_asset_liquidity: &local_asset_liquidity 1000000
+      local_asset_amount: &local_asset_amount 200
+
+tests:
+  - name: Swap local assets
+    describes:
+      - name: Swapping
+        its:
+          - name: DEPENDENCY | Create a local asset
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: assets
+                    call: create
+                    args: [
+                      *local_asset_id,
+                      {id: *tp_wallet},
+                      *local_asset_min_balance
+                    ]
+                    events:
+                      - name: assets.Created
+          - name: DEPENDENCY | Set new asset's metadata
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: assets
+                    call: setMetadata
+                    args: [
+                      *local_asset_id,
+                      *local_asset_name,
+                      *local_asset_symbol,
+                      *local_asset_decimals
+                    ]
+          - name: DEPENDENCY | Mint new asset
+            actions:
+              - extrinsics:
+                  # Mint total supply to owner
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: assets
+                    call: mint
+                    args:
+                      - *local_asset_id
+                      - *tp_wallet
+                      - *local_asset_total_supply
+                    events:
+                      - name: assets.Issued
+          - name: Configure the asset pool
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: asset_conversion
+                    call: create_pool
+                    args: [
+                      *hop_multilocation,  # first asset
+                      *local_asset_multilocation  # second asset
+                    ]
+          - name: Fill the pool
+            actions:
+              - extrinsics:
+                  - chain: *trappist_parachain
+                    signer: *tp_signer
+                    pallet: asset_conversion
+                    call: add_liquidity
+                    args: [
+                      *hop_multilocation,  # first asset
+                      *local_asset_multilocation,  # second asset
+                      *hop_liquidity,  # desired amount for first asset
+                      *local_asset_liquidity,  # desired amount for second asset
+                      *hop_liquidity,  # minimum amount for first asset
+                      *local_asset_liquidity,  # minimum amount for second asset
+                      *tp_wallet  # mint LP tokens to this account
+                    ]
