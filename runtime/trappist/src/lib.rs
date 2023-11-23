@@ -125,7 +125,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(migrations::SetStorageVersions, pallet_contracts::Migration<Runtime>),
+	pallet_contracts::Migration<Runtime>,
 >;
 
 impl_opaque_keys! {
@@ -718,36 +718,6 @@ construct_runtime!(
 		WithdrawTeleport: pallet_withdraw_teleport = 112,
 	}
 );
-
-pub mod migrations {
-	use super::*;
-	use frame_support::traits::{GetStorageVersion, OnRuntimeUpgrade, StorageVersion};
-
-	/// Migrations that set `StorageVersion`s we missed to set.
-	///
-	/// It's *possible* that these pallets have not in fact been migrated to the versions being set,
-	/// which we should keep in mind in the future if we notice any strange behavior.
-	/// We opted to not check exactly what on-chain versions each pallet is at, since it would be
-	/// an involved effort, this is testnet, and no one has complained
-	/// (https://github.com/paritytech/polkadot-sdk/issues/6657#issuecomment-1552956439).
-	pub struct SetStorageVersions;
-
-	impl OnRuntimeUpgrade for SetStorageVersions {
-		fn on_runtime_upgrade() -> Weight {
-			let mut writes = 0;
-			let mut reads = 0;
-
-			// Scheduler
-			if Scheduler::on_chain_storage_version() < 4 {
-				StorageVersion::new(4).put::<Scheduler>();
-				writes += 1;
-			}
-			reads += 1;
-
-			RocksDbWeight::get().reads_writes(reads, writes)
-		}
-	}
-}
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
