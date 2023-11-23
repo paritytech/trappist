@@ -66,8 +66,8 @@ impl<T: frame_system::Config> pallet_withdraw_teleport::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `177`
 		//  Estimated: `3642`
-		// Minimum execution time: 92_006_000 picoseconds.
-		Weight::from_parts(93_857_000, 0)
+		// Minimum execution time: 87_068_000 picoseconds.
+		Weight::from_parts(89_581_000, 0)
 			.saturating_add(Weight::from_parts(0, 3642))
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(2))
