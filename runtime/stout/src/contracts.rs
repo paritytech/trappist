@@ -23,8 +23,6 @@ use frame_support::{
 	parameter_types,
 	traits::{ConstU32, Nothing},
 };
-#[cfg(feature = "runtime-benchmarks")]
-use pallet_contracts::NoopMigration;
 use pallet_contracts::{
 	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
@@ -73,7 +71,7 @@ impl Config for Runtime {
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Migrations = ();
 	#[cfg(feature = "runtime-benchmarks")]
-	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type Migrations = pallet_contracts::migration::codegen::BenchMigrations;
 	type MaxDelegateDependencies = ConstU32<32>;
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type Debug = ();
