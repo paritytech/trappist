@@ -216,6 +216,7 @@ pub fn testnet_genesis(
 		lockdown_mode: LockdownModeConfig { initial_status: false, ..Default::default() },
 		foreign_assets: ForeignAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		pool_assets: PoolAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
+		transaction_payment: Default::default(),
 	}
 }
 
@@ -333,5 +334,6 @@ fn trappist_live_genesis(
 		lockdown_mode: Default::default(),
 		foreign_assets: ForeignAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		pool_assets: PoolAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
+		transaction_payment: Default::default(),
 	}
 }

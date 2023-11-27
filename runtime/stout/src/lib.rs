@@ -28,6 +28,16 @@ use assets_common::matching::FromSiblingParachain;
 use assets_common::{AssetIdForTrustBackedAssetsConvert, MultiLocationForAssetId};
 use common::AssetIdForTrustBackedAssets;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use sp_api::impl_runtime_apis;
+use sp_core::{crypto::KeyTypeId, ConstBool, ConstU8, OpaqueMetadata};
+use sp_runtime::{
+	create_runtime_str, generic, impl_opaque_keys,
+	traits::{AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
+	transaction_validity::{TransactionSource, TransactionValidity},
+	ApplyExtrinsicResult, Perbill, Permill,
+};
+
+use constants::{currency::*, fee::WeightToFee};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -57,16 +67,8 @@ pub use parachains_common::{
 };
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::SlowAdjustingFeeUpdate;
-use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, ConstBool, ConstU8, OpaqueMetadata};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
-use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill, Permill,
-};
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -74,7 +76,6 @@ use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
 use xcm::latest::MultiLocation;
 
-use constants::{consensus::*, currency::*, fee::WeightToFee};
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
 // Polkadot imports
@@ -147,7 +148,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("stout-rococo"),
 	impl_name: create_runtime_str!("stout-rococo"),
 	authoring_version: 1,
-	spec_version: 10000,
+	spec_version: 11000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -306,12 +307,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberStrictlyIncreases;
-	type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
-		Runtime,
-		RELAY_CHAIN_SLOT_DURATION_MILLIS,
-		BLOCK_PROCESSING_VELOCITY,
-		UNINCLUDED_SEGMENT_CAPACITY,
-	>;
 }
 
 impl pallet_insecure_randomness_collective_flip::Config for Runtime {}

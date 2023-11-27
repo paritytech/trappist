@@ -25,7 +25,7 @@ use frame_support::{
 use sp_runtime::traits::MaybeEquivalence;
 #[cfg(not(test))]
 use sp_runtime::DispatchResult;
-use sp_std::{borrow::Borrow, marker::PhantomData};
+use sp_std::marker::PhantomData;
 use xcm::{
 	latest::{
 		AssetId::Concrete, Fungibility::Fungible, Junctions::Here, MultiAsset, MultiLocation,
@@ -47,7 +47,7 @@ where
 	AssetIdInfoGetter: AssetMultiLocationGetter<AssetId>,
 {
 	fn convert(asset_multi_location: &MultiLocation) -> Option<AssetId> {
-		AssetIdInfoGetter::get_asset_id(asset_multi_location.borrow())
+		AssetIdInfoGetter::get_asset_id(asset_multi_location)
 	}
 
 	fn convert_back(asset_id: &AssetId) -> Option<MultiLocation> {
@@ -76,9 +76,9 @@ impl<
 			(Fungible(ref amount), Concrete(ref id)) => (amount, id),
 			_ => return Err(MatchError::AssetNotHandled),
 		};
-		let what = ConvertAssetId::convert(id).ok_or_else(|| MatchError::AssetNotHandled)?;
+		let what = ConvertAssetId::convert(id).ok_or(MatchError::AssetNotHandled)?;
 		let amount = ConvertBalance::convert_back(amount)
-			.ok_or_else(|| MatchError::AmountToBalanceConversionFailed)?;
+			.ok_or(MatchError::AmountToBalanceConversionFailed)?;
 		Ok((what, amount))
 	}
 }
