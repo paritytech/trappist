@@ -125,7 +125,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	(),
+	pallet_contracts::Migration<Runtime>,
 >;
 
 impl_opaque_keys! {
@@ -139,7 +139,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("trappist-rococo"),
 	impl_name: create_runtime_str!("trappist-rococo"),
 	authoring_version: 1,
-	spec_version: 10000,
+	spec_version: 11000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -226,11 +226,11 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
 	type AccountStore = System;
 	type ReserveIdentifier = [u8; 8];
-	type RuntimeHoldReason = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type MaxHolds = ConstU32<0>;
+	type MaxHolds = ConstU32<1>;
 	type MaxFreezes = ConstU32<0>;
 }
 
@@ -651,6 +651,7 @@ impl pallet_treasury::Config for Runtime {
 
 impl pallet_withdraw_teleport::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_withdraw_teleport::WeightInfo<Runtime>;
 }
 
 impl pallet_lockdown_mode::Config for Runtime {
@@ -666,31 +667,29 @@ impl pallet_lockdown_mode::Config for Runtime {
 construct_runtime!(
 	pub struct Runtime {
 		// System support stuff.
-		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>} = 0,
-		ParachainSystem: cumulus_pallet_parachain_system::{
-			Pallet, Call, Config<T>, Storage, Inherent, Event<T>, ValidateUnsigned,
-		} = 1,
-		RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip::{Pallet, Storage} = 2,
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
-		ParachainInfo: parachain_info::{Pallet, Storage, Config<T>} = 4,
+		System: frame_system = 0,
+		ParachainSystem: cumulus_pallet_parachain_system = 1,
+		RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip = 2,
+		Timestamp: pallet_timestamp = 3,
+		ParachainInfo: parachain_info = 4,
 
 		// Monetary stuff.
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 11,
-		AssetTxPayment: pallet_asset_tx_payment::{Pallet, Storage, Event<T>} = 12,
+		Balances: pallet_balances = 10,
+		TransactionPayment: pallet_transaction_payment = 11,
+		AssetTxPayment: pallet_asset_tx_payment = 12,
 
 		// Collator support. The order of these 5 are important and shall not change.
-		Authorship: pallet_authorship::{Pallet, Storage} = 20,
-		CollatorSelection: pallet_collator_selection::{Pallet, Call, Storage, Event<T>, Config<T>} = 21,
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 22,
-		Aura: pallet_aura::{Pallet, Storage, Config<T>} = 23,
-		AuraExt: cumulus_pallet_aura_ext::{Pallet, Storage, Config<T>} = 24,
+		Authorship: pallet_authorship = 20,
+		CollatorSelection: pallet_collator_selection = 21,
+		Session: pallet_session = 22,
+		Aura: pallet_aura = 23,
+		AuraExt: cumulus_pallet_aura_ext = 24,
 
 		// XCM helpers.
-		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Call, Storage, Event<T>} = 30,
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 31,
-		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 32,
-		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 33,
+		XcmpQueue: cumulus_pallet_xcmp_queue = 30,
+		PolkadotXcm: pallet_xcm = 31,
+		CumulusXcm: cumulus_pallet_xcm = 32,
+		DmpQueue: cumulus_pallet_dmp_queue = 33,
 
 		// Runtime features
 		Contracts: pallet_contracts = 40,
@@ -702,53 +701,23 @@ construct_runtime!(
 		LockdownMode: pallet_lockdown_mode = 46,
 
 		// Handy utilities.
-		Utility: pallet_utility::{Pallet, Call, Event} = 50,
-		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 51,
+		Utility: pallet_utility = 50,
+		Multisig: pallet_multisig = 51,
 
 		// Governance related
 		Council: pallet_collective::<Instance1> = 60,
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config<T>, Event<T>} = 61,
+		Treasury: pallet_treasury = 61,
 		Democracy: pallet_democracy = 62,
 
 		// Sudo
-		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Event<T>, Storage} = 100,
+		Sudo: pallet_sudo = 100,
 
 		// Additional pallets
-		Dex: pallet_dex::{Pallet, Call, Storage, Event<T>} = 110,
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
+		Dex: pallet_dex = 110,
+		AssetRegistry: pallet_asset_registry = 111,
 		WithdrawTeleport: pallet_withdraw_teleport = 112,
 	}
 );
-
-pub mod migrations {
-	use super::*;
-	use frame_support::traits::{GetStorageVersion, OnRuntimeUpgrade, StorageVersion};
-
-	/// Migrations that set `StorageVersion`s we missed to set.
-	///
-	/// It's *possible* that these pallets have not in fact been migrated to the versions being set,
-	/// which we should keep in mind in the future if we notice any strange behavior.
-	/// We opted to not check exactly what on-chain versions each pallet is at, since it would be
-	/// an involved effort, this is testnet, and no one has complained
-	/// (https://github.com/paritytech/polkadot/issues/6657#issuecomment-1552956439).
-	pub struct SetStorageVersions;
-
-	impl OnRuntimeUpgrade for SetStorageVersions {
-		fn on_runtime_upgrade() -> Weight {
-			let mut writes = 0;
-			let mut reads = 0;
-
-			// Scheduler
-			if Scheduler::on_chain_storage_version() < 4 {
-				StorageVersion::new(4).put::<Scheduler>();
-				writes += 1;
-			}
-			reads += 1;
-
-			RocksDbWeight::get().reads_writes(reads, writes)
-		}
-	}
-}
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
@@ -774,6 +743,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_withdraw_teleport, WithdrawTeleport]
 		// XCM
 		// NOTE: Make sure you point to the individual modules below.
 		[pallet_xcm_benchmarks::fungible, XcmBalances]
@@ -1083,7 +1053,8 @@ impl_runtime_apis! {
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{Benchmarking, BenchmarkBatch, TrackedStorageKey, BenchmarkError};
+			use frame_benchmarking::{Benchmarking, BenchmarkBatch, BenchmarkError};
+			use frame_support::traits::TrackedStorageKey;
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			impl frame_system_benchmarking::Config for Runtime {
@@ -1144,6 +1115,7 @@ impl_runtime_apis! {
 					MultiAsset { fun: Fungible(1 * UNITS), id: Concrete(SelfReserve::get()) },
 				));
 				pub const CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
+				pub const TrustedReserve: Option<(MultiLocation, MultiAsset)> = None;
 
 			}
 
@@ -1152,6 +1124,7 @@ impl_runtime_apis! {
 
 				type CheckedAccount = CheckedAccount;
 				type TrustedTeleporter = TrustedTeleporter;
+				type TrustedReserve = TrustedReserve;
 
 				fn get_multi_asset() -> MultiAsset {
 					MultiAsset {
@@ -1249,31 +1222,7 @@ impl_runtime_apis! {
 	}
 }
 
-struct CheckInherents;
-
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
-
-		inherent_data.check_extrinsics(block)
-	}
-}
-
 cumulus_pallet_parachain_system::register_validate_block! {
 	Runtime = Runtime,
 	BlockExecutor = cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 }
