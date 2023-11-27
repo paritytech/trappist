@@ -24,7 +24,7 @@ use frame_system::EnsureRoot;
 // use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use parachains_common::AssetIdForTrustBackedAssets;
-use polkadot_parachain::primitives::Sibling;
+use polkadot_parachain_primitives::primitives::Sibling;
 use sp_core::ConstU32;
 use sp_std::{marker::PhantomData, vec::Vec};
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};

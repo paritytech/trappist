@@ -24,12 +24,12 @@
 type BaseXcm<T> = pallet_xcm::Pallet<T>;
 use frame_support::{
 	dispatch::DispatchResult,
-	ensure, log,
+	ensure,
 	traits::{Contains, EnsureOrigin, Get},
 };
 use frame_system::pallet_prelude::OriginFor;
 pub use pallet::*;
-use pallet_xcm::WeightInfo as XcmWeightInfo;
+use pallet_xcm::WeightInfo as RuntimeXcmWeightInfo;
 use parity_scale_codec::Encode;
 use sp_std::{boxed::Box, vec};
 pub use xcm::{
@@ -190,7 +190,7 @@ impl<T: Config> Pallet<T> {
 		// Reanchor the fee asset to the destination chain.
 		let fee_asset_item: usize = 0;
 		let fees = fee_asset
-			.get(fee_asset_item as usize)
+			.get(fee_asset_item)
 			.ok_or(pallet_xcm::Error::<T>::Empty)?
 			.clone()
 			.reanchored(&dest, context)

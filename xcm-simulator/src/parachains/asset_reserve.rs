@@ -27,8 +27,8 @@ use polkadot_runtime_common::BlockHashCount;
 use sp_core::H256;
 use sp_runtime::traits::{AccountIdLookup, BlakeTwo256, ConvertInto};
 use sp_std::prelude::*;
-pub use statemine_runtime::xcm_config::LocationToAccountId;
-use statemine_runtime::{
+pub use asset_hub_kusama::xcm_config::LocationToAccountId;
+use asset_hub_kusama::{
 	common::{
 		impls::ToStakingPot, xcm_config::AssetFeeAsExistentialDepositMultiplier, BlockNumber,
 		Header,

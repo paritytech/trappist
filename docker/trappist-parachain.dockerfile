@@ -1,5 +1,5 @@
-# This file is sourced from https://github.com/paritytech/polkadot/blob/master/scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile
-FROM docker.io/paritytech/ci-linux:1.68.2-bullseye as builder
+# This file is sourced from https://github.com/paritytech/polkadot-sdk/blob/master/scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile
+FROM docker.io/paritytech/ci-linux:1.71.0-bullseye as builder
 
 WORKDIR /trappist
 COPY . /trappist

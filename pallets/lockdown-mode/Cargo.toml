@@ -42,7 +42,7 @@ xcm-builder = { workspace = true }
 pallet-xcm = { workspace = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
-polkadot-parachain = { workspace = true }
+polkadot-parachain-primitives = { workspace = true }
 
 parachain-info = { workspace = true }
 parachains-common = { workspace = true }
@@ -69,7 +69,7 @@ std = [
 	"pallet-xcm/std",
 	"polkadot-core-primitives/std",
 	"polkadot-runtime-parachains/std",
-	"polkadot-parachain/std",
+	"polkadot-parachain-primitives/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"cumulus-pallet-dmp-queue/std",

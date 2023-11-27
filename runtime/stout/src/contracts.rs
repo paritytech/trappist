@@ -15,6 +15,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{
+	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeHoldReason, Timestamp,
+};
 use frame_support::{
 	parameter_types,
 	traits::{ConstU32, Nothing},
@@ -22,16 +26,9 @@ use frame_support::{
 use pallet_contracts::{
 	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
-
-#[cfg(feature = "runtime-benchmarks")]
-use pallet_contracts::NoopMigration;
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_core::ConstBool;
-
-use crate::{
-	constants::currency::deposit, Balance, Balances, RandomnessCollectiveFlip, Runtime,
-	RuntimeCall, RuntimeEvent, Timestamp,
-};
+use sp_runtime::Perbill;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is
 // started with `-lruntime::contracts=debug`.
@@ -42,6 +39,7 @@ parameter_types! {
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub MySchedule: Schedule<Runtime> = Default::default();
 	pub const DefaultDepositLimit: Balance = deposit(1024, 1024 * 1024);
+	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 }
 
 impl Config for Runtime {
@@ -73,5 +71,10 @@ impl Config for Runtime {
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Migrations = ();
 	#[cfg(feature = "runtime-benchmarks")]
-	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type Migrations = pallet_contracts::migration::codegen::BenchMigrations;
+	type MaxDelegateDependencies = ConstU32<32>;
+	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
+	type Debug = ();
+	type Environment = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
 }

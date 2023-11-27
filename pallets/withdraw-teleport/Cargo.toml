@@ -23,6 +23,7 @@ pallet-xcm = { workspace = true }
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
 sp-io = { workspace = true }
+log = { workspace = true }
 
 
 [dev-dependencies]
@@ -31,7 +32,7 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 pallet-balances = { workspace = true }
 xcm-builder = { workspace = true }
-polkadot-parachain = { workspace = true }
+polkadot-parachain-primitives = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 
 [features]
@@ -42,6 +43,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",
+	"log/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]
