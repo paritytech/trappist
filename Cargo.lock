@@ -6893,6 +6893,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-nfts"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=release-polkadot-v1.1.0#c8d2251cafadc108ba2f1f8a3208dc547ff38901"
+dependencies = [
+ "enumflags2",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-nis"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=release-polkadot-v1.1.0#f60318f68687e601c47de5ad5ca88e2c3f8139a7"
@@ -12906,6 +12924,7 @@ dependencies = [
  "pallet-identity",
  "pallet-insecure-randomness-collective-flip",
  "pallet-multisig",
+ "pallet-nfts",
  "pallet-preimage",
  "pallet-scheduler",
  "pallet-session",
@@ -13791,6 +13810,7 @@ dependencies = [
  "pallet-insecure-randomness-collective-flip",
  "pallet-lockdown-mode",
  "pallet-multisig",
+ "pallet-nfts",
  "pallet-preimage",
  "pallet-scheduler",
  "pallet-session",

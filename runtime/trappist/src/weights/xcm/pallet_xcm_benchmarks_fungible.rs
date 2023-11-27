@@ -89,7 +89,7 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	pub(crate) fn transfer_reserve_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `278`
+		//  Measured:  `312`
 		//  Estimated: `6196`
 		// Minimum execution time: 73_834_000 picoseconds.
 		Weight::from_parts(74_698_000, 6196)
@@ -186,7 +186,7 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	pub(crate) fn initiate_teleport() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `219`
+		//  Measured:  `253`
 		//  Estimated: `4087`
 		// Minimum execution time: 34_917_000 picoseconds.
 		Weight::from_parts(35_390_000, 4087)

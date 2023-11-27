@@ -56,6 +56,7 @@ pallet-contracts = { workspace = true }
 pallet-contracts-primitives = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
+pallet-nfts = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
 pallet-session = { workspace = true }
@@ -135,6 +136,7 @@ std = [
 	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-multisig/std",
+	"pallet-nfts/std",
 	"pallet-insecure-randomness-collective-flip/std",
 	"pallet-scheduler/std",
 	"pallet-session/std",
@@ -179,6 +181,7 @@ runtime-benchmarks = [
 	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
+	"pallet-nfts/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-uniques/runtime-benchmarks",
