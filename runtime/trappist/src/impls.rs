@@ -76,43 +76,6 @@ where
 	}
 }
 
-pub struct RuntimeBlackListedCalls;
-impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
-	fn contains(call: &RuntimeCall) -> bool {
-		!matches!(
-			call,
-			RuntimeCall::Balances(_)
-				| RuntimeCall::Assets(_)
-				| RuntimeCall::Dex(_)
-				| RuntimeCall::PolkadotXcm(_)
-				| RuntimeCall::Treasury(_)
-				| RuntimeCall::Contracts(_)
-				| RuntimeCall::Uniques(_)
-				| RuntimeCall::AssetRegistry(_)
-		)
-	}
-}
-
-pub struct LockdownDmpHandler;
-impl DmpMessageHandler for LockdownDmpHandler {
-	fn handle_dmp_messages(
-		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		limit: Weight,
-	) -> Weight {
-		DmpQueue::handle_dmp_messages(_iter, limit)
-	}
-}
-
-pub struct XcmExecutionManager {}
-impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
-	fn suspend_xcm_execution() -> DispatchResult {
-		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
-	}
-	fn resume_xcm_execution() -> DispatchResult {
-		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use frame_support::{
