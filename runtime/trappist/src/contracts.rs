@@ -23,10 +23,6 @@ use frame_support::{
 	parameter_types,
 	traits::{ConstBool, ConstU32, Nothing},
 };
-#[cfg(not(feature = "runtime-benchmarks"))]
-use pallet_contracts::migration::{v13, v14, v15};
-#[cfg(feature = "runtime-benchmarks")]
-use pallet_contracts::NoopMigration;
 use pallet_contracts::{Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule};
 pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_runtime::Perbill;
@@ -70,9 +66,13 @@ impl Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<true>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (v13::Migration<Self>, v14::Migration<Self, Balances>, v15::Migration<Self>);
+	type Migrations = (
+		pallet_contracts::migration::v13::Migration<Self>,
+		pallet_contracts::migration::v14::Migration<Self, Balances>,
+		pallet_contracts::migration::v15::Migration<Self>,
+	);
 	#[cfg(feature = "runtime-benchmarks")]
-	type Migrations = (NoopMigration<1>, NoopMigration<2>);
+	type Migrations = pallet_contracts::migration::codegen::BenchMigrations;
 	type MaxDelegateDependencies = ConstU32<32>;
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type Debug = ();

@@ -214,6 +214,8 @@ pub fn testnet_genesis(
 		treasury: Default::default(),
 		safe_mode: Default::default(),
 		tx_pause: Default::default(),
+		dex: Default::default(),
+		transaction_payment: Default::default(),
 	}
 }
 
@@ -330,5 +332,7 @@ fn trappist_live_genesis(
 		treasury: Default::default(),
 		safe_mode: Default::default(),
 		tx_pause: Default::default(),
+		dex: Default::default(),
+		transaction_payment: Default::default(),
 	}
 }
