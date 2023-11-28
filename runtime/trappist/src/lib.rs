@@ -64,6 +64,7 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
 
+use crate::migrations::CollectiveSortMembersMigration;
 use constants::{currency::*, fee::WeightToFee};
 use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
 use xcm_config::{
@@ -125,7 +126,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	pallet_contracts::Migration<Runtime>,
+	(pallet_contracts::Migration<Runtime>, CollectiveSortMembersMigration),
 >;
 
 impl_opaque_keys! {
@@ -718,6 +719,28 @@ construct_runtime!(
 		WithdrawTeleport: pallet_withdraw_teleport = 112,
 	}
 );
+
+pub mod migrations {
+	use super::*;
+	use frame_support::traits::{ChangeMembers, OnRuntimeUpgrade};
+
+	pub struct CollectiveSortMembersMigration;
+	impl OnRuntimeUpgrade for CollectiveSortMembersMigration {
+		fn on_runtime_upgrade() -> Weight {
+			let mut writes = 0;
+			let mut reads = 0;
+
+			let mut members = Council::members();
+			reads += 1;
+
+			members.sort();
+			Council::set_members_sorted(&members, &[]);
+			writes += members.len() as u64;
+
+			RocksDbWeight::get().reads_writes(reads, writes)
+		}
+	}
+}
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
