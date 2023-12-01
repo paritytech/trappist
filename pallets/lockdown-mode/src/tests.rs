@@ -81,7 +81,8 @@ fn call_not_filtered_in_lockdown_mode() {
 fn call_filtered_in_lockdown_mode() {
 	new_test_ext(false).execute_with(|| {
 		assert_ok!(LockdownMode::activate_lockdown_mode(RuntimeOrigin::root()));
-		let balance_call = RuntimeCall::Balance(BalancesCall::transfer { dest: 1, value: 2 });
+		let balance_call =
+			RuntimeCall::Balance(BalancesCall::transfer_allow_death { dest: 1, value: 2 });
 
 		let result: bool = LockdownMode::contains(&balance_call);
 		assert!(!result);
@@ -93,7 +94,8 @@ fn call_not_filtered_in_normal_mode() {
 	new_test_ext(false).execute_with(|| {
 		let lockdown_mode = LockdownModeStatus::<Test>::get();
 		assert_eq!(lockdown_mode, DEACTIVATED);
-		let balance_call = RuntimeCall::Balance(BalancesCall::transfer { dest: 1, value: 2 });
+		let balance_call =
+			RuntimeCall::Balance(BalancesCall::transfer_allow_death { dest: 1, value: 2 });
 		let result: bool = LockdownMode::contains(&balance_call);
 		assert!(result);
 	});

@@ -42,8 +42,8 @@ pub struct ToAuthor<R>(PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for ToAuthor<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<polkadot_core_primitives::v2::AccountId>
-		+ Into<polkadot_core_primitives::v2::AccountId>,
+	AccountIdOf<R>:
+		From<polkadot_core_primitives::AccountId> + Into<polkadot_core_primitives::AccountId>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
@@ -57,8 +57,8 @@ impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config + pallet_treasury::Config,
 	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
-	AccountIdOf<R>: From<polkadot_core_primitives::v2::AccountId>
-		+ Into<polkadot_core_primitives::v2::AccountId>,
+	AccountIdOf<R>:
+		From<polkadot_core_primitives::AccountId> + Into<polkadot_core_primitives::AccountId>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
@@ -115,6 +115,7 @@ impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 
 #[cfg(test)]
 mod tests {
+	use frame_support::traits::tokens::PayFromAccount;
 	use frame_support::{
 		parameter_types,
 		traits::{FindAuthor, ValidatorRegistration},
@@ -122,7 +123,7 @@ mod tests {
 	};
 	use frame_system::{limits, EnsureRoot};
 	use pallet_collator_selection::IdentityCollator;
-	use polkadot_core_primitives::v2::AccountId;
+	use polkadot_core_primitives::AccountId;
 	use sp_core::H256;
 	use sp_runtime::{
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
@@ -188,8 +189,9 @@ mod tests {
 		type FreezeIdentifier = ();
 		type MaxLocks = ();
 		type MaxReserves = MaxReserves;
-		type MaxHolds = ConstU32<0>;
+		type MaxHolds = ConstU32<2>;
 		type MaxFreezes = ConstU32<0>;
+		type RuntimeFreezeReason = ();
 	}
 
 	pub struct OneAuthor;
@@ -256,6 +258,10 @@ mod tests {
 		}
 	}
 
+	parameter_types! {
+		pub TreasuryAccount: AccountId = Treasury::account_id();
+	}
+
 	impl pallet_treasury::Config for Test {
 		type Currency = pallet_balances::Pallet<Test>;
 		type ApproveOrigin = EnsureRoot<AccountId>;
@@ -273,6 +279,14 @@ mod tests {
 		type SpendFunds = ();
 		type MaxApprovals = ConstU32<100>;
 		type SpendOrigin = TestSpendOrigin;
+		type AssetKind = ();
+		type Beneficiary = Self::AccountId;
+		type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+		type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+		type BalanceConverter = UnityAssetBalanceConversion;
+		type PayoutPeriod = ConstU64<10>;
+		#[cfg(feature = "runtime-benchmarks")]
+		type BenchmarkHelper = ();
 	}
 
 	pub fn new_test_ext() -> sp_io::TestExternalities {

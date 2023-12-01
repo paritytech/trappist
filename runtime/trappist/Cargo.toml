@@ -88,11 +88,12 @@ parachain-info = { workspace = true }
 cumulus-pallet-session-benchmarking = { workspace = true }
 
 # Polkadot Dependencies
-kusama-runtime-constants = { workspace = true }
+rococo-runtime-constants = { workspace = true }
 pallet-xcm = { workspace = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
 polkadot-runtime-common = { workspace = true }
+polkadot-runtime-parachains = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
@@ -117,6 +118,7 @@ std = [
 	"scale-info/std",
 	"log/std",
 	"sp-api/std",
+	"sp-arithmetic/std",
 	"sp-block-builder/std",
 	"sp-consensus-aura/std",
 	"sp-core/std",
@@ -162,6 +164,8 @@ std = [
 	"pallet-uniques/std",
 	"pallet-utility/std",
 	"pallet-xcm/std",
+	"pallet-xcm-benchmarks?/std",
+	"rococo-runtime-constants/std",
 	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",
@@ -176,23 +180,24 @@ std = [
 	"parachains-common/std",
 	"polkadot-parachain-primitives/std",
 	"polkadot-runtime-common/std",
+	"polkadot-runtime-parachains/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"xcm/std"
+	"xcm/std",
 ]
 runtime-benchmarks = [
 	"hex-literal",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
-	"frame-system-benchmarking/runtime-benchmarks",
+	"frame-system-benchmarking?/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"trappist-runtime-benchmarks/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-registry/runtime-benchmarks",
+	"pallet-asset-tx-payment/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"trappist-runtime-benchmarks/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
@@ -212,11 +217,12 @@ runtime-benchmarks = [
 	"cumulus-pallet-session-benchmarking/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
-	"pallet-xcm-benchmarks/runtime-benchmarks",
+	"pallet-xcm-benchmarks?/runtime-benchmarks",
 	"assets-common/runtime-benchmarks",
+	"polkadot-runtime-parachains/runtime-benchmarks"
 ]
 try-runtime = [
-	"frame-try-runtime/try-runtime",
+	"frame-try-runtime?/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-support/try-runtime",
@@ -252,4 +258,8 @@ try-runtime = [
 	"pallet-sudo/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-withdraw-teleport/try-runtime",
+	"polkadot-runtime-parachains/try-runtime"
+]
+parameterized-consensus-hook = [
+	"cumulus-pallet-parachain-system/parameterized-consensus-hook",
 ]

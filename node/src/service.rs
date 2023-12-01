@@ -580,6 +580,7 @@ where
 				collator_service,
 				// Very limited proposal time.
 				authoring_duration: Duration::from_millis(500),
+				collation_request_receiver: None,
 			};
 
 			let fut =

@@ -84,8 +84,9 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxLocks = ();
 	type MaxReserves = ();
-	type MaxHolds = ConstU32<0>;
+	type MaxHolds = ConstU32<2>;
 	type MaxFreezes = ConstU32<0>;
+	type RuntimeFreezeReason = ();
 }
 
 pub struct RuntimeBlackListedCalls;

@@ -22,7 +22,7 @@ clap = { workspace = true }
 parity-scale-codec = { workspace = true }
 futures = { workspace = true }
 hex-literal = { workspace = true }
-log = { workspace = true }
+log = { workspace = true, features = ["std"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
@@ -119,3 +119,4 @@ try-runtime = [
 	"trappist-runtime?/try-runtime",
 	"try-runtime-cli/try-runtime"
 ]
+parameterized-consensus-hook = []
