@@ -56,7 +56,6 @@ pallet-dex-rpc-runtime-api = { git = "https://github.com/paritytech/substrate-de
 # Trappist Pallets
 pallet-asset-registry = { default-features = false, path = "pallets/asset-registry" }
 trappist-runtime-benchmarks = { default-features = false, path = "pallets/benchmarks" }
-pallet-lockdown-mode = { default-features = false, path = "pallets/lockdown-mode" }
 pallet-withdraw-teleport = { default-features = false, path = "pallets/withdraw-teleport" }
 
 # Substrate std
@@ -142,6 +141,8 @@ pallet-transaction-payment-rpc-runtime-api = { version = "25.0.0", default-featu
 pallet-uniques = { version = "25.0.0", default-features = false }
 pallet-utility = { version = "25.0.0", default-features = false }
 pallet-treasury = { version = "24.0.0", default-features = false }
+pallet-safe-mode = { version = "6.0.0", default-features = false }
+pallet-tx-pause = { version = "6.0.0", default-features = false }
 
 # Cumulus client dependencies
 cumulus-client-cli = "0.4.0"

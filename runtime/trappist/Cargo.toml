@@ -107,8 +107,9 @@ pallet-dex-rpc-runtime-api = { workspace = true }
 # Trappist Pallets
 pallet-asset-registry = { workspace = true }
 trappist-runtime-benchmarks = { workspace = true }
-pallet-lockdown-mode = { workspace = true }
 pallet-withdraw-teleport = { workspace = true }
+pallet-safe-mode = { workspace = true }
+pallet-tx-pause = { workspace = true }
 
 [features]
 default = ["std"]
@@ -135,7 +136,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
-	"frame-try-runtime?/std",
+	"frame-try-runtime/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
@@ -149,7 +150,8 @@ std = [
 	"pallet-dex/std",
 	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
-	"pallet-lockdown-mode/std",
+	"pallet-safe-mode/std",
+	"pallet-tx-pause/std",
 	"pallet-preimage/std",
 	"pallet-withdraw-teleport/std",
 	"pallet-multisig/std",
@@ -164,7 +166,7 @@ std = [
 	"pallet-uniques/std",
 	"pallet-utility/std",
 	"pallet-xcm/std",
-	"pallet-xcm-benchmarks?/std",
+	"pallet-xcm-benchmarks/std",
 	"rococo-runtime-constants/std",
 	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
@@ -190,7 +192,7 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
-	"frame-system-benchmarking?/runtime-benchmarks",
+	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"trappist-runtime-benchmarks/runtime-benchmarks",
@@ -204,7 +206,8 @@ runtime-benchmarks = [
 	"pallet-democracy/runtime-benchmarks",
 	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
-	"pallet-lockdown-mode/runtime-benchmarks",
+	"pallet-safe-mode/runtime-benchmarks",
+	"pallet-tx-pause/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
@@ -217,12 +220,12 @@ runtime-benchmarks = [
 	"cumulus-pallet-session-benchmarking/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
-	"pallet-xcm-benchmarks?/runtime-benchmarks",
+	"pallet-xcm-benchmarks/runtime-benchmarks",
 	"assets-common/runtime-benchmarks",
 	"polkadot-runtime-parachains/runtime-benchmarks"
 ]
 try-runtime = [
-	"frame-try-runtime?/try-runtime",
+	"frame-try-runtime/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-support/try-runtime",
@@ -235,7 +238,8 @@ try-runtime = [
 	"pallet-democracy/try-runtime",
 	"pallet-dex/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-lockdown-mode/try-runtime",
+	"pallet-safe-mode/try-runtime",
+	"pallet-tx-pause/try-runtime",
 	"pallet-multisig/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-timestamp/try-runtime",

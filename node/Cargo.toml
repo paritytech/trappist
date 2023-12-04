@@ -111,12 +111,12 @@ polkadot-cli = { workspace = true }
 [features]
 default = ["trappist-runtime", "stout-runtime"]
 runtime-benchmarks = [
-	"trappist-runtime?/runtime-benchmarks",
-	"stout-runtime?/runtime-benchmarks",
+	"trappist-runtime/runtime-benchmarks",
+	"stout-runtime/runtime-benchmarks",
 	"polkadot-cli/runtime-benchmarks"
 ]
 try-runtime = [
-	"trappist-runtime?/try-runtime",
+	"trappist-runtime/try-runtime",
 	"try-runtime-cli/try-runtime"
 ]
 parameterized-consensus-hook = []

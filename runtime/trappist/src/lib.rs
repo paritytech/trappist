@@ -23,14 +23,13 @@
 extern crate frame_benchmarking;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-use frame_support::traits::tokens::UnityAssetBalanceConversion;
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly,
+		tokens::UnityAssetBalanceConversion, AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32,
+		ConstU64, Contains, EitherOfDiverse, EqualPrivilegeOnly, InsideBoth,
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 	PalletId,
@@ -38,9 +37,10 @@ use frame_support::{
 pub use frame_system::Call as SystemCall;
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
+	EnsureRoot, EnsureRootWithSuccess, EnsureSigned,
 };
 use pallet_identity::simple::IdentityInfo;
+use pallet_tx_pause::RuntimeCallNameOf;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
@@ -73,7 +73,7 @@ use xcm::VersionedMultiLocation;
 use xcm_builder::PayOverXcm;
 
 use constants::{currency::*, fee::WeightToFee};
-use impls::{DealWithFees, LockdownDmpHandler, RuntimeBlackListedCalls, XcmExecutionManager};
+use impls::DealWithFees;
 use xcm_config::{
 	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
 };
@@ -187,7 +187,7 @@ parameter_types! {
 // Configure FRAME pallets to include in runtime.
 impl frame_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type BaseCallFilter = LockdownMode;
+	type BaseCallFilter = InsideBoth<TxPause, SafeMode>;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
 	type RuntimeOrigin = RuntimeOrigin;
@@ -315,7 +315,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OnSystemEvent = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type DmpMessageHandler = LockdownMode;
+	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
@@ -704,13 +704,66 @@ impl pallet_withdraw_teleport::Config for Runtime {
 	type WeightInfo = weights::pallet_withdraw_teleport::WeightInfo<Runtime>;
 }
 
-impl pallet_lockdown_mode::Config for Runtime {
+/// Calls that can bypass the safe-mode pallet.
+pub struct SafeModeWhitelistedCalls;
+impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
+	fn contains(call: &RuntimeCall) -> bool {
+		match call {
+			RuntimeCall::System(_)
+			| RuntimeCall::SafeMode(_)
+			| RuntimeCall::TxPause(_)
+			| RuntimeCall::Balances(_) => true,
+			_ => false,
+		}
+	}
+}
+
+parameter_types! {
+	pub const EnterDuration: BlockNumber = 4 * HOURS;
+	pub const EnterDepositAmount: Option<Balance> = None;
+	pub const ExtendDuration: BlockNumber = 2 * HOURS;
+	pub const ExtendDepositAmount: Option<Balance> = None;
+	pub const ReleaseDelay: u32 = 2 * DAYS;
+}
+
+impl pallet_safe_mode::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type LockdownModeOrigin = frame_system::EnsureRoot<Self::AccountId>;
-	type BlackListedCalls = RuntimeBlackListedCalls;
-	type LockdownDmpHandler = LockdownDmpHandler;
-	type XcmExecutorManager = XcmExecutionManager;
-	type WeightInfo = weights::pallet_lockdown_mode::WeightInfo<Runtime>;
+	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WhitelistedCalls = SafeModeWhitelistedCalls;
+	type EnterDuration = EnterDuration;
+	type ExtendDuration = ExtendDuration;
+	type EnterDepositAmount = EnterDepositAmount;
+	type ExtendDepositAmount = ExtendDepositAmount;
+	type ForceEnterOrigin = EnsureRootWithSuccess<AccountId, ConstU32<9>>;
+	type ForceExtendOrigin = EnsureRootWithSuccess<AccountId, ConstU32<11>>;
+	type ForceExitOrigin = EnsureRoot<AccountId>;
+	type ForceDepositOrigin = EnsureRoot<AccountId>;
+	type Notify = ();
+	type ReleaseDelay = ReleaseDelay;
+	type WeightInfo = pallet_safe_mode::weights::SubstrateWeight<Runtime>;
+}
+
+/// Calls that cannot be paused by the tx-pause pallet.
+pub struct TxPauseWhitelistedCalls;
+/// Whitelist `Balances::transfer_keep_alive`, all others are pauseable.
+impl Contains<RuntimeCallNameOf<Runtime>> for TxPauseWhitelistedCalls {
+	fn contains(full_name: &RuntimeCallNameOf<Runtime>) -> bool {
+		match (full_name.0.as_slice(), full_name.1.as_slice()) {
+			(b"Balances", b"transfer_keep_alive") => true,
+			_ => false,
+		}
+	}
+}
+
+impl pallet_tx_pause::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PauseOrigin = EnsureRoot<AccountId>;
+	type UnpauseOrigin = EnsureRoot<AccountId>;
+	type WhitelistedCalls = TxPauseWhitelistedCalls;
+	type MaxNameLen = ConstU32<256>;
+	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -748,7 +801,8 @@ construct_runtime!(
 		Uniques: pallet_uniques = 43,
 		Scheduler: pallet_scheduler = 44,
 		Preimage: pallet_preimage = 45,
-		LockdownMode: pallet_lockdown_mode = 46,
+		SafeMode: pallet_safe_mode = 47,  // 46 used to be the old LockdownMode pallet
+		TxPause: pallet_tx_pause = 48,
 
 		// Handy utilities.
 		Utility: pallet_utility = 50,
@@ -782,7 +836,8 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
 		[pallet_democracy, Democracy]
-		[pallet_lockdown_mode, LockdownMode]
+		[pallet_safe_mode, SafeMode]
+		[pallet_tx_pause, TxPause]
 		[pallet_preimage, Preimage]
 		[pallet_treasury, Treasury]
 		[pallet_assets, Assets]

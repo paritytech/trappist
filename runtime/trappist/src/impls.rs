@@ -18,16 +18,10 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
-use frame_support::{
-	traits::{Contains, Currency, Imbalance, OnUnbalanced},
-	weights::Weight,
-};
+use cumulus_primitives_core::DmpMessageHandler;
+use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
 pub use log;
-use sp_runtime::DispatchResult;
 use sp_std::marker::PhantomData;
-
-use super::*;
 
 /// Type alias to conveniently refer to the `Currency::NegativeImbalance` associated type.
 pub type NegativeImbalance<T> = <pallet_balances::Pallet<T> as Currency<
@@ -73,43 +67,6 @@ where
 			<Treasury<R> as OnUnbalanced<_>>::on_unbalanced(split.0);
 			<ToAuthor<R> as OnUnbalanced<_>>::on_unbalanced(split.1);
 		}
-	}
-}
-
-pub struct RuntimeBlackListedCalls;
-impl Contains<RuntimeCall> for RuntimeBlackListedCalls {
-	fn contains(call: &RuntimeCall) -> bool {
-		!matches!(
-			call,
-			RuntimeCall::Balances(_)
-				| RuntimeCall::Assets(_)
-				| RuntimeCall::Dex(_)
-				| RuntimeCall::PolkadotXcm(_)
-				| RuntimeCall::Treasury(_)
-				| RuntimeCall::Contracts(_)
-				| RuntimeCall::Uniques(_)
-				| RuntimeCall::AssetRegistry(_)
-		)
-	}
-}
-
-pub struct LockdownDmpHandler;
-impl DmpMessageHandler for LockdownDmpHandler {
-	fn handle_dmp_messages(
-		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		limit: Weight,
-	) -> Weight {
-		DmpQueue::handle_dmp_messages(_iter, limit)
-	}
-}
-
-pub struct XcmExecutionManager {}
-impl xcm_primitives::PauseXcmExecution for XcmExecutionManager {
-	fn suspend_xcm_execution() -> DispatchResult {
-		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
-	}
-	fn resume_xcm_execution() -> DispatchResult {
-		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
 	}
 }
 
