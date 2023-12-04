@@ -112,6 +112,7 @@ polkadot-cli = { workspace = true }
 default = ["trappist-runtime", "stout-runtime"]
 runtime-benchmarks = [
 	"trappist-runtime/runtime-benchmarks",
+	"frame-benchmarking-cli/runtime-benchmarks",
 	"stout-runtime/runtime-benchmarks",
 	"polkadot-cli/runtime-benchmarks"
 ]

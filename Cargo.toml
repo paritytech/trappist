@@ -107,7 +107,7 @@ sp-version = { version = "26.0.0", default-features = false }
 sp-weights = { version = "24.0.0", default-features = false }
 
 # Build Dependencies
-substrate-build-script-utils = "8.0.0"
+substrate-build-script-utils = "9.0.0"
 substrate-wasm-builder = "14.0.0"
 
 ## Substrate FRAME Dependencies
@@ -197,4 +197,3 @@ nix = "0.26"
 tempfile = "3.7"
 tokio = { version = "1.29", features = ["macros", "time", "parking_lot"] }
 wait-timeout = "0.2"
-pallet-remark = { version = "25.0.0", default-features = false }

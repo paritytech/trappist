@@ -137,6 +137,7 @@ std = [
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-try-runtime/std",
+	"frame-system-benchmarking/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
@@ -186,6 +187,7 @@ std = [
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm/std",
+	"trappist-runtime-benchmarks/std",
 ]
 runtime-benchmarks = [
 	"hex-literal",

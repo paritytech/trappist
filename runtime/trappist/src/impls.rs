@@ -18,7 +18,6 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
-use cumulus_primitives_core::DmpMessageHandler;
 use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
 pub use log;
 use sp_std::marker::PhantomData;
