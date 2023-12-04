@@ -71,9 +71,9 @@ where
 
 #[cfg(test)]
 mod tests {
-	use frame_support::traits::tokens::PayFromAccount;
+	use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 	use frame_support::{
-		parameter_types,
+		construct_runtime, parameter_types,
 		traits::{FindAuthor, ValidatorRegistration},
 		PalletId,
 	};
@@ -83,7 +83,7 @@ mod tests {
 	use sp_core::H256;
 	use sp_runtime::{
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-		Perbill, Permill,
+		BuildStorage, Perbill, Permill,
 	};
 
 	use super::*;
@@ -145,7 +145,7 @@ mod tests {
 		type FreezeIdentifier = ();
 		type MaxLocks = ();
 		type MaxReserves = MaxReserves;
-		type MaxHolds = ConstU32<2>;
+		type MaxHolds = ConstU32<3>;
 		type MaxFreezes = ConstU32<0>;
 		type RuntimeFreezeReason = ();
 	}

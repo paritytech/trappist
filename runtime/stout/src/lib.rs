@@ -228,7 +228,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type MaxHolds = ConstU32<2>;
+	type MaxHolds = ConstU32<3>;
 	type MaxFreezes = ConstU32<0>;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
@@ -288,7 +288,7 @@ parameter_types! {
 }
 
 #[cfg(feature = "parameterized-consensus-hook")]
-mod consensus_hook_constants {
+mod consensus {
 	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 	/// into the relay chain.
 	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
@@ -312,9 +312,9 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	#[cfg(feature = "parameterized-consensus-hook")]
 	type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 		Runtime,
-		consensus_hook_constants::RELAY_CHAIN_SLOT_DURATION_MILLIS,
-		consensus_hook_constants::BLOCK_PROCESSING_VELOCITY,
-		consensus_hook_constants::UNINCLUDED_SEGMENT_CAPACITY,
+		{ consensus::RELAY_CHAIN_SLOT_DURATION_MILLIS },
+		{ consensus::BLOCK_PROCESSING_VELOCITY },
+		{ consensus::UNINCLUDED_SEGMENT_CAPACITY },
 	>;
 }
 
