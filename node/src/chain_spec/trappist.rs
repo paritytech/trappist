@@ -24,7 +24,7 @@ use sc_service::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, ForeignAssetsConfig, LockdownModeConfig, PoolAssetsConfig, RuntimeGenesisConfig,
+	CouncilConfig, ForeignAssetsConfig, PoolAssetsConfig, RuntimeGenesisConfig,
 	SessionConfig, SessionKeys, SudoConfig, SystemConfig,
 };
 
@@ -212,8 +212,9 @@ pub fn testnet_genesis(
 			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
-		treasury: Default::default(),
-		lockdown_mode: LockdownModeConfig { initial_status: false, ..Default::default() },
+		treasury:  Default::default(),
+		safe_mode: Default::default(),
+		tx_pause: Default::default(),
 		foreign_assets: ForeignAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		pool_assets: PoolAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		transaction_payment: Default::default(),
@@ -331,7 +332,8 @@ fn trappist_live_genesis(
 			phantom: Default::default(),
 		},
 		treasury: Default::default(),
-		lockdown_mode: Default::default(),
+		safe_mode: Default::default(),
+		tx_pause: Default::default(),
 		foreign_assets: ForeignAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		pool_assets: PoolAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 		transaction_payment: Default::default(),
