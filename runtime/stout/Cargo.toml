@@ -95,8 +95,6 @@ xcm-primitives = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 
 # External Pallets
-pallet-dex = { workspace = true }
-pallet-dex-rpc-runtime-api = { workspace = true }
 pallet-asset-registry = { workspace = true }
 
 [features]
@@ -118,11 +116,12 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
-	"frame-benchmarking/std",
+	"frame-benchmarking?/std",
 	"frame-executive/std",
 	"frame-support/std",
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
+	"frame-system-benchmarking?/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
@@ -132,8 +131,6 @@ std = [
 	"pallet-collective/std",
 	"pallet-contracts/std",
 	"pallet-contracts-primitives/std",
-	"pallet-dex/std",
-	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-multisig/std",
 	"pallet-insecure-randomness-collective-flip/std",
@@ -179,7 +176,6 @@ runtime-benchmarks = [
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
-	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",

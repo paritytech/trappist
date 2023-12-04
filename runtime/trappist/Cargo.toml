@@ -100,13 +100,9 @@ xcm-executor = { workspace = true }
 xcm-primitives = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
 
-# External Pallets
-pallet-dex = { workspace = true }
-pallet-dex-rpc-runtime-api = { workspace = true }
-
 # Trappist Pallets
 pallet-asset-registry = { workspace = true }
-trappist-runtime-benchmarks = { workspace = true }
+trappist-runtime-benchmarks = { workspace = true, optional = true }
 pallet-withdraw-teleport = { workspace = true }
 pallet-safe-mode = { workspace = true }
 pallet-tx-pause = { workspace = true }
@@ -136,8 +132,8 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
-	"frame-try-runtime/std",
-	"frame-system-benchmarking/std",
+	"frame-try-runtime?/std",
+	"frame-system-benchmarking?/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
@@ -148,8 +144,6 @@ std = [
 	"pallet-contracts/std",
 	"pallet-contracts-primitives/std",
 	"pallet-democracy/std",
-	"pallet-dex/std",
-	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-safe-mode/std",
 	"pallet-tx-pause/std",
@@ -187,7 +181,7 @@ std = [
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm/std",
-	"trappist-runtime-benchmarks/std",
+	"trappist-runtime-benchmarks?/std",
 ]
 runtime-benchmarks = [
 	"hex-literal",
@@ -206,7 +200,6 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
 	"pallet-democracy/runtime-benchmarks",
-	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-safe-mode/runtime-benchmarks",
 	"pallet-tx-pause/runtime-benchmarks",
@@ -238,7 +231,6 @@ try-runtime = [
 	"pallet-collective/try-runtime",
 	"pallet-contracts/try-runtime",
 	"pallet-democracy/try-runtime",
-	"pallet-dex/try-runtime",
 	"pallet-identity/try-runtime",
 	"pallet-safe-mode/try-runtime",
 	"pallet-tx-pause/try-runtime",

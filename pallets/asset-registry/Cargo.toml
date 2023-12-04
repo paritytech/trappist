@@ -16,7 +16,7 @@ parity-scale-codec = { workspace = true, features = ["derive"] }
 scale-info = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-frame-benchmarking = { workspace = true }
+frame-benchmarking = { workspace = true,  optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-assets = { workspace = true }
@@ -55,7 +55,7 @@ std = [
 	"sp-std/std",
 	"pallet-assets/std",
 	"pallet-balances/std",
-	"frame-benchmarking/std",
+	"frame-benchmarking?/std",
 	"frame-support/std",
 	"frame-system/std",
 	"scale-info/std",

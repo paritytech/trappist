@@ -31,9 +31,6 @@ trappist-runtime = { workspace = true, optional = true }
 stout-runtime = { workspace = true, optional = true }
 jsonrpsee = { workspace = true, features = ["server"] }
 
-# External Dependencies
-pallet-dex-rpc = { workspace = true }
-
 # Substrate
 frame-benchmarking = { workspace = true, features = ["std"] }
 frame-benchmarking-cli = { workspace = true }
