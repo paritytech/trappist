@@ -24,8 +24,8 @@ use sc_service::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use trappist_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, ForeignAssetsConfig, PoolAssetsConfig, RuntimeGenesisConfig,
-	SessionConfig, SessionKeys, SudoConfig, SystemConfig,
+	CouncilConfig, ForeignAssetsConfig, PoolAssetsConfig, RuntimeGenesisConfig, SessionConfig,
+	SessionKeys, SudoConfig, SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -212,7 +212,7 @@ pub fn testnet_genesis(
 			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
-		treasury:  Default::default(),
+		treasury: Default::default(),
 		safe_mode: Default::default(),
 		tx_pause: Default::default(),
 		foreign_assets: ForeignAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
