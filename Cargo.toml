@@ -56,7 +56,6 @@ pallet-dex-rpc-runtime-api = { version = "0.0.1", git = "https://github.com/pari
 # Trappist Pallets
 pallet-asset-registry = { default-features = false, path = "pallets/asset-registry" }
 trappist-runtime-benchmarks = { default-features = false, path = "pallets/benchmarks" }
-pallet-lockdown-mode = { version = "0.1.0", default-features = false, path = "pallets/lockdown-mode" }
 pallet-withdraw-teleport = { version = "0.1.0", default-features = false, path = "pallets/withdraw-teleport" }
 
 # Substrate std
@@ -142,6 +141,8 @@ pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/parityt
 pallet-uniques = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.1.0" }
 pallet-utility = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.1.0" }
 pallet-treasury = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.1.0" }
+pallet-safe-mode = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.1.0" }
+pallet-tx-pause = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.1.0" }
 
 # Cumulus client dependencies
 cumulus-client-cli = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }

@@ -106,8 +106,9 @@ pallet-dex-rpc-runtime-api = { workspace = true }
 # Trappist Pallets
 pallet-asset-registry = { workspace = true }
 trappist-runtime-benchmarks = { workspace = true }
-pallet-lockdown-mode = { workspace = true }
 pallet-withdraw-teleport = { workspace = true }
+pallet-safe-mode = { workspace = true }
+pallet-tx-pause = { workspace = true }
 
 [features]
 default = ["std"]
@@ -147,7 +148,8 @@ std = [
 	"pallet-dex/std",
 	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
-	"pallet-lockdown-mode/std",
+	"pallet-safe-mode/std",
+	"pallet-tx-pause/std",
 	"pallet-preimage/std",
 	"pallet-withdraw-teleport/std",
 	"pallet-multisig/std",
@@ -199,7 +201,8 @@ runtime-benchmarks = [
 	"pallet-democracy/runtime-benchmarks",
 	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
-	"pallet-lockdown-mode/runtime-benchmarks",
+	"pallet-safe-mode/runtime-benchmarks",
+	"pallet-tx-pause/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
@@ -229,7 +232,8 @@ try-runtime = [
 	"pallet-democracy/try-runtime",
 	"pallet-dex/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-lockdown-mode/try-runtime",
+	"pallet-safe-mode/try-runtime",
+	"pallet-tx-pause/try-runtime",
 	"pallet-multisig/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-timestamp/try-runtime",
