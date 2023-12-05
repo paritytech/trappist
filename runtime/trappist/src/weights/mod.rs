@@ -34,6 +34,8 @@ pub mod pallet_contracts;
 pub mod pallet_democracy;
 pub mod pallet_identity;
 pub mod pallet_multisig;
+pub mod pallet_preimage;
+pub mod pallet_safe_mode;
 pub mod pallet_scheduler;
 pub mod pallet_session;
 pub mod pallet_timestamp;

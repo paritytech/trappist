@@ -37,7 +37,7 @@ use frame_support::{
 pub use frame_system::Call as SystemCall;
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureRootWithSuccess, EnsureSigned,
+	EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_identity::simple::IdentityInfo;
 use pallet_tx_pause::RuntimeCallNameOf;
@@ -528,7 +528,7 @@ parameter_types! {
 
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_preimage::WeightInfo<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
 	type Consideration = ();
@@ -644,6 +644,7 @@ parameter_types! {
 	// The asset's interior location for the paying account. This is the Treasury
 	// pallet instance (which sits at index 61).
 	pub TreasuryInteriorLocation: InteriorMultiLocation = PalletInstance(61).into();
+	pub const MaxBalance: Balance = Balance::max_value();
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -662,7 +663,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
+	type SpendOrigin = EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, MaxBalance>;
 	type AssetKind = VersionedLocatableAsset;
 	type Beneficiary = VersionedMultiLocation;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
@@ -724,7 +725,7 @@ impl pallet_safe_mode::Config for Runtime {
 	type ForceDepositOrigin = EnsureRoot<AccountId>;
 	type Notify = ();
 	type ReleaseDelay = ReleaseDelay;
-	type WeightInfo = pallet_safe_mode::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_safe_mode::WeightInfo<Runtime>;
 }
 
 /// Calls that cannot be paused by the tx-pause pallet.
