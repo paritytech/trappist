@@ -75,7 +75,6 @@ cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-ping = { workspace = true }
 cumulus-primitives-core = { workspace = true }
-cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 pallet-collator-selection = { workspace = true }
 parachains-common = { workspace = true }
@@ -150,7 +149,6 @@ std = [
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-ping/std",
 	"cumulus-primitives-core/std",
-	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-session-benchmarking/std",

@@ -1390,9 +1390,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.4.10"
+version = "4.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41fffed7514f420abec6d183b1d3acfd9099c79c3a10a06ade4f8203f1411272"
+checksum = "bfaff671f6b22ca62406885ece523383b9b64022e341e53e009a62ebc47a45f2"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1400,9 +1400,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.4.9"
+version = "4.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63361bae7eef3771745f02d8d892bec2fee5f6e34af316ba556e7f97a7069ff1"
+checksum = "a216b506622bb1d316cd51328dce24e07bdff4a6128a47c7e7fad11878d5adbb"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2301,20 +2301,6 @@ dependencies = [
  "sp-storage",
  "sp-trie",
  "tracing",
-]
-
-[[package]]
-name = "cumulus-primitives-timestamp"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "771ef4a34f7bcd4e8782f73d8dbd0df031b1c1c82e54b06af69f88df2cddc316"
-dependencies = [
- "cumulus-primitives-core",
- "futures",
- "parity-scale-codec",
- "sp-inherents",
- "sp-std 12.0.0",
- "sp-timestamp",
 ]
 
 [[package]]
@@ -12956,7 +12942,6 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-ping",
  "cumulus-primitives-core",
- "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
@@ -13890,7 +13875,6 @@ dependencies = [
  "tempfile",
  "tokio",
  "trappist-runtime",
- "try-runtime-cli",
  "wait-timeout",
 ]
 
@@ -13905,9 +13889,7 @@ dependencies = [
  "cumulus-pallet-session-benchmarking",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-ping",
  "cumulus-primitives-core",
- "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
@@ -14079,7 +14061,6 @@ dependencies = [
  "async-trait",
  "clap",
  "frame-remote-externalities",
- "frame-try-runtime",
  "hex",
  "log",
  "parity-scale-codec",
@@ -15411,9 +15392,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.19"
+version = "0.5.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "829846f3e3db426d4cee4510841b71a8e58aa2a76b1132579487ae430ccd9c7b"
+checksum = "0383266b19108dfc6314a56047aa545a1b4d1be60e799b4dbdd407b56402704b"
 dependencies = [
  "memchr",
 ]

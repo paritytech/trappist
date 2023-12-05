@@ -26,7 +26,6 @@ use frame_support::{
 use pallet_contracts::{
 	weights::SubstrateWeight, Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule,
 };
-pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_core::ConstBool;
 use sp_runtime::Perbill;
 

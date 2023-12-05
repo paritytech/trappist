@@ -38,9 +38,7 @@ use cumulus_primitives_core::{
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
 use futures::lock::Mutex;
 use jsonrpsee::RpcModule;
-pub use parachains_common::{
-	AccountId, AssetIdForTrustBackedAssets as AssetId, Balance, Block, Hash, Header, Nonce,
-};
+pub use parachains_common::{AccountId, Balance, Block, Hash, Header, Nonce};
 use parity_scale_codec::Codec;
 use sc_consensus::{
 	import_queue::{BasicQueue, Verifier as VerifierT},

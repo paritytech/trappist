@@ -54,7 +54,6 @@ trappist-runtime-benchmarks = { default-features = false, path = "pallets/benchm
 pallet-withdraw-teleport = { default-features = false, path = "pallets/withdraw-teleport" }
 
 # Substrate std
-try-runtime-cli = "0.35.0"
 frame-benchmarking-cli = "29.0.0"
 frame-rpc-system = { version = "25.0.0", package = "substrate-frame-rpc-system", default-features = false }
 pallet-transaction-payment-rpc = "27.0.0"
@@ -160,7 +159,6 @@ cumulus-pallet-xcm = { version = "0.4.0", default-features = false }
 cumulus-pallet-xcmp-queue = { version = "0.4.0", default-features = false }
 cumulus-ping = { version = "0.4.0", default-features = false }
 cumulus-primitives-core = { version = "0.4.0", default-features = false }
-cumulus-primitives-timestamp = { version = "0.4.0", default-features = false }
 cumulus-primitives-utility = { version = "0.4.0", default-features = false }
 pallet-collator-selection = { version = "6.0.0", default-features = false }
 parachains-common = { version = "4.0.0", default-features = false }
