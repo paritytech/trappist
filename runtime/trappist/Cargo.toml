@@ -102,7 +102,7 @@ pallet-xcm-benchmarks = { workspace = true, optional = true }
 
 # Trappist Pallets
 pallet-asset-registry = { workspace = true }
-trappist-runtime-benchmarks = { workspace = true, optional = true }
+trappist-runtime-benchmarks = { workspace = true }
 pallet-withdraw-teleport = { workspace = true }
 pallet-safe-mode = { workspace = true }
 pallet-tx-pause = { workspace = true }
@@ -181,7 +181,7 @@ std = [
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm/std",
-	"trappist-runtime-benchmarks?/std",
+	"trappist-runtime-benchmarks/std",
 ]
 runtime-benchmarks = [
 	"hex-literal",
