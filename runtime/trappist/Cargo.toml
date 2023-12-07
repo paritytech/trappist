@@ -86,7 +86,6 @@ parachain-info = { workspace = true }
 cumulus-pallet-session-benchmarking = { workspace = true }
 
 # Polkadot Dependencies
-rococo-runtime-constants = { workspace = true }
 pallet-xcm = { workspace = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
@@ -160,7 +159,6 @@ std = [
 	"pallet-utility/std",
 	"pallet-xcm/std",
 	"pallet-xcm-benchmarks/std",
-	"rococo-runtime-constants/std",
 	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",

@@ -172,7 +172,6 @@ polkadot-service = "4.0.0"
 polkadot-runtime-parachains = { version = "4.0.0", default-features = false }
 
 # Polkadot Dependencies
-rococo-runtime-constants = { version = "4.0.0", default-features = false }
 pallet-xcm = { version = "4.0.0", default-features = false }
 polkadot-core-primitives = { version = "4.0.0", default-features = false }
 polkadot-parachain-primitives = { version = "3.0.0", default-features = false }
