@@ -22,11 +22,9 @@
 #[macro_use]
 extern crate frame_benchmarking;
 
-use assets_common::foreign_creators::ForeignCreators;
-use assets_common::local_and_foreign_assets::{LocalAndForeignAssets, MultiLocationConverter};
-use assets_common::matching::FromSiblingParachain;
-use assets_common::{AssetIdForTrustBackedAssetsConvert, MultiLocationForAssetId};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use frame_support::instances::{Instance1, Instance2};
+use frame_support::traits::fungibles::{Balanced, Credit};
 use frame_support::traits::InsideBoth;
 use frame_support::{
 	construct_runtime,
@@ -44,6 +42,8 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureSignedBy,
 };
+use pallet_asset_conversion::{NativeOrAssetId, NativeOrAssetIdConverter};
+use pallet_asset_tx_payment::HandleCredit;
 use pallet_tx_pause::RuntimeCallNameOf;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
@@ -69,15 +69,12 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
-use xcm::latest::MultiLocation;
 
 use constants::{currency::*, fee::WeightToFee};
 use impls::DealWithFees;
 use weights::{block_weights::BlockExecutionWeight, extrinsic_weights::ExtrinsicBaseWeight};
 use xcm_config::{
-	CollatorSelectionUpdateOrigin, ForeignCreatorsSovereignAccountOf,
-	LocalAndForeignAssetsMultiLocationMatcher, RelayLocation, TrustBackedAssetsConvertedConcreteId,
-	TrustBackedAssetsPalletLocation,
+	CollatorSelectionUpdateOrigin, RelayLocation, TrustBackedAssetsConvertedConcreteId,
 };
 
 // Make the WASM binary available.
@@ -258,12 +255,24 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
+/// A `HandleCredit` implementation that naively transfers the fees to the block author.
+/// Will drop and burn the assets in case the transfer fails.
+pub struct CreditToBlockAuthor;
+impl HandleCredit<AccountId, Assets> for CreditToBlockAuthor {
+	fn handle_credit(credit: Credit<AccountId, Assets>) {
+		if let Some(author) = pallet_authorship::Pallet::<Runtime>::author() {
+			// Drop the result which will trigger the `OnDrop` of the imbalance in case of error.
+			let _ = Assets::resolve(&author, credit);
+		}
+	}
+}
+
 impl pallet_asset_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Fungibles = Assets;
 	type OnChargeAssetTransaction = pallet_asset_tx_payment::FungiblesAdapter<
-		pallet_assets::BalanceToAssetBalance<Balances, Runtime, ConvertInto>,
-		AssetsToBlockAuthor<Runtime, ()>,
+		pallet_assets::BalanceToAssetBalance<Balances, Runtime, ConvertInto, Instance1>,
+		CreditToBlockAuthor,
 	>;
 }
 
@@ -377,14 +386,41 @@ pub type AssetsForceOrigin =
 
 pub type AssetBalance = Balance;
 
-impl pallet_assets::Config for Runtime {
+impl pallet_assets::Config<Instance1> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = AssetBalance;
-	type RemoveItemsLimit = frame_support::traits::ConstU32<1000>;
+	type RemoveItemsLimit = ConstU32<1000>;
 	type AssetId = AssetIdForTrustBackedAssets;
 	type AssetIdParameter = parity_scale_codec::Compact<AssetIdForTrustBackedAssets>;
 	type Currency = Balances;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type ForceOrigin = AssetsForceOrigin;
+	type AssetDeposit = ConstU128<{ UNITS }>;
+	type AssetAccountDeposit = ConstU128<{ UNITS }>;
+	type MetadataDepositBase = ConstU128<{ UNITS }>;
+	type MetadataDepositPerByte = ConstU128<{ 10 * CENTS }>;
+	type ApprovalDeposit = ConstU128<{ 10 * CENTS }>;
+	type StringLimit = ConstU32<50>;
+	type Freezer = ();
+	type Extra = ();
+	type CallbackHandle = ();
+	type WeightInfo = weights::pallet_assets::WeightInfo<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
+ord_parameter_types! {
+	pub const AssetConversionOrigin: AccountId = AccountIdConversion::<AccountId>::into_account_truncating(&AssetConversionPalletId::get());
+}
+
+impl pallet_assets::Config<Instance2> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = AssetBalance;
+	type RemoveItemsLimit = ConstU32<1000>;
+	type AssetId = AssetIdForTrustBackedAssets;
+	type AssetIdParameter = parity_scale_codec::Compact<AssetIdForTrustBackedAssets>;
+	type Currency = Balances;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSignedBy<AssetConversionOrigin, AccountId>>;
 	type ForceOrigin = AssetsForceOrigin;
 	type AssetDeposit = ConstU128<{ UNITS }>;
 	type AssetAccountDeposit = ConstU128<{ UNITS }>;
@@ -568,124 +604,42 @@ impl pallet_democracy::Config for Runtime {
 }
 
 parameter_types! {
-	pub const AssetDeposit: Balance = UNITS / 10; // 1 / 10 UNITS deposit to create asset
+	pub const AssetDeposit: Balance = UNITS;
 	pub const AssetAccountDeposit: Balance = deposit(1, 16);
 	pub const ApprovalDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = deposit(1, 68);
 	pub const MetadataDepositPerByte: Balance = deposit(0, 1);
-}
-
-parameter_types! {
-	pub const ForeignAssetsAssetDeposit: Balance = AssetDeposit::get();
-	pub const ForeignAssetsAssetAccountDeposit: Balance = AssetAccountDeposit::get();
-	pub const ForeignAssetsApprovalDeposit: Balance = ApprovalDeposit::get();
-	pub const ForeignAssetsAssetsStringLimit: u32 = AssetsStringLimit::get();
-	pub const ForeignAssetsMetadataDepositBase: Balance = MetadataDepositBase::get();
-	pub const ForeignAssetsMetadataDepositPerByte: Balance = MetadataDepositPerByte::get();
-}
-
-/// Assets managed by some foreign location. Note: we do not declare a `ForeignAssetsCall` type, as
-/// this type is used in proxy definitions. We assume that a foreign location would not want to set
-/// an individual, local account as a proxy for the issuance of their assets. This issuance should
-/// be managed by the foreign location's governance.
-pub type ForeignAssetsInstance = pallet_assets::Instance3;
-impl pallet_assets::Config<ForeignAssetsInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = MultiLocationForAssetId;
-	type AssetIdParameter = MultiLocationForAssetId;
-	type Currency = Balances;
-	type CreateOrigin = ForeignCreators<
-		(FromSiblingParachain<parachain_info::Pallet<Runtime>>,),
-		ForeignCreatorsSovereignAccountOf,
-		AccountId,
-	>;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = ForeignAssetsAssetDeposit;
-	type MetadataDepositBase = ForeignAssetsMetadataDepositBase;
-	type MetadataDepositPerByte = ForeignAssetsMetadataDepositPerByte;
-	type ApprovalDeposit = ForeignAssetsApprovalDeposit;
-	type StringLimit = ForeignAssetsAssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type WeightInfo = ();
-	type CallbackHandle = ();
-	type AssetAccountDeposit = ForeignAssetsAssetAccountDeposit;
-	type RemoveItemsLimit = ConstU32<1000>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = xcm_config::XcmBenchmarkHelper;
-}
-
-ord_parameter_types! {
-	pub const AssetConversionOrigin: sp_runtime::AccountId32 =
-		AccountIdConversion::<sp_runtime::AccountId32>::into_account_truncating(&AssetConversionPalletId::get());
-}
-
-pub type PoolAssetsInstance = pallet_assets::Instance4;
-impl pallet_assets::Config<PoolAssetsInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type RemoveItemsLimit = ConstU32<1000>;
-	type AssetId = u32;
-	type AssetIdParameter = u32;
-	type Currency = Balances;
-	type CreateOrigin =
-		AsEnsureOriginWithArg<EnsureSignedBy<AssetConversionOrigin, sp_runtime::AccountId32>>;
-	type ForceOrigin = AssetsForceOrigin;
-	// Deposits are zero because creation/admin is limited to Asset Conversion pallet.
-	type AssetDeposit = ConstU128<0>;
-	type AssetAccountDeposit = ConstU128<0>;
-	type MetadataDepositBase = ConstU128<0>;
-	type MetadataDepositPerByte = ConstU128<0>;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = ConstU32<50>;
-	type Freezer = ();
-	type Extra = ();
-	type WeightInfo = ();
-	type CallbackHandle = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
-
-parameter_types! {
 	pub const AssetConversionPalletId: PalletId = PalletId(*b"py/ascon");
-	pub const AllowMultiAssetPools: bool = false;
-	// should be non-zero if AllowMultiAssetPools is true, otherwise can be zero
-	pub const LiquidityWithdrawalFee: Permill = Permill::from_percent(0);
+	pub AllowMultiAssetPools: bool = true;
+	pub const PoolSetupFee: Balance = EXISTENTIAL_DEPOSIT; // should be more or equal to the existential deposit
+	pub const MintMinLiquidity: Balance = 100;  // 100 is good enough when the main currency has 10-12 decimals.
+	pub const LiquidityWithdrawalFee: Permill = Permill::from_percent(0);  // should be non-zero if AllowMultiAssetPools is true, otherwise can be zero.
 }
 
 impl pallet_asset_conversion::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type Balance = Balance;
 	type AssetBalance = Balance;
 	type HigherPrecisionBalance = u128;
-	type AssetId = MultiLocation;
-	type MultiAssetId = Box<MultiLocation>;
-	type MultiAssetIdConverter =
-		MultiLocationConverter<RelayLocation, LocalAndForeignAssetsMultiLocationMatcher>;
-	type PoolAssetId = u32;
-	type Assets = LocalAndForeignAssets<
-		Assets,
-		AssetIdForTrustBackedAssetsConvert<TrustBackedAssetsPalletLocation>,
-		ForeignAssets,
-	>;
+	type Assets = Assets;
+	type Balance = Balance;
 	type PoolAssets = PoolAssets;
-	type LPFee = ConstU32<3>;
-	type PoolSetupFee = ConstU128<0>;
-	// Asset class deposit fees are sufficient to prevent spam
-	type PoolSetupFeeReceiver = AssetConversionOrigin;
-	// should be non-zero if `AllowMultiAssetPools` is true, otherwise can be zero.
-	type LiquidityWithdrawalFee = LiquidityWithdrawalFee;
-	type MintMinLiquidity = ConstU128<100>;
-	type MaxSwapPathLength = ConstU32<4>;
+	type AssetId = <Self as pallet_assets::Config<Instance1>>::AssetId;
+	type MultiAssetId = NativeOrAssetId<u32>;
+	type PoolAssetId = <Self as pallet_assets::Config<Instance2>>::AssetId;
 	type PalletId = AssetConversionPalletId;
-	type AllowMultiAssetPools = AllowMultiAssetPools;
+	type LPFee = ConstU32<3>; // means 0.3%
+	type PoolSetupFee = PoolSetupFee;
+	type PoolSetupFeeReceiver = AssetConversionOrigin;
+	type LiquidityWithdrawalFee = LiquidityWithdrawalFee;
 	type WeightInfo = pallet_asset_conversion::weights::SubstrateWeight<Runtime>;
+	type AllowMultiAssetPools = AllowMultiAssetPools;
+	type MaxSwapPathLength = ConstU32<4>;
+	type MintMinLiquidity = MintMinLiquidity;
+	type MultiAssetIdConverter = NativeOrAssetIdConverter<u32>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper =
-		xcm_config::BenchmarkMultiLocationConverter<parachain_info::Pallet<Runtime>>;
+	type BenchmarkHelper = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -855,7 +809,7 @@ construct_runtime!(
 
 		// Runtime features
 		Contracts: pallet_contracts = 40,
-		Assets: pallet_assets = 41,
+		Assets: pallet_assets::<Instance1> = 41,
 		Identity: pallet_identity = 42,
 		Uniques: pallet_uniques = 43,
 		Scheduler: pallet_scheduler = 44,
@@ -876,11 +830,10 @@ construct_runtime!(
 		Sudo: pallet_sudo = 100,
 
 		// Additional pallets
-		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
+		AssetRegistry: pallet_asset_registry = 111,
 		WithdrawTeleport: pallet_withdraw_teleport = 112,
 		AssetConversion: pallet_asset_conversion = 113,
-		ForeignAssets: pallet_assets::<Instance3> = 114,
-		PoolAssets: pallet_assets::<Instance4> = 115,
+		PoolAssets: pallet_assets::<Instance2> = 114,
 	}
 );
 
@@ -1073,14 +1026,14 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl pallet_asset_conversion::AssetConversionApi<Block, Balance, u128, Box<MultiLocation>> for Runtime {
-		fn quote_price_exact_tokens_for_tokens(asset1: Box<MultiLocation>, asset2: Box<MultiLocation>, amount: u128, include_fee: bool) -> Option<Balance> {
+	impl pallet_asset_conversion::AssetConversionApi<Block, Balance, u128, NativeOrAssetId<u32>> for Runtime {
+		fn quote_price_exact_tokens_for_tokens(asset1: NativeOrAssetId<u32>, asset2: NativeOrAssetId<u32>, amount: u128, include_fee: bool) -> Option<Balance> {
 			AssetConversion::quote_price_exact_tokens_for_tokens(asset1, asset2, amount, include_fee)
 		}
-		fn quote_price_tokens_for_exact_tokens(asset1: Box<MultiLocation>, asset2: Box<MultiLocation>, amount: u128, include_fee: bool) -> Option<Balance> {
+		fn quote_price_tokens_for_exact_tokens(asset1: NativeOrAssetId<u32>, asset2: NativeOrAssetId<u32>, amount: u128, include_fee: bool) -> Option<Balance> {
 			AssetConversion::quote_price_tokens_for_exact_tokens(asset1, asset2, amount, include_fee)
 		}
-		fn get_reserves(asset1: Box<MultiLocation>, asset2: Box<MultiLocation>) -> Option<(Balance, Balance)> {
+		fn get_reserves(asset1: NativeOrAssetId<u32>, asset2: NativeOrAssetId<u32>) -> Option<(Balance, Balance)> {
 			AssetConversion::get_reserves(&asset1, &asset2).ok()
 		}
 	}
