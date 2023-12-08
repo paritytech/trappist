@@ -28,7 +28,7 @@ jobs:
 
       - name: Build ${{ matrix.runtime }} runtime
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.9.0
+        uses: chevdor/srtool-actions@v0.9.1
         with:
           chain: ${{ matrix.runtime }}
 
