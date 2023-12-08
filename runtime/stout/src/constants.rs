@@ -16,7 +16,7 @@
 // limitations under the License.
 
 pub mod currency {
-	use kusama_runtime_constants as constants;
+	use parachains_common::kusama as constants;
 	use polkadot_core_primitives::Balance;
 
 	/// The existential deposit. Set to 1/10 of its parent Relay Chain.

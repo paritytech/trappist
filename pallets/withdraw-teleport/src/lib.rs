@@ -207,7 +207,7 @@ impl<T: Config> Pallet<T> {
 
 		//Build the message to execute on origin.
 		let assets: MultiAssets = assets.into();
-		let mut message: Xcm<<T as frame_system::Config>::RuntimeCall> = Xcm(vec![
+		let mut message = Xcm(vec![
 			WithdrawAsset(assets.clone()),
 			SetFeesMode { jit_withdraw: true },
 			// Burn the native asset.

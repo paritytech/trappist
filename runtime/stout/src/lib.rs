@@ -71,6 +71,7 @@ use sp_version::RuntimeVersion;
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
 
 pub use frame_system::Call as SystemCall;
+use pallet_identity::simple::IdentityInfo;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -227,8 +228,9 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type MaxHolds = ConstU32<0>;
+	type MaxHolds = ConstU32<3>;
 	type MaxFreezes = ConstU32<0>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 parameter_types! {
@@ -285,6 +287,18 @@ parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
+#[cfg(feature = "parameterized-consensus-hook")]
+mod consensus {
+	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
+	/// into the relay chain.
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+	/// How many parachain blocks are processed by the relay chain per parent. Limits the
+	/// number of blocks authored per slot.
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+	/// Relay chain slot duration, in milliseconds.
+	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
+}
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
@@ -295,6 +309,13 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberStrictlyIncreases;
+	#[cfg(feature = "parameterized-consensus-hook")]
+	type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
+		Runtime,
+		{ consensus::RELAY_CHAIN_SLOT_DURATION_MILLIS },
+		{ consensus::BLOCK_PROCESSING_VELOCITY },
+		{ consensus::UNINCLUDED_SEGMENT_CAPACITY },
+	>;
 }
 
 impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
@@ -416,6 +437,7 @@ parameter_types! {
 	pub const BasicDeposit: Balance = deposit(1, 258);		// 258 bytes on-chain
 	pub const FieldDeposit: Balance = deposit(0, 66);  		// 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = deposit(1, 53);	// 53 bytes on-chain
+	pub const MaxAdditionalFields: u32 = 100;
 }
 
 impl pallet_identity::Config for Runtime {
@@ -426,6 +448,7 @@ impl pallet_identity::Config for Runtime {
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = ConstU32<100>;
 	type MaxAdditionalFields = ConstU32<100>;
+	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = ();
 	type ForceOrigin = EnsureRootOrHalfCouncil;
@@ -494,28 +517,7 @@ impl pallet_preimage::Config for Runtime {
 	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = PreimageBaseDeposit;
-	type ByteDeposit = PreimageByteDeposit;
-}
-
-parameter_types! {
-	pub const DexPalletId: PalletId = PalletId(*b"trap/dex");
-}
-
-impl pallet_dex::Config for Runtime {
-	type PalletId = DexPalletId;
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type AssetBalance = AssetBalance;
-	type AssetToCurrencyBalance = sp_runtime::traits::Identity;
-	type CurrencyToAssetBalance = sp_runtime::traits::Identity;
-	type AssetId = AssetIdForTrustBackedAssets;
-	type Assets = Assets;
-	type AssetRegistry = Assets;
-	type WeightInfo = pallet_dex::weights::SubstrateWeight<Runtime>;
-	type ProviderFeeNumerator = ConstU128<3>;
-	type ProviderFeeDenominator = ConstU128<1000>;
-	type MinDeposit = ConstU128<{ UNITS }>;
+	type Consideration = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -587,7 +589,6 @@ construct_runtime!(
 		Utility: pallet_utility = 47,
 		Preimage: pallet_preimage = 48,
 		Multisig: pallet_multisig = 49,
-		Dex: pallet_dex = 50,
 
 		Spambot: cumulus_ping::{Pallet, Call, Storage, Event<T>} = 99,
 		AssetRegistry: pallet_asset_registry::{Pallet, Call, Storage, Event<T>} = 111,
@@ -612,7 +613,6 @@ mod benches {
 		[pallet_identity, Identity]
 		[pallet_multisig, Multisig]
 		[pallet_uniques, Uniques]
-		[pallet_dex, Dex]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
@@ -704,36 +704,6 @@ impl_runtime_apis! {
 			encoded: Vec<u8>,
 		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
 			SessionKeys::decode_into_raw_public_keys(&encoded)
-		}
-	}
-
-	impl pallet_dex_rpc_runtime_api::DexApi<Block, AssetIdForTrustBackedAssets, Balance, AssetBalance> for Runtime {
-		fn get_currency_to_asset_output_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			currency_amount: Balance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-			Dex::get_currency_to_asset_output_amount(asset_id, currency_amount)
-		}
-
-		fn get_currency_to_asset_input_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			token_amount: AssetBalance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-			Dex::get_currency_to_asset_input_amount(asset_id, token_amount)
-		}
-
-		fn get_asset_to_currency_output_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			token_amount: AssetBalance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<Balance> {
-			Dex::get_asset_to_currency_output_amount(asset_id, token_amount)
-		}
-
-		fn get_asset_to_currency_input_amount(
-			asset_id: AssetIdForTrustBackedAssets,
-			currency_amount: Balance
-		) -> pallet_dex_rpc_runtime_api::RpcResult<AssetBalance> {
-			Dex::get_asset_to_currency_input_amount(asset_id, currency_amount)
 		}
 	}
 

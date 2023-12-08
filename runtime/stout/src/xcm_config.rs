@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use crate::AllPalletsWithSystem;
+use cumulus_primitives_core::ParaId;
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
@@ -36,6 +37,7 @@ use xcm_executor::traits::JustTry;
 
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use polkadot_parachain_primitives::primitives::Sibling;
+use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 
@@ -354,7 +356,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
-	type PriceForSiblingDelivery = ();
+	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {

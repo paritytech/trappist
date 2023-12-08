@@ -18,16 +18,9 @@
 //! Auxiliary struct/enums for parachain runtimes.
 //! Taken from polkadot/runtime/common (at a21cd64) and adapted for parachains.
 
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
-use frame_support::{
-	traits::{Contains, Currency, Imbalance, OnUnbalanced},
-	weights::Weight,
-};
+use frame_support::traits::{Currency, Imbalance, OnUnbalanced};
 pub use log;
-use sp_runtime::DispatchResult;
 use sp_std::marker::PhantomData;
-
-use super::*;
 
 /// Type alias to conveniently refer to the `Currency::NegativeImbalance` associated type.
 pub type NegativeImbalance<T> = <pallet_balances::Pallet<T> as Currency<
@@ -42,8 +35,8 @@ pub struct ToAuthor<R>(PhantomData<R>);
 impl<R> OnUnbalanced<NegativeImbalance<R>> for ToAuthor<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config,
-	AccountIdOf<R>: From<polkadot_core_primitives::v2::AccountId>
-		+ Into<polkadot_core_primitives::v2::AccountId>,
+	AccountIdOf<R>:
+		From<polkadot_core_primitives::AccountId> + Into<polkadot_core_primitives::AccountId>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
@@ -57,8 +50,8 @@ impl<R> OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_balances::Config + pallet_collator_selection::Config + pallet_treasury::Config,
 	pallet_treasury::Pallet<R>: OnUnbalanced<NegativeImbalance<R>>,
-	AccountIdOf<R>: From<polkadot_core_primitives::v2::AccountId>
-		+ Into<polkadot_core_primitives::v2::AccountId>,
+	AccountIdOf<R>:
+		From<polkadot_core_primitives::AccountId> + Into<polkadot_core_primitives::AccountId>,
 	<R as frame_system::Config>::RuntimeEvent: From<pallet_balances::Event<R>>,
 {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
@@ -78,18 +71,19 @@ where
 
 #[cfg(test)]
 mod tests {
+	use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 	use frame_support::{
-		parameter_types,
+		construct_runtime, parameter_types,
 		traits::{FindAuthor, ValidatorRegistration},
 		PalletId,
 	};
 	use frame_system::{limits, EnsureRoot};
 	use pallet_collator_selection::IdentityCollator;
-	use polkadot_core_primitives::v2::AccountId;
+	use polkadot_core_primitives::AccountId;
 	use sp_core::H256;
 	use sp_runtime::{
 		traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
-		Perbill, Permill,
+		BuildStorage, Perbill, Permill,
 	};
 
 	use super::*;
@@ -151,8 +145,9 @@ mod tests {
 		type FreezeIdentifier = ();
 		type MaxLocks = ();
 		type MaxReserves = MaxReserves;
-		type MaxHolds = ConstU32<0>;
+		type MaxHolds = ConstU32<3>;
 		type MaxFreezes = ConstU32<0>;
+		type RuntimeFreezeReason = ();
 	}
 
 	pub struct OneAuthor;
@@ -219,6 +214,10 @@ mod tests {
 		}
 	}
 
+	parameter_types! {
+		pub TreasuryAccount: AccountId = Treasury::account_id();
+	}
+
 	impl pallet_treasury::Config for Test {
 		type Currency = pallet_balances::Pallet<Test>;
 		type ApproveOrigin = EnsureRoot<AccountId>;
@@ -236,6 +235,14 @@ mod tests {
 		type SpendFunds = ();
 		type MaxApprovals = ConstU32<100>;
 		type SpendOrigin = TestSpendOrigin;
+		type AssetKind = ();
+		type Beneficiary = Self::AccountId;
+		type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+		type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+		type BalanceConverter = UnityAssetBalanceConversion;
+		type PayoutPeriod = ConstU64<10>;
+		#[cfg(feature = "runtime-benchmarks")]
+		type BenchmarkHelper = ();
 	}
 
 	pub fn new_test_ext() -> sp_io::TestExternalities {

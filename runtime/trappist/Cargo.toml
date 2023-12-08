@@ -78,9 +78,7 @@ cumulus-pallet-dmp-queue = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
-cumulus-ping = { workspace = true }
 cumulus-primitives-core = { workspace = true }
-cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 pallet-collator-selection = { workspace = true }
 parachains-common = { workspace = true }
@@ -88,20 +86,16 @@ parachain-info = { workspace = true }
 cumulus-pallet-session-benchmarking = { workspace = true }
 
 # Polkadot Dependencies
-kusama-runtime-constants = { workspace = true }
 pallet-xcm = { workspace = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
 polkadot-runtime-common = { workspace = true }
+polkadot-runtime-parachains = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 xcm-primitives = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true }
-
-# External Pallets
-pallet-dex = { workspace = true }
-pallet-dex-rpc-runtime-api = { workspace = true }
 
 # Trappist Pallets
 pallet-asset-registry = { workspace = true }
@@ -118,6 +112,7 @@ std = [
 	"scale-info/std",
 	"log/std",
 	"sp-api/std",
+	"sp-arithmetic/std",
 	"sp-block-builder/std",
 	"sp-consensus-aura/std",
 	"sp-core/std",
@@ -135,6 +130,7 @@ std = [
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-try-runtime?/std",
+	"frame-system-benchmarking?/std",
 	"pallet-assets/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
@@ -145,8 +141,6 @@ std = [
 	"pallet-contracts/std",
 	"pallet-contracts-primitives/std",
 	"pallet-democracy/std",
-	"pallet-dex/std",
-	"pallet-dex-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-safe-mode/std",
 	"pallet-tx-pause/std",
@@ -164,23 +158,24 @@ std = [
 	"pallet-uniques/std",
 	"pallet-utility/std",
 	"pallet-xcm/std",
+	"pallet-xcm-benchmarks/std",
 	"assets-common/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
 	"cumulus-pallet-xcmp-queue/std",
-	"cumulus-ping/std",
 	"cumulus-primitives-core/std",
-	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-pallet-dmp-queue/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"polkadot-parachain-primitives/std",
 	"polkadot-runtime-common/std",
+	"polkadot-runtime-parachains/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"xcm/std"
+	"xcm/std",
+	"trappist-runtime-benchmarks/std",
 ]
 runtime-benchmarks = [
 	"hex-literal",
@@ -193,13 +188,12 @@ runtime-benchmarks = [
 	"trappist-runtime-benchmarks/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-registry/runtime-benchmarks",
+	"pallet-asset-tx-payment/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"trappist-runtime-benchmarks/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
 	"pallet-democracy/runtime-benchmarks",
-	"pallet-dex/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-safe-mode/runtime-benchmarks",
 	"pallet-tx-pause/runtime-benchmarks",
@@ -217,6 +211,7 @@ runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"pallet-xcm-benchmarks/runtime-benchmarks",
 	"assets-common/runtime-benchmarks",
+	"polkadot-runtime-parachains/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-try-runtime/try-runtime",
@@ -230,7 +225,6 @@ try-runtime = [
 	"pallet-collective/try-runtime",
 	"pallet-contracts/try-runtime",
 	"pallet-democracy/try-runtime",
-	"pallet-dex/try-runtime",
 	"pallet-identity/try-runtime",
 	"pallet-safe-mode/try-runtime",
 	"pallet-tx-pause/try-runtime",
@@ -256,4 +250,8 @@ try-runtime = [
 	"pallet-sudo/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-withdraw-teleport/try-runtime",
+	"polkadot-runtime-parachains/try-runtime"
+]
+parameterized-consensus-hook = [
+	"cumulus-pallet-parachain-system/parameterized-consensus-hook",
 ]

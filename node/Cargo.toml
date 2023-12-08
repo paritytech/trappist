@@ -22,7 +22,7 @@ clap = { workspace = true }
 parity-scale-codec = { workspace = true }
 futures = { workspace = true }
 hex-literal = { workspace = true }
-log = { workspace = true }
+log = { workspace = true, features = ["std"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
@@ -30,9 +30,6 @@ serde_json = { workspace = true }
 trappist-runtime = { workspace = true, optional = true }
 stout-runtime = { workspace = true, optional = true }
 jsonrpsee = { workspace = true, features = ["server"] }
-
-# External Dependencies
-pallet-dex-rpc = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, features = ["std"] }
@@ -67,7 +64,6 @@ sp-api = { workspace = true, features = ["std"] }
 sp-consensus-aura = { workspace = true, features = ["std"] }
 sc-sysinfo = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
-try-runtime-cli = { workspace = true, optional = true }
 sc-transaction-pool-api = { workspace = true }
 frame-system = { workspace = true }
 frame-rpc-system = { workspace = true }
@@ -111,11 +107,12 @@ polkadot-cli = { workspace = true }
 [features]
 default = ["trappist-runtime", "stout-runtime"]
 runtime-benchmarks = [
-	"trappist-runtime?/runtime-benchmarks",
-	"stout-runtime?/runtime-benchmarks",
+	"trappist-runtime/runtime-benchmarks",
+	"frame-benchmarking-cli/runtime-benchmarks",
+	"stout-runtime/runtime-benchmarks",
 	"polkadot-cli/runtime-benchmarks"
 ]
 try-runtime = [
-	"trappist-runtime?/try-runtime",
-	"try-runtime-cli/try-runtime"
+	"trappist-runtime/try-runtime",
 ]
+parameterized-consensus-hook = []

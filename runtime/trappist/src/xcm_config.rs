@@ -15,16 +15,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use cumulus_primitives_core::ParaId;
 use frame_support::{
 	match_types, parameter_types,
 	traits::{Contains, ContainsPair, EitherOfDiverse, Everything, Get, Nothing, PalletInfoAccess},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
-// use super::xcm_primitives::{AbsoluteReserveProvider, MultiNativeAsset};
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use parachains_common::AssetIdForTrustBackedAssets;
 use polkadot_parachain_primitives::primitives::Sibling;
+use polkadot_runtime_common::xcm_sender::{ExponentialPrice, NoPriceForMessageDelivery};
 use sp_core::ConstU32;
 use sp_std::{marker::PhantomData, vec::Vec};
 use xcm::latest::{prelude::*, Fungibility::Fungible, MultiAsset, MultiLocation};
@@ -47,6 +48,7 @@ use crate::{
 	impls::ToAuthor,
 	weights,
 	weights::TrappistDropAssetsWeigher,
+	TransactionByteFee, CENTS,
 };
 
 use super::{
@@ -179,6 +181,16 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
 );
+
+parameter_types! {
+	/// The asset ID for the asset that we use to pay for message delivery fees.
+	pub FeeAssetId: AssetId = Concrete(RelayLocation::get());
+	/// The base fee for the message delivery fees.
+	pub const BaseDeliveryFee: u128 = CENTS.saturating_mul(3);
+}
+
+pub type PriceForParentDelivery =
+	ExponentialPrice<FeeAssetId, BaseDeliveryFee, TransactionByteFee, ParachainSystem>;
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
@@ -400,7 +412,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
-	type PriceForSiblingDelivery = ();
+	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {

@@ -156,6 +156,5 @@ pub fn testnet_genesis(
 			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
-		dex: Default::default(),
 	}
 }
