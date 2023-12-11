@@ -16,7 +16,6 @@
 // limitations under the License.
 
 use assets_common::local_and_foreign_assets::MatchesLocalAndForeignAssetsMultiLocation;
-use assets_common::matching::{StartsWith, StartsWithExplicitGlobalConsensus};
 use cumulus_primitives_core::ParaId;
 use frame_support::traits::PalletInfoAccess;
 use frame_support::{
@@ -28,6 +27,7 @@ use frame_system::EnsureRoot;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
 use parachains_common::{impls::DealWithFees, AssetIdForTrustBackedAssets};
 use polkadot_parachain_primitives::primitives::Sibling;
+use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use sp_core::ConstU32;
 use sp_std::marker::PhantomData;
 use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
@@ -38,7 +38,8 @@ use xcm_builder::{
 	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
 	MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	SignedToAccountId32, SovereignSignedViaLocation, StartsWith, StartsWithExplicitGlobalConsensus,
+	TakeWeightCredit, UsingComponents,
 };
 use xcm_executor::traits::JustTry;
 use xcm_executor::XcmExecutor;
@@ -363,7 +364,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Runtime>;
-	type PriceForSiblingDelivery = ();
+	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {

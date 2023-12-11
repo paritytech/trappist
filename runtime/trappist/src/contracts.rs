@@ -24,7 +24,6 @@ use frame_support::{
 	traits::{ConstBool, ConstU32, Nothing},
 };
 use pallet_contracts::{Config, DebugInfo, DefaultAddressGenerator, Frame, Schedule};
-pub use parachains_common::AVERAGE_ON_INITIALIZE_RATIO;
 use sp_runtime::Perbill;
 
 // Prints debug output of the `contracts` pallet to stdout if the node is

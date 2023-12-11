@@ -57,6 +57,7 @@ use frame_system::{
 };
 use pallet_asset_conversion::{NativeOrAssetId, NativeOrAssetIdConverter};
 use pallet_asset_tx_payment::HandleCredit;
+use pallet_identity::simple::IdentityInfo;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
@@ -67,8 +68,6 @@ pub use parachains_common::{
 };
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::SlowAdjustingFeeUpdate;
-#[cfg(any(feature = "std", test))]
-pub use sp_runtime::BuildStorage;
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -232,8 +231,9 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxLocks = ConstU32<50>;
 	type MaxReserves = ConstU32<50>;
-	type MaxHolds = ConstU32<0>;
+	type MaxHolds = ConstU32<3>;
 	type MaxFreezes = ConstU32<0>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 parameter_types! {
@@ -302,6 +302,18 @@ parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
+#[cfg(feature = "parameterized-consensus-hook")]
+mod consensus {
+	/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
+	/// into the relay chain.
+	pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+	/// How many parachain blocks are processed by the relay chain per parent. Limits the
+	/// number of blocks authored per slot.
+	pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+	/// Relay chain slot duration, in milliseconds.
+	pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
+}
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
@@ -312,6 +324,13 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberStrictlyIncreases;
+	#[cfg(feature = "parameterized-consensus-hook")]
+	type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
+		Runtime,
+		{ consensus::RELAY_CHAIN_SLOT_DURATION_MILLIS },
+		{ consensus::BLOCK_PROCESSING_VELOCITY },
+		{ consensus::UNINCLUDED_SEGMENT_CAPACITY },
+	>;
 }
 
 impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
@@ -460,6 +479,7 @@ parameter_types! {
 	pub const BasicDeposit: Balance = deposit(1, 258);		// 258 bytes on-chain
 	pub const FieldDeposit: Balance = deposit(0, 66);  		// 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = deposit(1, 53);	// 53 bytes on-chain
+	pub const MaxAdditionalFields: u32 = 100;
 }
 
 impl pallet_identity::Config for Runtime {
@@ -470,6 +490,7 @@ impl pallet_identity::Config for Runtime {
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = ConstU32<100>;
 	type MaxAdditionalFields = ConstU32<100>;
+	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = ();
 	type ForceOrigin = EnsureRootOrHalfCouncil;
@@ -538,8 +559,7 @@ impl pallet_preimage::Config for Runtime {
 	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = PreimageBaseDeposit;
-	type ByteDeposit = PreimageByteDeposit;
+	type Consideration = ();
 }
 
 #[cfg(feature = "runtime-benchmarks")]

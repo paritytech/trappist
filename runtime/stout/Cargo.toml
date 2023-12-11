@@ -77,7 +77,6 @@ cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-ping = { workspace = true }
 cumulus-primitives-core = { workspace = true }
-cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 pallet-collator-selection = { workspace = true }
 parachains-common = { workspace = true }
@@ -85,7 +84,6 @@ parachain-info = { workspace = true }
 cumulus-pallet-session-benchmarking = { workspace = true }
 
 # Polkadot Dependencies
-kusama-runtime-constants = { workspace = true }
 pallet-xcm = { workspace = true }
 polkadot-core-primitives = { workspace = true }
 polkadot-parachain-primitives = { workspace = true }
@@ -118,12 +116,14 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"frame-benchmarking?/std",
 	"frame-executive/std",
 	"frame-support/std",
 	"frame-system/std",
 	"frame-system-rpc-runtime-api/std",
-	"pallet-asset-conversion/std",
+	"frame-system-benchmarking?/std",
 	"pallet-assets/std",
+	"pallet-asset-conversion/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
@@ -151,16 +151,16 @@ std = [
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-ping/std",
 	"cumulus-primitives-core/std",
-	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-pallet-dmp-queue/std",
+	"cumulus-pallet-session-benchmarking/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"polkadot-parachain-primitives/std",
 	"polkadot-runtime-common/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
-	"xcm/std"
+	"xcm/std",
 ]
 runtime-benchmarks = [
 	"hex-literal",
@@ -188,4 +188,7 @@ runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"assets-common/runtime-benchmarks",
+]
+parameterized-consensus-hook = [
+	"cumulus-pallet-parachain-system/parameterized-consensus-hook",
 ]
