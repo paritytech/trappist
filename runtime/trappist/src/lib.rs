@@ -28,7 +28,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		tokens::UnityAssetBalanceConversion, AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32,
+		tokens::{PayFromAccount,UnityAssetBalanceConversion}, AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32,
 		ConstU64, Contains, EitherOfDiverse, EqualPrivilegeOnly, InsideBoth,
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
@@ -48,9 +48,6 @@ pub use parachains_common::{
 	BlockNumber, Hash, Header, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS,
 	MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
-use polkadot_runtime_common::impls::{
-	LocatableAssetConverter, VersionedLocatableAsset, VersionedMultiLocationConverter,
-};
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
 use sp_api::impl_runtime_apis;
@@ -69,8 +66,6 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::latest::{prelude::BodyId, InteriorMultiLocation, Junction::PalletInstance};
-use xcm::VersionedMultiLocation;
-use xcm_builder::PayOverXcm;
 
 use constants::{currency::*, fee::WeightToFee};
 use impls::DealWithFees;
@@ -644,6 +639,7 @@ parameter_types! {
 	// The asset's interior location for the paying account. This is the Treasury
 	// pallet instance (which sits at index 61).
 	pub TreasuryInteriorLocation: InteriorMultiLocation = PalletInstance(61).into();
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 	pub const MaxBalance: Balance = Balance::max_value();
 }
 
@@ -664,23 +660,14 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
 	type SpendOrigin = EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, MaxBalance>;
-	type AssetKind = VersionedLocatableAsset;
-	type Beneficiary = VersionedMultiLocation;
+	type AssetKind = ();
+	type Beneficiary = Self::AccountId;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
-	type Paymaster = PayOverXcm<
-		TreasuryInteriorLocation,
-		crate::xcm_config::XcmRouter,
-		PolkadotXcm,
-		ConstU32<{ 6 * HOURS }>,
-		Self::Beneficiary,
-		Self::AssetKind,
-		LocatableAssetConverter,
-		VersionedMultiLocationConverter,
-	>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = PayoutSpendPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = polkadot_runtime_common::impls::benchmarks::TreasuryArguments;
+	type BenchmarkHelper = ();
 }
 
 impl pallet_withdraw_teleport::Config for Runtime {
