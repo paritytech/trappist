@@ -28,8 +28,9 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		tokens::{PayFromAccount,UnityAssetBalanceConversion}, AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32,
-		ConstU64, Contains, EitherOfDiverse, EqualPrivilegeOnly, InsideBoth,
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
+		EqualPrivilegeOnly, InsideBoth,
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 	PalletId,
@@ -643,6 +644,33 @@ parameter_types! {
 	pub const MaxBalance: Balance = Balance::max_value();
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod treasury_benchmark_helper {
+	use crate::constants::currency::EXISTENTIAL_DEPOSIT;
+	use crate::{Balances, RuntimeOrigin};
+	use pallet_treasury::ArgumentsFactory;
+	use parachains_common::AccountId;
+	use sp_core::crypto::FromEntropy;
+
+	pub struct TreasuryBenchmarkHelper;
+	impl ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper {
+		fn create_asset_kind(_seed: u32) -> () {
+			()
+		}
+		fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+			let beneficiary = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+			// make sure the account has enough funds
+			Balances::force_set_balance(
+				RuntimeOrigin::root(),
+				sp_runtime::MultiAddress::Id(beneficiary.clone()),
+				EXISTENTIAL_DEPOSIT,
+			)
+			.expect("Failure transferring the existential deposit");
+			beneficiary
+		}
+	}
+}
+
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
 	type ApproveOrigin = TreasuryApproveCancelOrigin;
@@ -656,7 +684,7 @@ impl pallet_treasury::Config for Runtime {
 	type Burn = ();
 	type PalletId = TreasuryPalletId;
 	type BurnDestination = ();
-	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
 	type SpendOrigin = EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, MaxBalance>;
@@ -667,7 +695,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = PayoutSpendPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
+	type BenchmarkHelper = treasury_benchmark_helper::TreasuryBenchmarkHelper;
 }
 
 impl pallet_withdraw_teleport::Config for Runtime {
