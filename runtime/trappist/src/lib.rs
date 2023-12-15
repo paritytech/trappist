@@ -848,7 +848,7 @@ mod benches {
 		[pallet_withdraw_teleport, WithdrawTeleport]
 		// XCM
 		// NOTE: Make sure you point to the individual modules below.
-		[pallet_xcm_benchmarks::fungible, XcmBalances]
+		[pallet_xcm_benchmarks::fungible, Balances]
 		[pallet_xcm_benchmarks::generic, XcmGeneric]
 	);
 }
@@ -1111,7 +1111,6 @@ impl_runtime_apis! {
 			// This is defined once again in dispatch_benchmark, because list_benchmarks!
 			// and add_benchmarks! are macros exported by define_benchmarks! macros and those types
 			// are referenced in that call.
-			type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::<Runtime>;
 			type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::<Runtime>;
 
 			let mut list = Vec::<BenchmarkList>::new();
@@ -1212,7 +1211,7 @@ impl_runtime_apis! {
 				fn get_multi_asset() -> MultiAsset {
 					MultiAsset {
 						id: Concrete(SelfReserve::get()),
-						fun: Fungible(1 * UNITS),
+						fun: Fungible(UNITS),
 					}
 				}
 			}
@@ -1263,7 +1262,6 @@ impl_runtime_apis! {
 			}
 
 
-			type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::<Runtime>;
 			type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::<Runtime>;
 
 			use xcm_primitives::TrappistDropAssets;
