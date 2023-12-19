@@ -28,8 +28,9 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	traits::{
-		tokens::UnityAssetBalanceConversion, AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32,
-		ConstU64, Contains, EitherOfDiverse, EqualPrivilegeOnly, InsideBoth,
+		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
+		EqualPrivilegeOnly, InsideBoth,
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 	PalletId,
@@ -47,9 +48,6 @@ pub use parachains_common::{
 	impls::AssetsToBlockAuthor, opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
 	BlockNumber, Hash, Header, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS,
 	MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
-};
-use polkadot_runtime_common::impls::{
-	LocatableAssetConverter, VersionedLocatableAsset, VersionedMultiLocationConverter,
 };
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
@@ -69,8 +67,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm::latest::{prelude::BodyId, InteriorMultiLocation, Junction::PalletInstance};
-use xcm::VersionedMultiLocation;
-use xcm_builder::PayOverXcm;
+
 
 use constants::{currency::*, fee::WeightToFee};
 use impls::DealWithFees;
@@ -644,7 +641,35 @@ parameter_types! {
 	// The asset's interior location for the paying account. This is the Treasury
 	// pallet instance (which sits at index 61).
 	pub TreasuryInteriorLocation: InteriorMultiLocation = PalletInstance(61).into();
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 	pub const MaxBalance: Balance = Balance::max_value();
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub mod treasury_benchmark_helper {
+	use crate::constants::currency::EXISTENTIAL_DEPOSIT;
+	use crate::{Balances, RuntimeOrigin};
+	use pallet_treasury::ArgumentsFactory;
+	use parachains_common::AccountId;
+	use sp_core::crypto::FromEntropy;
+
+	pub struct TreasuryBenchmarkHelper;
+	impl ArgumentsFactory<(), AccountId> for TreasuryBenchmarkHelper {
+		fn create_asset_kind(_seed: u32) -> () {
+			()
+		}
+		fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+			let beneficiary = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+			// make sure the account has enough funds
+			Balances::force_set_balance(
+				RuntimeOrigin::root(),
+				sp_runtime::MultiAddress::Id(beneficiary.clone()),
+				EXISTENTIAL_DEPOSIT,
+			)
+			.expect("Failure transferring the existential deposit");
+			beneficiary
+		}
+	}
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -660,27 +685,18 @@ impl pallet_treasury::Config for Runtime {
 	type Burn = ();
 	type PalletId = TreasuryPalletId;
 	type BurnDestination = ();
-	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
 	type SpendOrigin = EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, MaxBalance>;
-	type AssetKind = VersionedLocatableAsset;
-	type Beneficiary = VersionedMultiLocation;
+	type AssetKind = ();
+	type Beneficiary = Self::AccountId;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
-	type Paymaster = PayOverXcm<
-		TreasuryInteriorLocation,
-		crate::xcm_config::XcmRouter,
-		PolkadotXcm,
-		ConstU32<{ 6 * HOURS }>,
-		Self::Beneficiary,
-		Self::AssetKind,
-		LocatableAssetConverter,
-		VersionedMultiLocationConverter,
-	>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = PayoutSpendPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = polkadot_runtime_common::impls::benchmarks::TreasuryArguments;
+	type BenchmarkHelper = treasury_benchmark_helper::TreasuryBenchmarkHelper;
 }
 
 impl pallet_withdraw_teleport::Config for Runtime {
