@@ -849,7 +849,8 @@ mod benches {
 		// XCM
 		// NOTE: Make sure you point to the individual modules below.
 		[pallet_xcm_benchmarks::fungible, XcmBalances]
-		[pallet_xcm_benchmarks::generic, XcmGeneric]
+		// TODO: Temp comment out due to known bug fixed on v1.5 #2288 on polkadot-sdk
+		//[pallet_xcm_benchmarks::generic, XcmGeneric]
 	);
 }
 
