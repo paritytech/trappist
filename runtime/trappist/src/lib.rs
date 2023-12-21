@@ -1149,7 +1149,7 @@ impl_runtime_apis! {
 
 			parameter_types! {
 				pub ExistentialDepositMultiAsset: Option<MultiAsset> = Some((
-					RelayLocation::get(),
+					SelfReserve::get(),
 					ExistentialDeposit::get()
 				).into());
 			}
