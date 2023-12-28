@@ -17,6 +17,13 @@ jobs:
 
       - name: Setup worker
         uses: "./.github/templates/setup-worker"
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, rust-src
 
       - name: Cache Build artefacts
         uses: actions/cache/restore@v3
