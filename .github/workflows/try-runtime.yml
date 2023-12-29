@@ -34,7 +34,7 @@ jobs:
       - name: Install try-runtime
         run: |
           echo "---------- Downloading try-runtime CLI ----------"
-          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.3.3/try-runtime-x86_64-unknown-linux-musl -o try-runtime
+          curl -sL https://github.com/paritytech/try-runtime-cli/releases/download/v0.4.0/try-runtime-x86_64-unknown-linux-musl -o try-runtime
           chmod +x ./try-runtime
 
       - run: |
@@ -42,6 +42,6 @@ jobs:
           echo "---------- Running try-runtime for Trappist ----------"
           cargo build -p trappist --locked --release --no-default-features --features trappist/trappist-runtime,try-runtime && \
           ./try-runtime --runtime ./target/release/wbuild/trappist-runtime/target/wasm32-unknown-unknown/release/trappist_runtime.wasm \
-              on-runtime-upgrade --checks pre-and-post live --uri wss://rococo-trappist-try-runtime-node.parity-chains.parity.io:443
+              on-runtime-upgrade --checks pre-and-post --disable-idempotency-checks live --uri wss://rococo-trappist-try-runtime-node.parity-chains.parity.io:443
         env:
           RUST_LOG: remote-ext=debug,runtime=debug
