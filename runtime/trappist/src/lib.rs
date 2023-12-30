@@ -142,10 +142,7 @@ impl frame_support::traits::OnRuntimeUpgrade for FixStorageVersions {
 	}
 }
 
-pub type Migrations = (
-	pallet_contracts::Migration<Runtime>,
-	FixStorageVersions,
-);
+pub type Migrations = (pallet_contracts::Migration<Runtime>, FixStorageVersions);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
