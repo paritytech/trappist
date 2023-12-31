@@ -61,7 +61,7 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-	pub SelfReserve: MultiLocation = MultiLocation { parents:0, interior: Here };
+	pub SelfReserve: MultiLocation = MultiLocation::here();
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	// Be mindful with incoming teleports if you implement this
@@ -184,7 +184,8 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The asset ID for the asset that we use to pay for message delivery fees.
-	pub FeeAssetId: AssetId = Concrete(RelayLocation::get());
+	/// TODO: Check if correct, previously was RelayLocation but AssetTransactor couldn't handle it.
+	pub FeeAssetId: AssetId = Concrete(SelfReserve::get());
 	/// The base fee for the message delivery fees.
 	pub const BaseDeliveryFee: u128 = CENTS.saturating_mul(3);
 }
