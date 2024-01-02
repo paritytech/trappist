@@ -4,6 +4,7 @@ timeout = 1000
 [relaychain]
 chain = "rococo-local"
 default_command = "./bin/polkadot"
+# chain_spec_path = "./bin/rococo-local-plain-custom.json"
 
   [[relaychain.nodes]]
   name = "alice"
@@ -25,24 +26,6 @@ default_command = "./bin/polkadot"
   name = "dave"
   validator = true
   extra_args = [ "-lparachain=debug" ]
-
-[[parachains]]
-id = 1000
-add_to_genesis = true
-cumulus_based = true
-chain = "asset-hub-rococo-local"
-
-  [[parachains.collators]]
-  name = "asset-hub-collator01"
-  command = "./bin/polkadot-parachain"
-  ws_port = 9910
-  args = ["--log=xcm=trace,pallet-assets=trace"]
-
-  [[parachains.collators]]
-  name = "asset-hub-collator02"
-  command = "./bin/polkadot-parachain"
-  ws_port = 9911
-  args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
 id = 1836
@@ -87,30 +70,6 @@ post_state = "Hash"
 
 # Currently there is a known issue with opening hrmp channels on Zombienete config. 
 # Use hrmp_helper to open channels instead.
-
-# [[hrmp_channels]]
-# sender = 1000
-# recipient = 1836
-# max_capacity = 8
-# max_message_size = 512
-
-# [[hrmp_channels]]
-# sender = 1836
-# recipient = 1000
-# max_capacity = 8
-# max_message_size = 512
-
-# [[hrmp_channels]]
-# sender = 1000
-# recipient = 3000
-# max_capacity = 8
-# max_message_size = 512
-
-# [[hrmp_channels]]
-# sender = 3000
-# recipient = 1000
-# max_capacity = 8
-# max_message_size = 512
 
 # [[hrmp_channels]]
 # sender = 1836
