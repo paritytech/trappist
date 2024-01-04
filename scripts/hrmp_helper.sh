@@ -1,4 +1,4 @@
-# Helper script to open HRMP channels between Trappist, Stout and Asset Hub. 
+# Helper script to open HRMP channels between Trappist, Stout and Asset Hub.
 # This script is meant to be run after the relay chain and parachains are spawned.
 
 # Change for your bin path
@@ -66,17 +66,17 @@ ensure_binaries
 # Check for polkadot-js-api cli
 ensure_polkadot_js_api
 
-# HRMP: Trappist - Stout
-open_hrmp_channels \
-    "ws://127.0.0.1:9900" \
-    "//Alice" \
-    1836 3000 4 524288
+# # HRMP: Trappist - Stout
+# open_hrmp_channels \
+#     "ws://127.0.0.1:9900" \
+#     "//Alice" \
+#     1836 3000 4 524288
 
-# HRMP: Stout - Trappist
-open_hrmp_channels \
-    "ws://127.0.0.1:9900" \
-    "//Alice" \
-    3000 1836 4 524288
+# # HRMP: Stout - Trappist
+# open_hrmp_channels \
+#     "ws://127.0.0.1:9900" \
+#     "//Alice" \
+#     3000 1836 4 524288
 
 # HRMP: Trappist - Asset Hub
 open_hrmp_channels \
@@ -90,14 +90,38 @@ open_hrmp_channels \
     "//Alice" \
     1000 1836 4 524288
 
-# HRMP: Stout - Asset Hub
-open_hrmp_channels \
-    "ws://127.0.0.1:9900" \
-    "//Alice" \
-    3000 1000 4 524288
+# # HRMP: Stout - Asset Hub
+# open_hrmp_channels \
+#     "ws://127.0.0.1:9900" \
+#     "//Alice" \
+#     3000 1000 4 524288
 
-# HRMP: Asset Hub - Stout
+# # HRMP: Asset Hub - Stout
+# open_hrmp_channels \
+#     "ws://127.0.0.1:9900" \
+#     "//Alice" \
+#     1000 3000 4 524288
+
+# HRMP: Coretime - Asset Hub
 open_hrmp_channels \
     "ws://127.0.0.1:9900" \
     "//Alice" \
-    1000 3000 4 524288
+    1005 1000 4 524288
+
+# HRMP: Asset Hub - Coretime
+open_hrmp_channels \
+    "ws://127.0.0.1:9900" \
+    "//Alice" \
+    1000 1005 4 524288
+
+# HRMP: Coretime - Trappist
+open_hrmp_channels \
+    "ws://127.0.0.1:9900" \
+    "//Alice" \
+    1005 1836 4 524288
+
+# HRMP: Trappist - Coretime
+open_hrmp_channels \
+    "ws://127.0.0.1:9900" \
+    "//Alice" \
+    1836 1005 4 524288

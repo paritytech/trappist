@@ -1,0 +1,104 @@
+[settings]
+timeout = 1000
+
+[relaychain]
+chain = "rococo-local"
+default_command = "./bin/polkadot"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+ws_port = 9900
+extra_args = ["-lparachain=debug"]
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+extra_args = ["-lparachain=debug"]
+
+[[relaychain.nodes]]
+name = "charlie"
+validator = true
+extra_args = ["-lparachain=debug"]
+
+[[relaychain.nodes]]
+name = "dave"
+validator = true
+extra_args = ["-lparachain=debug"]
+
+[[parachains]]
+id = 1000
+add_to_genesis = true
+cumulus_based = true
+chain = "asset-hub-rococo-local"
+
+[[parachains.collators]]
+name = "asset-hub-collator01"
+command = "./bin/polkadot-parachain"
+ws_port = 9910
+args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains.collators]]
+name = "asset-hub-collator02"
+command = "./bin/polkadot-parachain"
+ws_port = 9911
+args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains]]
+id = 1005
+add_to_genesis = true
+cumulus_based = true
+chain = "coretime-rococo-local"
+
+[[parachains.collators]]
+name = "coretime-collator01"
+command = "./bin/polkadot-parachain"
+ws_port = 9940
+args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains.collators]]
+name = "coretime-collator02"
+command = "./bin/polkadot-parachain"
+ws_port = 9941
+args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains]]
+id = 1836
+add_to_genesis = true
+cumulus_based = true
+chain = "trappist-local"
+
+[[parachains.collators]]
+name = "trappist-collator01"
+command = "./target/release/trappist-node"
+ws_port = 9920
+args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[[parachains.collators]]
+name = "trappist-collator02"
+command = "./target/release/trappist-node"
+ws_port = 9921
+args = ["--log=xcm=trace,pallet-assets=trace"]
+
+[types.Header]
+number = "u64"
+parent_hash = "Hash"
+post_state = "Hash"
+
+# Currently there is a known issue with opening hrmp channels 
+# on genesis that stops block production after epoch 1. 
+# Use hrmp_helper script after network spawn to open channels instead.
+
+# [[hrmp_channels]]
+# sender = 1000
+# recipient = 1836
+# max_capacity = 8
+# max_message_size = 512
+
+# [[hrmp_channels]]
+# sender = 1836
+# recipient = 1000
+# max_capacity = 8
+# max_message_size = 512
+
+
