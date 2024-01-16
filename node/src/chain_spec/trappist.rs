@@ -137,7 +137,7 @@ pub fn trappist_local_testnet_config() -> ChainSpec {
 			)
 		},
 		// Bootnodes
-		vec![],
+		Vec::new(),
 		// Telemetry
 		None,
 		// Protocol ID
