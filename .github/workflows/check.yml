@@ -36,7 +36,7 @@ jobs:
         uses: "./.github/templates/setup-worker"
 
       - name: Cache Build artefacts
-        uses: Swatinem/rust-cache@v2.7.1
+        uses: Swatinem/rust-cache@v2.7.3
         with:
           cache-on-failure: true
           shared-key: ${{ env.POLKA_VERSION }}-release
@@ -59,7 +59,7 @@ jobs:
         uses: "./.github/templates/setup-worker"
 
       - name: Cache Build artefacts
-        uses: Swatinem/rust-cache@v2.7.1
+        uses: Swatinem/rust-cache@v2.7.3
         with:
           cache-on-failure: true
           shared-key: ${{ env.POLKA_VERSION }}-debug
