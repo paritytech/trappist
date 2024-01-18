@@ -64,7 +64,7 @@ args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
 id = 1836
-add_to_genesis = true
+add_to_genesis = false
 cumulus_based = true
 chain = "trappist-local"
 
