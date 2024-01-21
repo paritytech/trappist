@@ -20,7 +20,8 @@ use cumulus_primitives_core::ParaId;
 
 use super::{
 	AccountId, AssetRegistry, Assets, Balance, Balances, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
+	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, StoutCollectionId, StoutItemId,
+	Uniques, WeightToFee, XcmpQueue,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -46,9 +47,10 @@ use xcm_builder::{
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
 	ConvertedConcreteId, CurrencyAdapter, DenyReserveTransferToRelayChain, DenyThenTry,
 	EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds, FungiblesAdapter, IsConcrete,
-	MintLocation, NativeAsset, NoChecking, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	MintLocation, NativeAsset, NoChecking, NonFungiblesAdapter, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	UsingComponents,
 };
 use xcm_executor::XcmExecutor;
 
@@ -148,8 +150,30 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 	PlaceholderAccount,
 >;
 
+pub type NonFungiblesTransactor = NonFungiblesAdapter<
+	// Use this nonfungibles implementation:
+	Uniques,
+	// Type that attempts to convert the `MultiAsset` into a registered uniques item.
+	// Assets not found in AssetRegistry will not be used.
+	ConvertedConcreteId<
+		StoutCollectionId,
+		StoutItemId,
+		AsPrefixedGeneralIndex<StatemineUniquesPalletLocation, StoutCollectionId, JustTry>,
+		JustTry,
+	>,
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// This chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports of `Assets`.
+	NoChecking,
+	// No teleports.
+	(),
+>;
+
 /// Means for transacting assets on this chain.
-pub type AssetTransactors = (CurrencyTransactor, ReservedFungiblesTransactor, FungiblesTransactor);
+pub type AssetTransactors =
+	(CurrencyTransactor, ReservedFungiblesTransactor, FungiblesTransactor, NonFungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -236,6 +260,8 @@ parameter_types! {
 	// Statemine's Assets pallet index
 	pub StatemineAssetsPalletLocation: MultiLocation =
 		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(50)));
+	pub StatemineUniquesPalletLocation: MultiLocation =
+		MultiLocation::new(1, X2(Parachain(1000), PalletInstance(51)));
 }
 
 pub struct ReserveAssetsFrom<T>(PhantomData<T>);

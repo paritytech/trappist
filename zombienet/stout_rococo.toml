@@ -30,19 +30,19 @@ default_command = "./bin/polkadot"
 id = 1000
 add_to_genesis = true
 cumulus_based = true
-chain = "statemine-local"
+chain = "asset-hub-rococo-local"
 
   [[parachains.collators]]
   name = "statemine-collator01"
   command = "./bin/polkadot-parachain"
   ws_port = 9910
-  args = ["--log=xcm=trace,pallet-assets=trace"]
+  args = ["--log=xcm=trace,pallet-assets=trace,pallet-uniques=trace"]
 
   [[parachains.collators]]
   name = "statemine-collator02"
   command = "./bin/polkadot-parachain"
   ws_port = 9911
-  args = ["--log=xcm=trace,pallet-assets=trace"]
+  args = ["--log=xcm=trace,pallet-assets=trace,pallet-uniques=trace"]
 
 [[parachains]]
 id = 3000
@@ -54,13 +54,13 @@ chain = "stout-local"
   name = "stout-collator01"
   command = "./target/release/trappist-node"
   ws_port = 9930
-  args = ["--log=xcm=trace,pallet-assets=trace"]
+  args = ["--log=xcm=trace,pallet-assets=trace,pallet-uniques=trace"]
 
   [[parachains.collators]]
   name = "stout-collator02"
   command = "./target/release/trappist-node"
   ws_port = 9931
-  args = ["--log=xcm=trace,pallet-assets=trace"]
+  args = ["--log=xcm=trace,pallet-assets=trace,pallet-uniques=trace"]
 
 [types.Header]
 number = "u64"
