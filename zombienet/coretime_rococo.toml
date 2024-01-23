@@ -28,8 +28,9 @@ extra_args = ["-lparachain=debug"]
 
 [[parachains]]
 id = 1000
-add_to_genesis = true
-cumulus_based = true
+add_to_genesis = false
+register_para = false
+onboard_as_parachain = false
 chain = "asset-hub-rococo-local"
 
 [[parachains.collators]]
@@ -46,26 +47,25 @@ args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
 id = 1005
-add_to_genesis = true
-cumulus_based = true
 chain = "coretime-rococo-local"
 
 [[parachains.collators]]
 name = "coretime-collator01"
 command = "./bin/polkadot-parachain"
 ws_port = 9940
-args = ["--log=xcm=trace,pallet-assets=trace"]
+args = ["-lruntime=debug,xcm=trace"]
 
 [[parachains.collators]]
 name = "coretime-collator02"
 command = "./bin/polkadot-parachain"
 ws_port = 9941
-args = ["--log=xcm=trace,pallet-assets=trace"]
+args = ["-lruntime=debug,xcm=trace"]
 
 [[parachains]]
 id = 1836
 add_to_genesis = false
-cumulus_based = true
+register_para = false
+onboard_as_parachain = false
 chain = "trappist-local"
 
 [[parachains.collators]]
@@ -80,10 +80,10 @@ command = "./target/release/trappist-node"
 ws_port = 9921
 args = ["--log=xcm=trace,pallet-assets=trace"]
 
-[types.Header]
-number = "u64"
-parent_hash = "Hash"
-post_state = "Hash"
+# [types.Header]
+# number = "u64"
+# parent_hash = "Hash"
+# post_state = "Hash"
 
 # Currently there is a known issue with opening hrmp channels 
 # on genesis that stops block production after epoch 1. 
@@ -100,5 +100,3 @@ post_state = "Hash"
 # recipient = 1000
 # max_capacity = 8
 # max_message_size = 512
-
-
