@@ -30,16 +30,16 @@ default_command = "./bin/polkadot"
 id = 1000
 add_to_genesis = true
 cumulus_based = true
-chain = "statemine-local"
+chain = "asset-hub-rococo-local"
 
   [[parachains.collators]]
-  name = "statemine-collator01"
+  name = "asset-hub-rococo-collator01"
   command = "./bin/polkadot-parachain"
   ws_port = 9910
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
   [[parachains.collators]]
-  name = "statemine-collator02"
+  name = "asset-hub-rococo-collator02"
   command = "./bin/polkadot-parachain"
   ws_port = 9911
   args = ["--log=xcm=trace,pallet-assets=trace"]
