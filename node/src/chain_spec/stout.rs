@@ -25,7 +25,8 @@ use sc_service::ChainType;
 use sp_core::sr25519;
 use stout_runtime::{
 	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig, SystemConfig,
+	CouncilConfig, PoolAssetsConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
+	SystemConfig,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "stout";
@@ -156,5 +157,6 @@ pub fn testnet_genesis(
 			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
 			phantom: Default::default(),
 		},
+		pool_assets: PoolAssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
 	}
 }

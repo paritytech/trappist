@@ -48,6 +48,7 @@ frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true }
 
 ## Substrate Pallet Dependencies
+pallet-asset-conversion = { workspace = true }
 pallet-assets = { workspace = true }
 pallet-asset-tx-payment = { workspace = true }
 pallet-aura = { workspace = true }
@@ -132,6 +133,7 @@ std = [
 	"frame-try-runtime?/std",
 	"frame-system-benchmarking?/std",
 	"pallet-assets/std",
+	"pallet-asset-conversion/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
@@ -186,6 +188,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"trappist-runtime-benchmarks/runtime-benchmarks",
+	"pallet-asset-conversion/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-asset-registry/runtime-benchmarks",
 	"pallet-asset-tx-payment/runtime-benchmarks",
@@ -218,6 +221,7 @@ try-runtime = [
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-support/try-runtime",
+	"pallet-asset-conversion/try-runtime",
 	"pallet-assets/try-runtime",
 	"pallet-asset-registry/try-runtime",
 	"pallet-balances/try-runtime",

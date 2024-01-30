@@ -137,6 +137,7 @@ pallet-utility = { version = "25.0.0", default-features = false }
 pallet-treasury = { version = "24.0.0", default-features = false }
 pallet-safe-mode = { version = "6.0.0", default-features = false }
 pallet-tx-pause = { version = "6.0.0", default-features = false }
+pallet-asset-conversion = { version = "7.0.0", default-features = false }
 
 # Cumulus client dependencies
 cumulus-client-cli = "0.4.0"
