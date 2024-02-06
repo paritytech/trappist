@@ -64,7 +64,7 @@ args = ["-lruntime=debug,xcm=trace"]
 [[parachains]]
 id = 1836
 add_to_genesis = false
-register_para = false
+register_para = true
 onboard_as_parachain = false
 chain = "trappist-local"
 
