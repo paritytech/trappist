@@ -215,6 +215,7 @@ runtime-benchmarks = [
 	"polkadot-runtime-parachains/runtime-benchmarks"
 ]
 try-runtime = [
+	"hex-literal",
 	"frame-try-runtime/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
