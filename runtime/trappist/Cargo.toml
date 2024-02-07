@@ -107,6 +107,7 @@ pallet-tx-pause = { workspace = true }
 [features]
 default = ["std"]
 std = [
+	"hex-literal",
 	"parity-scale-codec/std",
 	"serde",
 	"scale-info/std",

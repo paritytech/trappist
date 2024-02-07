@@ -41,6 +41,7 @@ use xcm_builder::{
 };
 use xcm_executor::{traits::JustTry, XcmExecutor};
 
+use hex_literal::hex;
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistDropAssets};
 
 use crate::{
@@ -62,6 +63,7 @@ parameter_types! {
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub SelfReserve: MultiLocation = MultiLocation::here();
+	pub EthereumCurrencyLocation: MultiLocation = MultiLocation::new(2, X2(GlobalConsensus(Ethereum { chain_id: 11155111 }), AccountKey20{ network: None, key: hex!("c9F05326311bc2a55426761Bec20057685FB80f7") }));
 	pub AssetsPalletLocation: MultiLocation =
 		PalletInstance(<Assets as PalletInfoAccess>::index() as u8).into();
 	// Be mindful with incoming teleports if you implement this
@@ -113,6 +115,20 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	(),
 >;
 
+/// Means for transacting the native currency on this chain.
+pub type BridgedLocalAssetTransactor = CurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	IsConcrete<EthereumCurrencyLocation>,
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports.
+	(),
+>;
+
 /// Means for transacting assets besides the native currency on this chain.
 pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
@@ -155,8 +171,12 @@ pub type ReservedFungiblesTransactor = FungiblesAdapter<
 >;
 
 /// Means for transacting assets on this chain.
-pub type AssetTransactors =
-	(LocalAssetTransactor, ReservedFungiblesTransactor, LocalFungiblesTransactor);
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	BridgedLocalAssetTransactor,
+	ReservedFungiblesTransactor,
+	LocalFungiblesTransactor,
+);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
