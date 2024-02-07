@@ -131,8 +131,8 @@ impl frame_support::traits::OnRuntimeUpgrade for FixStorageVersions {
 
 		let mut writes = 0;
 
-		/// trappist-rococo runtime v.11000 has an incorrect on-chain storage version of 0 for the Uniques pallet
-		/// Set the Uniques pallet's storage version to 1 as expected.
+		// trappist-rococo runtime v.11000 has an incorrect on-chain storage version of 0 for the Uniques pallet
+		// Set the Uniques pallet's storage version to 1 as expected.
 		if Uniques::on_chain_storage_version() == StorageVersion::new(0) {
 			Uniques::current_storage_version().put::<Uniques>();
 			writes.saturating_inc();
@@ -142,7 +142,7 @@ impl frame_support::traits::OnRuntimeUpgrade for FixStorageVersions {
 	}
 }
 
-pub type Migrations = (FixStorageVersions);
+pub type Migrations = FixStorageVersions;
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
