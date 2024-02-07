@@ -14,7 +14,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder = { workspace = true }
 
 [dependencies]
-hex-literal = { workspace = true, optional = true }
+hex-literal = { workspace = true }
 parity-scale-codec = { workspace = true, features = ["derive"] }
 log = { workspace = true }
 scale-info = { workspace = true }
@@ -107,7 +107,6 @@ pallet-tx-pause = { workspace = true }
 [features]
 default = ["std"]
 std = [
-	"hex-literal",
 	"parity-scale-codec/std",
 	"serde",
 	"scale-info/std",
@@ -179,7 +178,6 @@ std = [
 	"trappist-runtime-benchmarks/std",
 ]
 runtime-benchmarks = [
-	"hex-literal",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
@@ -215,7 +213,6 @@ runtime-benchmarks = [
 	"polkadot-runtime-parachains/runtime-benchmarks"
 ]
 try-runtime = [
-	"hex-literal",
 	"frame-try-runtime/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
