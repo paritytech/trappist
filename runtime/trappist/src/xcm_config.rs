@@ -49,7 +49,7 @@ use crate::{
 	impls::ToAuthor,
 	weights,
 	weights::TrappistDropAssetsWeigher,
-	TransactionByteFee, CENTS,
+	AggregateMessageOrigin, MessageQueue, TransactionByteFee, CENTS,
 };
 
 use super::{
@@ -425,8 +425,8 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
-		// Enqueue XCMP messages from siblings for later processing.
-		type XcmpQueue = frame_support::traits::TransformOrigin<
+	// Enqueue XCMP messages from siblings for later processing.
+	type XcmpQueue = frame_support::traits::TransformOrigin<
 		MessageQueue,
 		AggregateMessageOrigin,
 		ParaId,
@@ -440,10 +440,4 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
-}
-
-impl cumulus_pallet_dmp_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
