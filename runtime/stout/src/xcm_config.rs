@@ -53,7 +53,7 @@ use xcm_builder::{
 };
 use xcm_executor::XcmExecutor;
 
-use crate::constants::fee::default_fee_per_second;
+use crate::{constants::fee::default_fee_per_second, AggregateMessageOrigin, MessageQueue};
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
