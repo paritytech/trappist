@@ -32,7 +32,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, ConstBool, ConstU8, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
+	traits::{Block as BlockT, ConvertInto},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill,
 };
@@ -44,7 +44,7 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
-		EqualPrivilegeOnly, Everything,
+		EqualPrivilegeOnly,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
@@ -58,7 +58,7 @@ use frame_system::{
 };
 
 pub use parachains_common as common;
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+use parachains_common::message_queue::NarrowOriginToSibling;
 pub use parachains_common::{
 	impls::{AssetsToBlockAuthor, DealWithFees},
 	opaque, AccountId, AuraId, Balance, BlockNumber, Hash, Header, Signature,
@@ -70,7 +70,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
-use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, Concrete, ParaId};
+use cumulus_primitives_core::AggregateMessageOrigin;
 
 pub use frame_system::Call as SystemCall;
 use pallet_identity::legacy::IdentityInfo;
@@ -464,7 +464,7 @@ impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BasicDeposit = BasicDeposit;
-	type ByteDeposit = ConstU32<10>;	
+	type ByteDeposit = ConstU128<10>;	
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = ConstU32<100>;
 	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;

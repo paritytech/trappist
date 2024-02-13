@@ -23,7 +23,7 @@
 extern crate frame_benchmarking;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, Concrete, ParaId};
+use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -31,7 +31,7 @@ use frame_support::{
 	traits::{
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, InsideBoth,
+		EqualPrivilegeOnly,
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 	PalletId,
@@ -60,7 +60,7 @@ use sp_runtime::traits::IdentityLookup;
 pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
+	traits::{ Block as BlockT, ConvertInto},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
@@ -470,7 +470,7 @@ impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BasicDeposit = BasicDeposit;
-	type ByteDeposit = ConstU32<10>;
+	type ByteDeposit = ConstU128<10>;
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = ConstU32<100>;
 	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;

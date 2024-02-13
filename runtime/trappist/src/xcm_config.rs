@@ -23,7 +23,7 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody, XcmPassthrough};
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+use parachains_common::message_queue::ParaIdToSibling;
 use parachains_common::AssetIdForTrustBackedAssets;
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::xcm_sender::{ExponentialPrice, NoPriceForMessageDelivery};

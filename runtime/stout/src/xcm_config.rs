@@ -41,7 +41,7 @@ use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use xcm::latest::{prelude::*, MultiAsset, MultiLocation};
 use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId};
 
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+use parachains_common::message_queue::ParaIdToSibling;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
