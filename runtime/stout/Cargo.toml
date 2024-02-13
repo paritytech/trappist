@@ -53,7 +53,6 @@ pallet-authorship = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-contracts = { workspace = true }
-pallet-contracts-primitives = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-preimage = { workspace = true }
@@ -69,7 +68,7 @@ pallet-utility = { workspace = true }
 
 # Cumulus dependencies
 cumulus-pallet-aura-ext = { workspace = true }
-cumulus-pallet-dmp-queue = { workspace = true }
+pallet-message-queue = { workspace = true, default-features = false }
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
@@ -128,7 +127,6 @@ std = [
 	"pallet-collator-selection/std",
 	"pallet-collective/std",
 	"pallet-contracts/std",
-	"pallet-contracts-primitives/std",
 	"pallet-identity/std",
 	"pallet-multisig/std",
 	"pallet-insecure-randomness-collective-flip/std",
@@ -148,7 +146,7 @@ std = [
 	"cumulus-ping/std",
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-utility/std",
-	"cumulus-pallet-dmp-queue/std",
+	"pallet-message-queue/std",
 	"cumulus-pallet-session-benchmarking/std",
 	"parachain-info/std",
 	"parachains-common/std",
@@ -172,6 +170,7 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
+	"pallet-message-queue/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
