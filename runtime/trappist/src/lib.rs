@@ -41,13 +41,13 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureWithSuccess,
 };
-use pallet_identity::simple::IdentityInfo;
+use pallet_identity::legacy::IdentityInfo;
 use pallet_tx_pause::RuntimeCallNameOf;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
 	impls::AssetsToBlockAuthor, opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
-	BlockNumber, Hash, Header, NarrowOriginToSibling, ParaIdToSibling, Signature,
+	BlockNumber, Hash, Header, message_queue::{NarrowOriginToSibling, ParaIdToSibling}, Signature,
 	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
 	SLOT_DURATION,
 };
@@ -1063,7 +1063,7 @@ impl_runtime_apis! {
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
 			input_data: Vec<u8>,
-		) -> pallet_contracts::primitives::ContractExecResult<Balance, EventRecord> {
+		) -> pallet_contracts::ContractExecResult<Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_call(
 				origin,
@@ -1083,10 +1083,10 @@ impl_runtime_apis! {
 			value: Balance,
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
-			code: pallet_contracts::primitives::Code<Hash>,
+			code: pallet_contracts::Code<Hash>,
 			data: Vec<u8>,
 			salt: Vec<u8>,
-		) -> pallet_contracts::primitives::ContractInstantiateResult<AccountId, Balance, EventRecord> {
+		) -> pallet_contracts::ContractInstantiateResult<AccountId, Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_instantiate(
 				origin,
@@ -1106,7 +1106,7 @@ impl_runtime_apis! {
 			code: Vec<u8>,
 			storage_deposit_limit: Option<Balance>,
 			determinism: pallet_contracts::Determinism,
-		) -> pallet_contracts::primitives::CodeUploadResult<Hash, Balance> {
+		) -> pallet_contracts::CodeUploadResult<Hash, Balance> {
 			Contracts::bare_upload_code(
 				origin,
 				code,
@@ -1118,7 +1118,7 @@ impl_runtime_apis! {
 		fn get_storage(
 			address: AccountId,
 			key: Vec<u8>,
-		) -> pallet_contracts::primitives::GetStorageResult {
+		) -> pallet_contracts::GetStorageResult {
 			Contracts::get_storage(address, key)
 		}
 	}
