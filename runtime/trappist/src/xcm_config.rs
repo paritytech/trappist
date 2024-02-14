@@ -59,7 +59,7 @@ use super::{
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::Rococo;
+	pub const RelayNetwork: NetworkId = NetworkId::Westend;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub SelfReserve: MultiLocation = MultiLocation::here();
@@ -72,7 +72,7 @@ parameter_types! {
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const MaxAssetsIntoHolding: u32 = 64;
 	pub UniversalLocation: InteriorMultiLocation = (
-		GlobalConsensus(NetworkId::Rococo),
+		GlobalConsensus(NetworkId::Westend),
 		Parachain(ParachainInfo::parachain_id().into()),
 	).into();
 }

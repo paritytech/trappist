@@ -172,9 +172,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		"dev" | "trappist-dev" => Box::new(chain_spec::trappist::development_config()),
 		#[cfg(feature = "trappist-runtime")]
 		"trappist-local" => Box::new(chain_spec::trappist::trappist_local_testnet_config()),
-		// Live chain spec for Rococo - Trappist
+		// Live chain spec for Westend - Trappist
 		#[cfg(feature = "trappist-runtime")]
-		"" | "trappist-rococo" => Box::new(chain_spec::trappist::trappist_live_config()),
+		"" | "trappist-westend" => Box::new(chain_spec::trappist::trappist_live_config()),
 		#[cfg(feature = "stout-runtime")]
 		"stout-dev" => unimplemented!("stout-dev chain spec is not available yet"),
 		#[cfg(feature = "stout-runtime")]

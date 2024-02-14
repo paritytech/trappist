@@ -166,7 +166,7 @@ parachain-info = { package = "staging-parachain-info", version = "0.4.0", defaul
 cumulus-pallet-session-benchmarking = { default-features = false, version = "6.0.0" }
 
 # Polkadot
-polkadot-cli = { version = "4.0.0", features = ["rococo-native"] }
+polkadot-cli = { version = "4.0.0", features = ["westend-native"] }
 polkadot-primitives = "4.0.0"
 polkadot-service = "4.0.0"
 polkadot-runtime-parachains = { version = "4.0.0", default-features = false }

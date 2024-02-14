@@ -265,7 +265,7 @@ pub fn trappist_live_config() -> ChainSpec {
 		None,
 		None,
 		Some(properties),
-		Extensions { relay_chain: "rococo".into(), para_id: TRAPPIST_PARA_ID },
+		Extensions { relay_chain: "westend".into(), para_id: TRAPPIST_PARA_ID },
 	)
 }
 
