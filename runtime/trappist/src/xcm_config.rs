@@ -378,7 +378,6 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
