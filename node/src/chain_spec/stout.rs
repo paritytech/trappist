@@ -23,10 +23,7 @@ use cumulus_primitives_core::ParaId;
 use sc_service::ChainType;
 
 use sp_core::sr25519;
-use stout_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig, SystemConfig,
-};
+use stout_runtime::{constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, SessionKeys};
 
 const DEFAULT_PROTOCOL_ID: &str = "stout";
 
@@ -80,7 +77,7 @@ pub fn stout_local_testnet_config() -> ChainSpec {
 			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
 		],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		TRAPPIST_PARA_ID.into(),
+		STOUT_PARA_ID.into(),
 	))
 	.with_protocol_id(DEFAULT_PROTOCOL_ID)
 	.with_properties(properties)
@@ -143,7 +140,6 @@ pub fn testnet_genesis(
 	root_key: AccountId,
 	id: ParaId,
 ) -> serde_json::Value {
-	
 	let balances = endowed_accounts.iter().map(|x| (x.clone(), 1 << 60)).collect::<Vec<_>>();
 	serde_json::json!({
 		"balances": {

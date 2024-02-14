@@ -23,8 +23,7 @@ use hex_literal::hex;
 use sc_service::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use trappist_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig, SystemConfig,
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, Balance, SessionKeys,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -334,7 +333,7 @@ pub fn trappist_live_config() -> ChainSpec {
 	.with_name("Trappist")
 	.with_id("trappist")
 	.with_chain_type(ChainType::Local)
-	.with_genesis_config_patch(testnet_genesis(
+	.with_genesis_config_patch(trappist_live_genesis(
 		// initial collators.
 		vec![
 			(
@@ -411,11 +410,11 @@ pub fn trappist_live_config() -> ChainSpec {
 
 fn trappist_live_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
-	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
+	root_key: AccountId,
 	id: ParaId,
 ) -> serde_json::Value {
-	let balances = endowed_accounts
+	let balances: Vec<(sp_runtime::AccountId32, Balance)> = endowed_accounts
 		.iter()
 		.map(|x| (x.clone(), 1_500_000_000_000_000_000))
 		.chain(std::iter::once((root_key.clone(), 1_000_000_000_000_000_000)))
