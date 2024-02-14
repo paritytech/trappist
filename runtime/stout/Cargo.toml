@@ -35,6 +35,7 @@ sp-session = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
+sp-genesis-builder = { workspace = true, default-features = false }
 
 ## Substrate FRAME Dependencies
 frame-benchmarking = { workspace = true, optional = true }
@@ -113,6 +114,7 @@ std = [
 	"sp-std/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+	"sp-genesis-builder/std",
 	"frame-benchmarking?/std",
 	"frame-executive/std",
 	"frame-support/std",

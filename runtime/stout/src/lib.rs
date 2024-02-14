@@ -41,6 +41,7 @@ use constants::{currency::*, fee::WeightToFee};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
+	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
 	traits::{
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, EitherOfDiverse,
@@ -57,6 +58,7 @@ use frame_system::{
 	EnsureRoot, EnsureSigned,
 };
 
+use cumulus_primitives_core::AggregateMessageOrigin;
 pub use parachains_common as common;
 use parachains_common::message_queue::NarrowOriginToSibling;
 pub use parachains_common::{
@@ -70,7 +72,6 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use xcm_config::{CollatorSelectionUpdateOrigin, RelayLocation};
-use cumulus_primitives_core::AggregateMessageOrigin;
 
 pub use frame_system::Call as SystemCall;
 use pallet_identity::legacy::IdentityInfo;
@@ -464,7 +465,7 @@ impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BasicDeposit = BasicDeposit;
-	type ByteDeposit = ConstU128<10>;	
+	type ByteDeposit = ConstU128<10>;
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = ConstU32<100>;
 	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
@@ -661,6 +662,16 @@ impl_runtime_apis! {
 
 		fn initialize_block(header: &<Block as BlockT>::Header) {
 			Executive::initialize_block(header)
+		}
+	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn create_default_config() -> Vec<u8> {
+			create_default_config::<RuntimeGenesisConfig>()
+		}
+
+		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
 

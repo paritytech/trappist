@@ -27,6 +27,7 @@ use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
+	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
 	traits::{
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
@@ -46,10 +47,11 @@ use pallet_tx_pause::RuntimeCallNameOf;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
-	impls::AssetsToBlockAuthor, opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
-	BlockNumber, Hash, Header, message_queue::{NarrowOriginToSibling, ParaIdToSibling}, Signature,
-	AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO,
-	SLOT_DURATION,
+	impls::AssetsToBlockAuthor,
+	message_queue::{NarrowOriginToSibling, ParaIdToSibling},
+	opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance, BlockNumber, Hash, Header,
+	Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES,
+	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
@@ -60,7 +62,7 @@ use sp_runtime::traits::IdentityLookup;
 pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{ Block as BlockT, ConvertInto},
+	traits::{Block as BlockT, ConvertInto},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
@@ -922,6 +924,16 @@ impl_runtime_apis! {
 
 		fn initialize_block(header: &<Block as BlockT>::Header) {
 			Executive::initialize_block(header)
+		}
+	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn create_default_config() -> Vec<u8> {
+			create_default_config::<RuntimeGenesisConfig>()
+		}
+
+		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
 
