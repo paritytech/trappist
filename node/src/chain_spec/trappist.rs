@@ -228,7 +228,10 @@ pub fn testnet_genesis(
 	root_key: AccountId,
 	id: ParaId,
 ) -> serde_json::Value {
-	let balances = endowed_accounts.iter().map(|x| (x.clone(), 1 << 60)).collect::<Vec<_>>();
+	let balances: Vec<(sp_runtime::AccountId32, Balance)> = endowed_accounts
+		.iter()
+		.map(|x| (x.clone(), 1_000_000_000_000_000_000))
+		.collect::<Vec<_>>();
 	serde_json::json!({
 		"balances": {
 			"balances": balances
