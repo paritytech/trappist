@@ -84,7 +84,6 @@ pub fn stout_local_testnet_config() -> ChainSpec {
 	.with_protocol_id(DEFAULT_PROTOCOL_ID)
 	.with_properties(properties)
 	.build()
-
 }
 
 /// Configure initial storage state for FRAME modules.
