@@ -578,14 +578,13 @@ mod tests {
 	use std::path::PathBuf;
 
 	use cumulus_primitives_core::ParaId;
-	use parachains_common::{AccountId, AuraId};
+	use parachains_common::AuraId;
 	use sc_chain_spec::{
 		ChainSpec, ChainSpecExtension, ChainSpecGroup, ChainType, Extension, GenericChainSpec,
 	};
 	use serde::{Deserialize, Serialize};
 	use sp_core::crypto::AccountId32;
 	use sp_core::sr25519;
-	pub use sp_runtime::BuildStorage;
 	use tempfile::TempDir;
 
 	use crate::{

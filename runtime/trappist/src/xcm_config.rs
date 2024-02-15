@@ -48,7 +48,6 @@ use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistD
 use crate::{
 	constants::fee::{default_fee_per_second, WeightToFee},
 	impls::ToAuthor,
-	weights,
 	weights::TrappistDropAssetsWeigher,
 	AggregateMessageOrigin, MessageQueue, TransactionByteFee, CENTS,
 };

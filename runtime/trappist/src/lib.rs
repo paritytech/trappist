@@ -1171,7 +1171,6 @@ impl_runtime_apis! {
 			// and add_benchmarks! are macros exported by define_benchmarks! macros and those types
 			// are referenced in that call.
 			type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::<Runtime>;
-			type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::<Runtime>;
 
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
@@ -1323,7 +1322,6 @@ impl_runtime_apis! {
 
 
 			type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::<Runtime>;
-			type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::<Runtime>;
 
 			use xcm_primitives::TrappistDropAssets;
 			use xcm::prelude::MultiLocation;
