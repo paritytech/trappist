@@ -18,7 +18,7 @@ mod benchmarks {
 		let fee_amount = 1_000;
 		let asset: MultiAsset = (MultiLocation::new(0, Here), fee_amount.clone()).into();
 		let recipient = [0u8; 32];
-		let reachable_dest: Option<MultiLocation> = Some(Parachain(1000).into());
+		let reachable_dest: Option<MultiLocation> = Some(MultiLocation::new(1, Here).into());
 		let versioned_dest: VersionedMultiLocation = reachable_dest
 			.ok_or(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?
 			.into();
