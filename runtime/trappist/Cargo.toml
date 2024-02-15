@@ -37,6 +37,7 @@ sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
 sp-weights = { workspace = true }
+sp-genesis-builder = { workspace = true, default-features = false }
 
 ## Substrate FRAME Dependencies
 frame-benchmarking = { workspace = true, optional = true }
@@ -55,7 +56,6 @@ pallet-authorship = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-contracts = { workspace = true }
-pallet-contracts-primitives = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-multisig = { workspace = true }
@@ -74,7 +74,7 @@ pallet-treasury = { workspace = true }
 # Cumulus dependencies
 assets-common = { workspace = true }
 cumulus-pallet-aura-ext = { workspace = true }
-cumulus-pallet-dmp-queue = { workspace = true }
+pallet-message-queue = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
@@ -125,6 +125,7 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 	"sp-weights/std",
+	"sp-genesis-builder/std",
 	"frame-executive/std",
 	"frame-support/std",
 	"frame-system/std",
@@ -139,7 +140,6 @@ std = [
 	"pallet-collator-selection/std",
 	"pallet-collective/std",
 	"pallet-contracts/std",
-	"pallet-contracts-primitives/std",
 	"pallet-democracy/std",
 	"pallet-identity/std",
 	"pallet-safe-mode/std",
@@ -166,7 +166,7 @@ std = [
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-utility/std",
-	"cumulus-pallet-dmp-queue/std",
+	"pallet-message-queue/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"polkadot-parachain-primitives/std",
@@ -197,6 +197,7 @@ runtime-benchmarks = [
 	"pallet-safe-mode/runtime-benchmarks",
 	"pallet-tx-pause/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",
+	"pallet-message-queue/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -210,7 +211,7 @@ runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"pallet-xcm-benchmarks/runtime-benchmarks",
 	"assets-common/runtime-benchmarks",
-	"polkadot-runtime-parachains/runtime-benchmarks"
+	"polkadot-runtime-parachains/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-try-runtime/try-runtime",
@@ -227,6 +228,7 @@ try-runtime = [
 	"pallet-identity/try-runtime",
 	"pallet-safe-mode/try-runtime",
 	"pallet-tx-pause/try-runtime",
+	"pallet-message-queue/try-runtime",
 	"pallet-multisig/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-timestamp/try-runtime",
@@ -243,13 +245,13 @@ try-runtime = [
 	"pallet-aura/try-runtime",
 	"cumulus-pallet-aura-ext/try-runtime",
 	"cumulus-pallet-xcm/try-runtime",
-	"cumulus-pallet-dmp-queue/try-runtime",
+	"pallet-message-queue/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-withdraw-teleport/try-runtime",
-	"polkadot-runtime-parachains/try-runtime"
+	"polkadot-runtime-parachains/try-runtime",
 ]
 parameterized-consensus-hook = [
 	"cumulus-pallet-parachain-system/parameterized-consensus-hook",

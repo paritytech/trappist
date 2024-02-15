@@ -578,11 +578,12 @@ mod tests {
 	use std::path::PathBuf;
 
 	use cumulus_primitives_core::ParaId;
-	use parachains_common::{AccountId, AuraId};
+	use parachains_common::AuraId;
 	use sc_chain_spec::{
 		ChainSpec, ChainSpecExtension, ChainSpecGroup, ChainType, Extension, GenericChainSpec,
 	};
 	use serde::{Deserialize, Serialize};
+	use sp_core::crypto::AccountId32;
 	use sp_core::sr25519;
 	use tempfile::TempDir;
 
@@ -610,33 +611,35 @@ mod tests {
 		pub attribute_z: u32,
 	}
 
-	pub fn create_default_with_extensions<G: 'static + Send + Sync, E: Extension>(
+	pub type DummyChainSpec<E> = GenericChainSpec<(), E>;
+
+	pub fn create_default_with_extensions<E: Extension>(
 		id: &str,
 		extension: E,
-		constructor: fn(Vec<(AccountId, AuraId)>, AccountId, Vec<AccountId>, ParaId) -> G,
-	) -> GenericChainSpec<G, E> {
-		GenericChainSpec::<G, E>::from_genesis(
-			"Dummy local testnet",
-			id,
-			ChainType::Local,
-			move || {
-				constructor(
-					vec![(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed::<AuraId>("Alice"),
-					)],
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					Vec::new(),
-					1000.into(),
-				)
-			},
-			Vec::new(),
-			None,
-			None,
-			None,
-			None,
+		constructor: fn(
+			Vec<(AccountId32, AuraId)>,
+			Vec<AccountId32>,
+			AccountId32,
+			ParaId,
+		) -> serde_json::Value,
+	) -> DummyChainSpec<E> {
+		DummyChainSpec::builder(
+			trappist_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 			extension,
 		)
+		.with_name("Dummy local testnet")
+		.with_id(id)
+		.with_chain_type(ChainType::Local)
+		.with_genesis_config_patch(constructor(
+			vec![(
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_collator_keys_from_seed::<AuraId>("Alice"),
+			)],
+			Vec::new(),
+			get_account_id_from_seed::<sr25519::Public>("Alice"),
+			1000.into(),
+		))
+		.build()
 	}
 
 	fn assert_resolved_runtime(runtime: Runtime, specs: Vec<Box<dyn ChainSpec>>) {
@@ -665,20 +668,16 @@ mod tests {
 		assert_resolved_runtime(
 			Runtime::Trappist,
 			vec![
-				Box::new(
-					create_default_with_extensions::<trappist_runtime::RuntimeGenesisConfig, _>(
-						"trappist-1",
-						Extensions1::default(),
-						crate::chain_spec::trappist::testnet_genesis,
-					),
-				),
-				Box::new(
-					create_default_with_extensions::<trappist_runtime::RuntimeGenesisConfig, _>(
-						"trappist-2",
-						Extensions2::default(),
-						crate::chain_spec::trappist::testnet_genesis,
-					),
-				),
+				Box::new(create_default_with_extensions(
+					"trappist-1",
+					Extensions1::default(),
+					crate::chain_spec::trappist::testnet_genesis,
+				)),
+				Box::new(create_default_with_extensions(
+					"trappist-2",
+					Extensions2::default(),
+					crate::chain_spec::trappist::testnet_genesis,
+				)),
 				Box::new(crate::chain_spec::trappist::trappist_local_testnet_config()),
 			],
 		)

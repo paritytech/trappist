@@ -23,8 +23,7 @@ use hex_literal::hex;
 use sc_service::ChainType;
 use sp_core::{crypto::UncheckedInto, sr25519};
 use trappist_runtime::{
-	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AssetsConfig, AuraId, BalancesConfig,
-	CouncilConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig, SystemConfig,
+	constants::currency::EXISTENTIAL_DEPOSIT, AccountId, AuraId, Balance, SessionKeys,
 };
 
 const DEFAULT_PROTOCOL_ID: &str = "hop";
@@ -49,51 +48,37 @@ pub fn development_config() -> ChainSpec {
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
-	ChainSpec::from_genesis(
-		// Name
-		"Trappist Development",
-		// ID
-		"trappist_dev",
-		ChainType::Development,
-		move || {
-			testnet_genesis(
-				// Initial collators.
-				vec![
-					(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed::<AuraId>("Alice"),
-					),
-					(
-						get_account_id_from_seed::<sr25519::Public>("Bob"),
-						get_collator_keys_from_seed::<AuraId>("Bob"),
-					),
-				],
-				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				// Pre-funded accounts
-				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-				],
-				2000.into(),
-			)
-		},
-		// Bootnodes
-		vec![],
-		// Telemetry
-		None,
-		// Protocol ID
-		Some(DEFAULT_PROTOCOL_ID),
-		None,
-		// Properties
-		Some(properties),
-		// Extensions
+	ChainSpec::builder(
+		trappist_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
 			para_id: TRAPPIST_PARA_ID,
 		},
 	)
+	.with_name("Trappist Development")
+	.with_id("trappist_dev")
+	.with_chain_type(ChainType::Development)
+	.with_genesis_config_patch(testnet_genesis(
+		vec![
+			(
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_collator_keys_from_seed::<AuraId>("Alice"),
+			),
+			(
+				get_account_id_from_seed::<sr25519::Public>("Bob"),
+				get_collator_keys_from_seed::<AuraId>("Bob"),
+			),
+		],
+		vec![
+			get_account_id_from_seed::<sr25519::Public>("Alice"),
+			get_account_id_from_seed::<sr25519::Public>("Bob"),
+			get_account_id_from_seed::<sr25519::Public>("Charlie"),
+		],
+		get_account_id_from_seed::<sr25519::Public>("Alice"),
+		2000.into(),
+	))
+	.with_properties(properties)
+	.build()
 }
 
 pub fn trappist_local_testnet_config() -> ChainSpec {
@@ -103,119 +88,83 @@ pub fn trappist_local_testnet_config() -> ChainSpec {
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
-	ChainSpec::from_genesis(
-		// Name
-		"Trappist Local",
-		// ID
-		"trappist_local",
-		ChainType::Local,
-		move || {
-			testnet_genesis(
-				// Initial collators.
-				vec![
-					(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed::<AuraId>("Alice"),
-					),
-					(
-						get_account_id_from_seed::<sr25519::Public>("Bob"),
-						get_collator_keys_from_seed::<AuraId>("Bob"),
-					),
-				],
-				// Sudo account
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				// Pre-funded accounts
-				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-					get_account_id_from_seed::<sr25519::Public>("Dave"),
-					get_account_id_from_seed::<sr25519::Public>("Eve"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-				],
-				TRAPPIST_PARA_ID.into(),
-			)
-		},
-		// Bootnodes
-		Vec::new(),
-		// Telemetry
-		None,
-		// Protocol ID
-		Some(DEFAULT_PROTOCOL_ID),
-		None,
-		// Properties
-		Some(properties),
-		// Extensions
+	ChainSpec::builder(
+		trappist_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
 			para_id: TRAPPIST_PARA_ID,
 		},
 	)
+	.with_name("Trappist Local")
+	.with_id("trappist_local")
+	.with_chain_type(ChainType::Local)
+	.with_genesis_config_patch(testnet_genesis(
+		// initial collators.
+		vec![
+			(
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_collator_keys_from_seed::<AuraId>("Alice"),
+			),
+			(
+				get_account_id_from_seed::<sr25519::Public>("Bob"),
+				get_collator_keys_from_seed::<AuraId>("Bob"),
+			),
+		],
+		vec![
+			get_account_id_from_seed::<sr25519::Public>("Alice"),
+			get_account_id_from_seed::<sr25519::Public>("Bob"),
+			get_account_id_from_seed::<sr25519::Public>("Charlie"),
+			get_account_id_from_seed::<sr25519::Public>("Dave"),
+			get_account_id_from_seed::<sr25519::Public>("Eve"),
+			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+		],
+		get_account_id_from_seed::<sr25519::Public>("Alice"),
+		TRAPPIST_PARA_ID.into(),
+	))
+	.with_protocol_id(DEFAULT_PROTOCOL_ID)
+	.with_properties(properties)
+	.build()
 }
 
 /// Configure initial storage state for FRAME modules.
 pub fn testnet_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
-	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
+	root_key: AccountId,
 	id: ParaId,
-) -> RuntimeGenesisConfig {
-	RuntimeGenesisConfig {
-		system: SystemConfig {
-			code: trappist_runtime::WASM_BINARY
-				.expect("WASM binary was not build, please build it!")
-				.to_vec(),
-			..Default::default()
+) -> serde_json::Value {
+	let balances: Vec<(sp_runtime::AccountId32, Balance)> = endowed_accounts
+		.iter()
+		.map(|x| (x.clone(), 1_000_000_000_000_000_000))
+		.collect::<Vec<_>>();
+	serde_json::json!({
+		"balances": {
+			"balances": balances
 		},
-		balances: BalancesConfig {
-			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.into_iter().map(|k| (k, 1 << 60)).collect(),
+		"parachainInfo": {
+			"parachainId": id,
 		},
-		parachain_info: trappist_runtime::ParachainInfoConfig {
-			parachain_id: id,
-			..Default::default()
+		"collatorSelection": {
+			"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
+			"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
 		},
-		collator_selection: trappist_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
-			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
-			..Default::default()
-		},
-		democracy: Default::default(),
-		session: SessionConfig {
-			keys: invulnerables
-				.iter()
+		"session": {
+			"keys": invulnerables
+				.into_iter()
 				.map(|(acc, aura)| {
 					(
 						acc.clone(),                // account id
-						acc.clone(),                // validator id
-						session_keys(aura.clone()), // session keys
+						acc,                        // validator id
+						session_keys(aura), // session keys
 					)
 				})
-				.collect(),
+				.collect::<Vec<_>>(),
 		},
-		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
-		// of this.
-		aura: Default::default(),
-		aura_ext: Default::default(),
-		parachain_system: Default::default(),
-		polkadot_xcm: trappist_runtime::PolkadotXcmConfig {
-			safe_xcm_version: Some(SAFE_XCM_VERSION),
-			..Default::default()
+		"sudo": { "key": Some(root_key) },
+		"polkadotXcm": {
+			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
-		sudo: SudoConfig {
-			// Assign network admin rights.
-			key: Some(root_key),
-		},
-		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
-		council: CouncilConfig {
-			members: invulnerables.into_iter().map(|x| x.0).collect::<Vec<_>>(),
-			phantom: Default::default(),
-		},
-		treasury: Default::default(),
-		safe_mode: Default::default(),
-		tx_pause: Default::default(),
-		transaction_payment: Default::default(),
-	}
+	})
 }
 
 pub fn trappist_live_config() -> ChainSpec {
@@ -224,113 +173,85 @@ pub fn trappist_live_config() -> ChainSpec {
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 42.into());
 
-	ChainSpec::from_genesis(
-		// Name
-		"Trappist",
-		// ID
-		"trappist",
-		ChainType::Live,
-		move || {
-			trappist_live_genesis(
-				// initial collators.
-				vec![
-					(
-						hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c")
-							.into(),
-						hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c")
-							.unchecked_into(),
-					),
-					(
-						hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
-							.into(),
-						hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
-							.unchecked_into(),
-					),
-				],
-				hex!("e40839fde680c01344c20d47b7f08d2926b8a7537697356d416987a04a4453d0").into(),
-				vec![
-					// This account will have root origin
-					hex!("6a3db76f636ce43faaf58dde5a71a8e03b9d4ae3b331cff85c092f5bf98d971b").into(),
-					hex!("3e79b5cb39533bd4a20f1a4b8ca5e62d264164cdf1389d568f73bc3932b5144a").into(),
-					hex!("d00c901e43ab81cd9f26dc1b0c109a243134c47fee89d897f3fbf03e860c6d45").into(),
-					hex!("30a12eef517fb62d993a605bc98183fa9b2336197da9f34414bcbf67839d0b14").into(),
-					hex!("c0612ba544f0c34b5b0e102bfa7139e14cc7dc106ba7d34f317adca7fa30bb27").into(),
-					hex!("1a2477ef6ea36d70bc6058a97d9bbbdfea103710cf2fbb9586269db72ab98f1a").into(),
-				],
-				TRAPPIST_PARA_ID.into(),
-			)
+	ChainSpec::builder(
+		trappist_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		Extensions {
+			relay_chain: "rococo".into(), // You MUST set this to the correct network!
+			para_id: TRAPPIST_PARA_ID,
 		},
-		vec![],
-		None,
-		None,
-		None,
-		Some(properties),
-		Extensions { relay_chain: "rococo".into(), para_id: TRAPPIST_PARA_ID },
 	)
+	.with_name("Trappist")
+	.with_id("trappist")
+	.with_chain_type(ChainType::Live)
+	.with_genesis_config_patch(trappist_live_genesis(
+		// initial collators.
+		vec![
+			(
+				hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c").into(),
+				hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c")
+					.unchecked_into(),
+			),
+			(
+				hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238").into(),
+				hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
+					.unchecked_into(),
+			),
+		],
+		vec![
+			// This account will have root origin
+			hex!("6a3db76f636ce43faaf58dde5a71a8e03b9d4ae3b331cff85c092f5bf98d971b").into(),
+			hex!("3e79b5cb39533bd4a20f1a4b8ca5e62d264164cdf1389d568f73bc3932b5144a").into(),
+			hex!("d00c901e43ab81cd9f26dc1b0c109a243134c47fee89d897f3fbf03e860c6d45").into(),
+			hex!("30a12eef517fb62d993a605bc98183fa9b2336197da9f34414bcbf67839d0b14").into(),
+			hex!("c0612ba544f0c34b5b0e102bfa7139e14cc7dc106ba7d34f317adca7fa30bb27").into(),
+			hex!("1a2477ef6ea36d70bc6058a97d9bbbdfea103710cf2fbb9586269db72ab98f1a").into(),
+		],
+		hex!("e40839fde680c01344c20d47b7f08d2926b8a7537697356d416987a04a4453d0").into(),
+		TRAPPIST_PARA_ID.into(),
+	))
+	.with_protocol_id(DEFAULT_PROTOCOL_ID)
+	.with_properties(properties)
+	.build()
 }
 
 fn trappist_live_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
-	root_key: AccountId,
 	endowed_accounts: Vec<AccountId>,
+	root_key: AccountId,
 	id: ParaId,
-) -> RuntimeGenesisConfig {
-	RuntimeGenesisConfig {
-		system: SystemConfig {
-			code: trappist_runtime::WASM_BINARY
-				.expect("WASM binary was not build, please build it!")
-				.to_vec(),
-			..Default::default()
+) -> serde_json::Value {
+	let balances: Vec<(sp_runtime::AccountId32, Balance)> = endowed_accounts
+		.iter()
+		.map(|x| (x.clone(), 1_500_000_000_000_000_000))
+		.chain(std::iter::once((root_key.clone(), 1_000_000_000_000_000_000)))
+		.collect::<Vec<_>>();
+
+	serde_json::json!({
+		"balances": {
+			"balances": balances
 		},
-		balances: BalancesConfig {
-			balances: endowed_accounts
-				.iter()
-				.map(|x| (x.clone(), 1_500_000_000_000_000_000))
-				.chain(std::iter::once((root_key.clone(), 1_000_000_000_000_000_000)))
-				.collect(),
+		"parachainInfo": {
+			"parachainId": id,
 		},
-		parachain_info: trappist_runtime::ParachainInfoConfig {
-			parachain_id: id,
-			..Default::default()
+		"collatorSelection": {
+			"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
+			"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
 		},
-		collator_selection: trappist_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().map(|(acc, _)| acc).cloned().collect(),
-			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
-			..Default::default()
-		},
-		democracy: Default::default(),
-		session: SessionConfig {
-			keys: invulnerables
+		"session": {
+			"keys": invulnerables
 				.into_iter()
 				.map(|(acc, aura)| {
 					(
-						acc.clone(),        // account id
-						acc,                // validator id
+						acc.clone(),                // account id
+						acc,                        // validator id
 						session_keys(aura), // session keys
 					)
 				})
-				.collect(),
+				.collect::<Vec<_>>(),
 		},
-		aura: Default::default(),
-		aura_ext: Default::default(),
-		parachain_system: Default::default(),
-		polkadot_xcm: trappist_runtime::PolkadotXcmConfig {
-			safe_xcm_version: Some(SAFE_XCM_VERSION),
-			..Default::default()
+		"sudo": { "key": Some(root_key) },
+		"polkadotXcm": {
+			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
-		sudo: SudoConfig {
-			// Assign network admin rights.
-			key: Some(root_key),
-		},
-		assets: AssetsConfig { assets: vec![], accounts: vec![], metadata: vec![] },
-		council: CouncilConfig {
-			// We set the endowed accounts with balance as members of the council.
-			members: endowed_accounts,
-			phantom: Default::default(),
-		},
-		treasury: Default::default(),
-		safe_mode: Default::default(),
-		tx_pause: Default::default(),
-		transaction_payment: Default::default(),
-	}
+	})
 }

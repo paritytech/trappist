@@ -42,7 +42,7 @@ polkadot-parachain-primitives = { workspace = true }
 
 parachain-info = { workspace = true }
 parachains-common = { workspace = true }
-cumulus-pallet-dmp-queue = { workspace = true }
+pallet-message-queue = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
@@ -66,7 +66,7 @@ std = [
 	"polkadot-parachain-primitives/std",
 	"parachain-info/std",
 	"parachains-common/std",
-	"cumulus-pallet-dmp-queue/std",
+	"pallet-message-queue/std",
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",
 ]

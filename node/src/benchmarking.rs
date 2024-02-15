@@ -186,6 +186,7 @@ pub fn inherent_benchmark_data() -> sc_cli::Result<InherentData> {
 		xcm_config: Default::default(),
 		raw_downward_messages: Default::default(),
 		raw_horizontal_messages: Default::default(),
+		additional_key_values: Default::default(),
 	};
 
 	futures::executor::block_on(parachain_inherent.provide_inherent_data(&mut inherent_data))
