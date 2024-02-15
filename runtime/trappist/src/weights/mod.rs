@@ -22,20 +22,17 @@ use xcm_primitives::DropAssetsWeigher;
 use crate::Runtime;
 
 pub mod block_weights;
-//TODO: re enable when calculated for v1.5
-// pub mod cumulus_pallet_xcmp_queue;
+pub mod cumulus_pallet_xcmp_queue;
 pub mod extrinsic_weights;
 pub mod frame_system;
 pub mod pallet_asset_registry;
 pub mod pallet_assets;
 pub mod pallet_balances;
-// pub mod pallet_collator_selection;
+pub mod pallet_collator_selection;
 pub mod pallet_collective;
 pub mod pallet_contracts;
 pub mod pallet_democracy;
-//TODO: re enable when calculated for v1.5
-
-// pub mod pallet_identity;
+pub mod pallet_identity;
 pub mod pallet_multisig;
 pub mod pallet_preimage;
 pub mod pallet_safe_mode;
