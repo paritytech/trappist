@@ -66,4 +66,4 @@ jobs:
 
       - name: Run Trappist tests
         run: |
-          cargo test --workspace --exclude stout-runtime --no-default-features --features trappist/trappist-runtime,std,runtime-benchmarks --locked --jobs 1
+            cargo test --workspace --exclude stout-runtime --no-default-features --features trappist/trappist-runtime,std,runtime-benchmarks --locked --jobs 1

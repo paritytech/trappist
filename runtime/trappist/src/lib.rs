@@ -23,14 +23,16 @@
 extern crate frame_benchmarking;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
-	construct_runtime,
+	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
+	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
 	traits::{
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, ConstU64, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, InsideBoth,
+		EqualPrivilegeOnly,
 	},
 	weights::{constants::RocksDbWeight, ConstantMultiplier, Weight},
 	PalletId,
@@ -40,14 +42,16 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureWithSuccess,
 };
-use pallet_identity::simple::IdentityInfo;
+use pallet_identity::legacy::IdentityInfo;
 use pallet_tx_pause::RuntimeCallNameOf;
 use pallet_xcm::{EnsureXcm, IsMajorityOfBody};
 pub use parachains_common as common;
 pub use parachains_common::{
-	impls::AssetsToBlockAuthor, opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
-	BlockNumber, Hash, Header, Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS,
-	MAXIMUM_BLOCK_WEIGHT, MINUTES, NORMAL_DISPATCH_RATIO, SLOT_DURATION,
+	impls::AssetsToBlockAuthor,
+	message_queue::{NarrowOriginToSibling, ParaIdToSibling},
+	opaque, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance, BlockNumber, Hash, Header,
+	Signature, AVERAGE_ON_INITIALIZE_RATIO, DAYS, HOURS, MAXIMUM_BLOCK_WEIGHT, MINUTES,
+	NORMAL_DISPATCH_RATIO, SLOT_DURATION,
 };
 pub use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_common::{prod_or_fast, SlowAdjustingFeeUpdate};
@@ -58,7 +62,7 @@ use sp_runtime::traits::IdentityLookup;
 pub use sp_runtime::BuildStorage;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, ConvertInto},
+	traits::{Block as BlockT, ConvertInto},
 	transaction_validity::{InvalidTransaction, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, Perbill, Percent, Permill,
 };
@@ -165,7 +169,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("trappist-westend"),
 	impl_name: create_runtime_str!("trappist-westend"),
 	authoring_version: 1,
-	spec_version: 13100,
+	spec_version: 15000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -203,27 +207,18 @@ parameter_types! {
 }
 
 // Configure FRAME pallets to include in runtime.
+#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type BaseCallFilter = InsideBoth<TxPause, SafeMode>;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeCall = RuntimeCall;
 	type Nonce = Nonce;
 	type Hash = Hash;
-	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
-	type Lookup = AccountIdLookup<AccountId, ()>;
 	type Block = Block;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = RocksDbWeight;
 	type Version = Version;
-	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<Balance>;
-	type OnNewAccount = ();
-	type OnKilledAccount = ();
-	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
 	type SS58Prefix = ConstU16<42>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
@@ -317,6 +312,7 @@ impl pallet_utility::Config for Runtime {
 parameter_types! {
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
 #[cfg(feature = "parameterized-consensus-hook")]
@@ -336,7 +332,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OnSystemEvent = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type DmpMessageHandler = DmpQueue;
+	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
@@ -348,6 +344,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 		{ consensus::BLOCK_PROCESSING_VELOCITY },
 		{ consensus::UNINCLUDED_SEGMENT_CAPACITY },
 	>;
+	type WeightInfo = ();
 }
 
 impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
@@ -467,7 +464,6 @@ type EnsureRootOrHalfCouncil = EitherOfDiverse<
 
 parameter_types! {
 	pub const BasicDeposit: Balance = deposit(1, 258);		// 258 bytes on-chain
-	pub const FieldDeposit: Balance = deposit(0, 66);  		// 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = deposit(1, 53);	// 53 bytes on-chain
 	pub const MaxAdditionalFields: u32 = 100;
 }
@@ -476,10 +472,9 @@ impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BasicDeposit = BasicDeposit;
-	type FieldDeposit = FieldDeposit;
+	type ByteDeposit = ConstU128<10>;
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = ConstU32<100>;
-	type MaxAdditionalFields = ConstU32<100>;
 	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = ();
@@ -608,6 +603,32 @@ impl pallet_democracy::Config for Runtime {
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, CouncilCollective>;
 	type PalletsOrigin = OriginCaller;
 	type Slash = Treasury;
+}
+
+parameter_types! {
+	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(35) * RuntimeBlockWeights::get().max_block;
+}
+
+impl pallet_message_queue::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type MessageProcessor = pallet_message_queue::mock_helpers::NoopMessageProcessor<
+		cumulus_primitives_core::AggregateMessageOrigin,
+	>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type MessageProcessor = xcm_builder::ProcessXcmMessage<
+		AggregateMessageOrigin,
+		xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
+		RuntimeCall,
+	>;
+	type Size = u32;
+	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
+	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
+	type QueuePausedQuery = NarrowOriginToSibling<XcmpQueue>;
+	type HeapSize = sp_core::ConstU32<{ 64 * 1024 }>;
+	type MaxStale = sp_core::ConstU32<8>;
+	type ServiceWeight = MessageQueueServiceWeight;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -813,7 +834,7 @@ construct_runtime!(
 		XcmpQueue: cumulus_pallet_xcmp_queue = 30,
 		PolkadotXcm: pallet_xcm = 31,
 		CumulusXcm: cumulus_pallet_xcm = 32,
-		DmpQueue: cumulus_pallet_dmp_queue = 33,
+		MessageQueue: pallet_message_queue = 33,
 
 		// Runtime features
 		Contracts: pallet_contracts = 40,
@@ -852,6 +873,7 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
+		[pallet_message_queue, MessageQueue]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_contracts, Contracts]
 		[pallet_collective, Council]
@@ -898,6 +920,16 @@ impl_runtime_apis! {
 
 		fn initialize_block(header: &<Block as BlockT>::Header) {
 			Executive::initialize_block(header)
+		}
+	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn create_default_config() -> Vec<u8> {
+			create_default_config::<RuntimeGenesisConfig>()
+		}
+
+		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
 
@@ -1041,7 +1073,7 @@ impl_runtime_apis! {
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
 			input_data: Vec<u8>,
-		) -> pallet_contracts_primitives::ContractExecResult<Balance, EventRecord> {
+		) -> pallet_contracts::ContractExecResult<Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_call(
 				origin,
@@ -1061,10 +1093,10 @@ impl_runtime_apis! {
 			value: Balance,
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
-			code: pallet_contracts_primitives::Code<Hash>,
+			code: pallet_contracts::Code<Hash>,
 			data: Vec<u8>,
 			salt: Vec<u8>,
-		) -> pallet_contracts_primitives::ContractInstantiateResult<AccountId, Balance, EventRecord> {
+		) -> pallet_contracts::ContractInstantiateResult<AccountId, Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_instantiate(
 				origin,
@@ -1084,7 +1116,7 @@ impl_runtime_apis! {
 			code: Vec<u8>,
 			storage_deposit_limit: Option<Balance>,
 			determinism: pallet_contracts::Determinism,
-		) -> pallet_contracts_primitives::CodeUploadResult<Hash, Balance> {
+		) -> pallet_contracts::CodeUploadResult<Hash, Balance> {
 			Contracts::bare_upload_code(
 				origin,
 				code,
@@ -1096,7 +1128,7 @@ impl_runtime_apis! {
 		fn get_storage(
 			address: AccountId,
 			key: Vec<u8>,
-		) -> pallet_contracts_primitives::GetStorageResult {
+		) -> pallet_contracts::GetStorageResult {
 			Contracts::get_storage(address, key)
 		}
 	}
@@ -1135,7 +1167,6 @@ impl_runtime_apis! {
 			// and add_benchmarks! are macros exported by define_benchmarks! macros and those types
 			// are referenced in that call.
 			type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::<Runtime>;
-			type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::<Runtime>;
 
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
@@ -1287,7 +1318,6 @@ impl_runtime_apis! {
 
 
 			type XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::<Runtime>;
-			type XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::<Runtime>;
 
 			use xcm_primitives::TrappistDropAssets;
 			use xcm::prelude::MultiLocation;

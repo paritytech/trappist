@@ -12,7 +12,7 @@ use polkadot_parachain_primitives::primitives::Id as ParaId;
 use polkadot_runtime_parachains::origin;
 use sp_core::H256;
 use sp_runtime::{traits::IdentityLookup, AccountId32, BuildStorage};
-pub use sp_std::{cell::RefCell, fmt::Debug, marker::PhantomData};
+pub use sp_std::cell::RefCell;
 use xcm::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
@@ -207,11 +207,6 @@ parameter_types! {
 	pub static AdvertisedXcmVersion: XcmVersion = 3;
 }
 
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parachain(1000).into());
-}
-
 impl pallet_xcm::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -235,8 +230,6 @@ impl pallet_xcm::Config for Test {
 	type MaxRemoteLockConsumers = frame_support::traits::ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type WeightInfo = TestWeightInfo;
-	#[cfg(feature = "runtime-benchmarks")]
-	type ReachableDest = ReachableDest;
 	type AdminOrigin = EnsureRoot<AccountId>;
 }
 

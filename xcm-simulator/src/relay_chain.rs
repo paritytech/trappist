@@ -26,7 +26,7 @@ use polkadot_core_primitives::{Balance, BlockNumber, Hash};
 use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_runtime_common::BlockHashCount;
 use polkadot_runtime_parachains::{configuration, dmp, origin, shared, ump, Origin};
-use rococo_runtime::{ExistentialDeposit, FirstMessageFactorPercent, MaxLocks, MaxReserves};
+use westend_runtime::{ExistentialDeposit, FirstMessageFactorPercent, MaxLocks, MaxReserves};
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentityLookup},
@@ -89,14 +89,14 @@ impl configuration::Config for Runtime {
 
 parameter_types! {
 	pub const RocLocation: MultiLocation = Here.into();
-	pub RococoNetwork: NetworkId =
-		NetworkId::Named(b"Rococo".to_vec().try_into().expect("shorter than length limit; qed"));
+	pub WestendNetwork: NetworkId =
+		NetworkId::Named(b"Westend".to_vec().try_into().expect("shorter than length limit; qed"));
 	pub Ancestry: MultiLocation = Here.into();
 	pub CheckAccount: AccountId = XcmPallet::check_account();
 }
 
 pub type SovereignAccountOf =
-	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<RococoNetwork, AccountId>);
+	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<WestendNetwork, AccountId>);
 
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	Balances,
@@ -109,16 +109,16 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, RuntimeOrigin>,
 	ChildParachainAsNative<Origin, RuntimeOrigin>,
-	SignedAccountId32AsNative<RococoNetwork, RuntimeOrigin>,
+	SignedAccountId32AsNative<WestendNetwork, RuntimeOrigin>,
 	ChildSystemParachainAsSuperuser<ParaId, RuntimeOrigin>,
 );
 
 parameter_types! {
 	pub const BaseXcmWeight: u64 = 1_000_000_000;
 	pub const MaxInstructions: u32 = 100;
-	pub const Rococo: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(RocLocation::get()) });
+	pub const Westend: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(RocLocation::get()) });
 	pub const Statemine: MultiLocation = Parachain(ASSET_RESERVE_PARA_ID).into();
-	pub const RococoForStatemine: (MultiAssetFilter, MultiLocation) = (Rococo::get(), Statemine::get());
+	pub const WestendForStatemine: (MultiAssetFilter, MultiLocation) = (Westend::get(), Statemine::get());
 }
 
 match_types! {
@@ -134,7 +134,7 @@ pub type Barrier = (
 	AllowKnownQueryResponses<XcmPallet>,
 	AllowSubscriptionsFrom<OnlyParachains>,
 );
-pub type TrustedTeleporters = (xcm_builder::Case<RococoForStatemine>,);
+pub type TrustedTeleporters = (xcm_builder::Case<WestendForStatemine>,);
 pub type XcmRouter = super::RelayChainXcmRouter;
 
 pub struct XcmConfig;
@@ -148,9 +148,9 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher =
-		WeightInfoBounds<weights::xcm::RococoXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
+		WeightInfoBounds<weights::xcm::WestendXcmWeight<RuntimeCall>, RuntimeCall, MaxInstructions>;
 	type Trader = UsingComponents<
-		rococo_runtime_constants::fee::WeightToFee,
+		westend_runtime_constants::fee::WeightToFee,
 		RocLocation,
 		AccountId,
 		Balances,
@@ -162,7 +162,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = XcmPallet;
 }
 
-pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RococoNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, WestendNetwork>;
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -347,7 +347,7 @@ mod weights {
 		use pallet_xcm_benchmarks_fungible::WeightInfo as XcmBalancesWeight;
 		use pallet_xcm_benchmarks_generic::WeightInfo as XcmGeneric;
 
-		/// Types of asset supported by the Rococo runtime.
+		/// Types of asset supported by the Westend runtime.
 		pub enum AssetTypes {
 			/// An asset backed by `pallet-balances`.
 			Balances,
@@ -371,7 +371,7 @@ mod weights {
 			fn weigh_multi_assets(&self, balances_weight: Weight) -> XCMWeight;
 		}
 
-		// Rococo only knows about one asset, the balances pallet.
+		// Westend only knows about one asset, the balances pallet.
 		const MAX_ASSETS: u32 = 1;
 
 		impl WeighMultiAssets for MultiAssetFilter {
@@ -409,8 +409,8 @@ mod weights {
 			}
 		}
 
-		pub struct RococoXcmWeight<Call>(core::marker::PhantomData<Call>);
-		impl<Call> XcmWeightInfo<Call> for RococoXcmWeight<Call> {
+		pub struct WestendXcmWeight<Call>(core::marker::PhantomData<Call>);
+		impl<Call> XcmWeightInfo<Call> for WestendXcmWeight<Call> {
 			fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
 				assets.weigh_multi_assets(XcmBalancesWeight::<Runtime>::withdraw_asset())
 			}

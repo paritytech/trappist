@@ -66,7 +66,7 @@ sc-sysinfo = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
 frame-system = { workspace = true }
-frame-rpc-system = { workspace = true }
+substrate-frame-rpc-system = { workspace = true }
 pallet-asset-tx-payment = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 substrate-state-trie-migration-rpc = { workspace = true }
