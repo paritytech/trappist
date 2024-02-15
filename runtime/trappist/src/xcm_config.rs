@@ -48,6 +48,7 @@ use xcm_primitives::{AsAssetMultiLocation, ConvertedRegisteredAssetId, TrappistD
 use crate::{
 	constants::fee::{default_fee_per_second, WeightToFee},
 	impls::ToAuthor,
+	weights,
 	weights::TrappistDropAssetsWeigher,
 	AggregateMessageOrigin, MessageQueue, TransactionByteFee, CENTS,
 };
@@ -431,8 +432,6 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 		EnsureXcm<IsMajorityOfBody<RelayLocation, ExecutiveBody>>,
 	>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	// TODO:
-	// type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
-	type WeightInfo = ();
+	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
 	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
 }
