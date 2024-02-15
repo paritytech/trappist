@@ -187,14 +187,12 @@ pub fn trappist_live_config() -> ChainSpec {
 		// initial collators.
 		vec![
 			(
-				hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c").into(),
-				hex!("56266f110802ee790b5c40f63a0f9cba54d2889b014ea52661745557d09dbc1c")
-					.unchecked_into(),
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_collator_keys_from_seed::<AuraId>("Alice"),
 			),
 			(
-				hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238").into(),
-				hex!("64c2a2b803bdd4dcb88920ff4d56b618b2e5fbede48c4dc7cd78e562ebc06238")
-					.unchecked_into(),
+				get_account_id_from_seed::<sr25519::Public>("Bob"),
+				get_collator_keys_from_seed::<AuraId>("Bob"),
 			),
 		],
 		vec![
