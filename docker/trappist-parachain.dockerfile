@@ -1,5 +1,5 @@
 # This file is sourced from https://github.com/paritytech/polkadot-sdk/blob/master/scripts/ci/dockerfiles/polkadot/polkadot_builder.Dockerfile
-FROM docker.io/paritytech/ci-linux:production as builder
+FROM docker.io/paritytech/ci-unified:latest as builder
 
 WORKDIR /trappist
 COPY . /trappist
