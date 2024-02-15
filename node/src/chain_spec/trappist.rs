@@ -182,7 +182,7 @@ pub fn trappist_live_config() -> ChainSpec {
 	)
 	.with_name("Trappist")
 	.with_id("trappist")
-	.with_chain_type(ChainType::Local)
+	.with_chain_type(ChainType::Live)
 	.with_genesis_config_patch(trappist_live_genesis(
 		// initial collators.
 		vec![
