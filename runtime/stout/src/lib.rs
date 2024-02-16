@@ -487,10 +487,13 @@ parameter_types! {
 	pub const ValueLimit: u32 = 64;
 }
 
+type StoutCollectionId = u32;
+type StoutItemId = u32;
+
 impl pallet_uniques::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type CollectionId = u32;
-	type ItemId = u32;
+	type CollectionId = StoutCollectionId;
+	type ItemId = StoutItemId;
 	type Currency = Balances;
 	type ForceOrigin = frame_system::EnsureRoot<AccountId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
