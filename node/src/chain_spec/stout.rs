@@ -84,55 +84,6 @@ pub fn stout_local_testnet_config() -> ChainSpec {
 	.with_protocol_id(DEFAULT_PROTOCOL_ID)
 	.with_properties(properties)
 	.build()
-
-	// ChainSpec::from_genesis(
-	// 	// Name
-	// 	"Stout Local",
-	// 	// ID
-	// 	"stout_local",
-	// 	ChainType::Local,
-	// 	move || {
-	// 		testnet_genesis(
-	// 			// Initial collators.
-	// 			vec![
-	// 				(
-	// 					get_account_id_from_seed::<sr25519::Public>("Alice"),
-	// 					get_collator_keys_from_seed::<AuraId>("Alice"),
-	// 				),
-	// 				(
-	// 					get_account_id_from_seed::<sr25519::Public>("Bob"),
-	// 					get_collator_keys_from_seed::<AuraId>("Bob"),
-	// 				),
-	// 			],
-	// 			// Sudo account
-	// 			get_account_id_from_seed::<sr25519::Public>("Alice"),
-	// 			// Pre-funded accounts
-	// 			vec![
-	// 				get_account_id_from_seed::<sr25519::Public>("Alice"),
-	// 				get_account_id_from_seed::<sr25519::Public>("Bob"),
-	// 				get_account_id_from_seed::<sr25519::Public>("Charlie"),
-	// 				get_account_id_from_seed::<sr25519::Public>("Dave"),
-	// 				get_account_id_from_seed::<sr25519::Public>("Eve"),
-	// 				get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-	// 			],
-	// 			STOUT_PARA_ID.into(),
-	// 		)
-	// 	},
-	// 	// Bootnodes
-	// 	vec![],
-	// 	// Telemetry
-	// 	None,
-	// 	// Protocol ID
-	// 	Some(DEFAULT_PROTOCOL_ID),
-	// 	None,
-	// 	// Properties
-	// 	Some(properties),
-	// 	// Extensions
-	// 	Extensions {
-	// 		relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-	// 		para_id: STOUT_PARA_ID,
-	// 	},
-	// )
 }
 
 /// Configure initial storage state for FRAME modules.
@@ -175,6 +126,7 @@ pub fn testnet_genesis(
 		},
 		}
 	)
+<<<<<<< HEAD
 	// RuntimeGenesisConfig {
 	// 	system: SystemConfig {
 	// 		code: stout_runtime::WASM_BINARY
@@ -226,4 +178,6 @@ pub fn testnet_genesis(
 	// 		phantom: Default::default(),
 	// 	},
 	// }
+=======
+>>>>>>> origin/main
 }
