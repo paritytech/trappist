@@ -28,3 +28,6 @@ zombienet-linux
 # IDEs
 .vscode/
 .idea/
+
+# JS / TS
+**/node_modules/

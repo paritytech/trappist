@@ -1,0 +1,10 @@
+{
+    "collectionId": 1,
+    "numNfts": 10,
+    "imageInfo": null,
+    "out": {
+        "metadataDir": "nft-metadata",
+        "imageDir": null
+    },
+    "substrateEndpoint": "ws://127.0.0.1:9920"
+}
