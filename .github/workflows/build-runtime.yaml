@@ -52,7 +52,7 @@ jobs:
       # Release published: add artifacts to release
       - name: Add artifacts to release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           append_body: true
           body: |
